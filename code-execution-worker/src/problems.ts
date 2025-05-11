@@ -4,8 +4,11 @@ export const problems: Problem[] = [
   {
     id: '1',
     name: 'Add Two Numbers',
-    input: '5,1,6,4',
-    expectedOutput: '6,10',
+    input: [5, 1, 6, 4],
+    tags: ['math', 'addition'],
+    description: 'Given two numbers, return their sum.',
+    difficulty: 'easy',
+    expectedOutput: [6, 10],
     drivers: [
       {
         id: '1',
@@ -22,139 +25,390 @@ public class Solution
 }
 `,
         driverCode: `using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
 
 public class Program
 {
-    public static void Main()
+    private class SubmissionResult
     {
-        var str = Console.ReadLine();
-        var split = str.Split(',');
-        var result = string.Empty;
+        public bool Pass { get; set; }
 
-        for (var i = 0; i < split.Length; i += 2)
+        public int TestCaseCount { get; set; }
+
+        public int PassedTestCases { get; set; }
+
+        public int FailedTestCases { get; set; }
+
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        public long ExecutionTimeInMs { get; set; }
+    }
+
+    public static void Main(string[] args)
+    {
+        if (args.Length < 3)
         {
-            var a = int.Parse(split[i]);
-            var b = int.Parse(split[i + 1]);
-            result += Solution.Add(a, b).ToString();
+            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+            Environment.Exit(1);
+        }
 
-            if (i + 2 < split.Length)
+        string inputPath = args[0];
+        string expectedPath = args[1];
+        string resultPath = args[2];
+
+        try
+        {
+            string input = File.ReadAllText(inputPath);
+            string expectedOutput = File.ReadAllText(expectedPath);
+            var sw = Stopwatch.StartNew();
+
+            var results = RunTests(input, expectedOutput);
+
+            results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
+
+            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
             {
-                result += ",";
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            File.WriteAllText(resultPath, asJson);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error reading files: {ex.Message}");
+
+            var results = new SubmissionResult
+            {
+                ErrorMessage = ex.Message,
+            };
+            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            File.WriteAllText(resultPath, asJson);
+            Environment.Exit(1);
+        }
+    }
+
+    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
+    {
+        var input = JsonSerializer.Deserialize<int[]>(inputJsonStr);
+        var expectedOutput = JsonSerializer.Deserialize<int[]>(expectedOutputJsonStr);
+        int testCaseCount = input.Length / 2;
+        int passedTestCases = 0;
+        int failedTestCases = 0;
+
+        for (int i = 0, j = 0; i < input.Length; i += 2, j++)
+        {
+            var a = input[i];
+            var b = input[i + 1];
+            var result = Solution.Add(a, b);
+            int expected = expectedOutput[j];
+
+            if (result == expected)
+            {
+                passedTestCases++;
+            }
+            else
+            {
+                failedTestCases++;
             }
         }
 
-        Console.WriteLine(result);
+        return new SubmissionResult
+        {
+            TestCaseCount = testCaseCount,
+            PassedTestCases = passedTestCases,
+            FailedTestCases = failedTestCases,
+            Pass = passedTestCases == testCaseCount
+        };
     }
 }`
       },
       {
         id: '2',
         language: Language.JavaScript,
-        image: 'code-executor-js',
+        image: 'code-executor-javascript',
         uiTemplate: `export function add(a, b) {
     // Your code here
 }
 `,
-        driverCode: `import { add } from './solution.js';
+        driverCode: `import fs from 'fs';
+import path from 'path';
+import { add } from './solution.js'
 
-let input = '';
 
-process.stdin.on('data', (chunk) => {
-    input += chunk;
-});
+function main() {
+    const args = process.argv.slice(2);
 
-process.stdin.on('end', () => {
-    const str = input.trim(); // Removing extra newline characters
-    const split = str.split(',');
-    let result = '';
+    if (args.length < 3) {
+        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+        process.exit(1);
+    }
 
-    for (let i = 0; i < split.length; i += 2) {
-        const a = parseInt(split[i]);
-        const b = parseInt(split[i + 1]);
-        result += add(a, b).toString();
+    const [inputPath, expectedPath, resultPath] = args;
 
-        if (i + 2 < split.length) {
-            result += ",";
+    const result = {
+        pass: false,
+        testCaseCount: 0,
+        passedTestCases: 0,
+        failedTestCases: 0,
+        errorMessage: '',
+        executionTimeInMs: 0
+    };
+
+    try {
+        const input = fs.readFileSync(inputPath, 'utf8');
+        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+        const start = Date.now();
+
+        const testResults = runTests(input, expectedOutput);
+
+        result.pass = testResults.pass;
+        result.testCaseCount = testResults.testCaseCount;
+        result.passedTestCases = testResults.passedTestCases;
+        result.failedTestCases = testResults.failedTestCases;
+        result.executionTimeInMs = Date.now() - start;
+
+    } catch (err) {
+        console.error('Error reading files:' + err.message);
+        result.errorMessage = err.message;
+    }
+
+    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr, expectedOutputJsonStr) {
+    const input = JSON.parse(inputJsonStr);         // array of integers
+    const expectedOutput = JSON.parse(expectedOutputJsonStr); // array of integers
+    const testCaseCount = Math.floor(input.length / 2);
+    let passedTestCases = 0;
+    let failedTestCases = 0;
+
+    for (let i = 0, j = 0; i < input.length; i += 2, j++) {
+        const a = input[i];
+        const b = input[i + 1];
+        const result = add(a, b);           // your test function
+        const expected = expectedOutput[j];
+
+        if (result === expected) {
+            passedTestCases++;
+        } else {
+            failedTestCases++;
         }
     }
 
-    console.log(result);
-});`
+    return {
+        testCaseCount,
+        passedTestCases,
+        failedTestCases,
+        pass: passedTestCases === testCaseCount
+    };
+}
+
+main();`
       },
       {
         id: '3',
         language: Language.TypeScript,
-        image: 'code-executor-ts',
+        image: 'code-executor-typescript',
         uiTemplate: `export function add(a: number, b: number): number {
     // Your code here
+}`,
+        driverCode: `import fs from 'fs';
+import { add } from './solution';
+
+interface SubmissionResult {
+  pass: boolean;
+  testCaseCount: number;
+  passedTestCases: number;
+  failedTestCases: number;
+  errorMessage: string;
+  executionTimeInMs: number;
 }
-`,
-        driverCode: `import { add } from './solution';
 
-let input = '';
+function main(): void {
+  const args = process.argv.slice(2);
 
-process.stdin.on('data', (chunk) => {
-    input += chunk;
-});
+  if (args.length < 3) {
+    console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+    process.exit(1);
+  }
 
-process.stdin.on('end', () => {
-    const str = input.trim(); // Removing extra newline characters
-    const split = str.split(',');
-    let result = '';
+  const [inputPath, expectedPath, resultPath] = args;
 
-    for (let i = 0; i < split.length; i += 2) {
-        const a = parseInt(split[i]);
-        const b = parseInt(split[i + 1]);
-        result += add(a, b).toString();
+  const result: SubmissionResult = {
+    pass: false,
+    testCaseCount: 0,
+    passedTestCases: 0,
+    failedTestCases: 0,
+    errorMessage: '',
+    executionTimeInMs: 0
+  };
 
-        if (i + 2 < split.length) {
-            result += ",";
-        }
+  try {
+    const input = fs.readFileSync(inputPath, 'utf8');
+    const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+    const start = Date.now();
+
+    const testResults = runTests(input, expectedOutput);
+
+    result.pass = testResults.pass;
+    result.testCaseCount = testResults.testCaseCount;
+    result.passedTestCases = testResults.passedTestCases;
+    result.failedTestCases = testResults.failedTestCases;
+    result.executionTimeInMs = Date.now() - start;
+  } catch (err: any) {
+    console.error('Error reading files:' + err.message);
+    result.errorMessage = err.message;
+  }
+
+  fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr: string, expectedOutputJsonStr: string): SubmissionResult {
+  const input = JSON.parse(inputJsonStr); // array of integers
+  const expectedOutput = JSON.parse(expectedOutputJsonStr); // array of integers
+  const testCaseCount = Math.floor(input.length / 2);
+  let passedTestCases = 0;
+  let failedTestCases = 0;
+
+  for (let i = 0, j = 0; i < input.length; i += 2, j++) {
+    const a = input[i];
+    const b = input[i + 1];
+    const result = add(a, b); // your test function
+    const expected = expectedOutput[j];
+
+    if (result === expected) {
+      passedTestCases++;
+    } else {
+      failedTestCases++;
     }
+  }
 
-    console.log(result);
-});`
+  return {
+    testCaseCount,
+    passedTestCases,
+    failedTestCases,
+    pass: passedTestCases === testCaseCount,
+    errorMessage: '',
+    executionTimeInMs: 0
+  };
+}
+
+main();`
       }
     ]
   },
   {
     id: '2',
     name: 'FizzBuzz',
-    input: '5,1,3,4,15',
-    expectedOutput: 'buzz,,fizz,,fizzbuzz',
+    tags: ['math', 'fizzbuzz'],
+    description:
+      'Given a number, return "fizz" if it is divisible by 3, "buzz" if it is divisible by 5, and "fizzbuzz" if it is divisible by both.',
+    difficulty: 'easy',
+    input: [5, 1, 3, 4, 15],
+    expectedOutput: ['buzz', '', 'fizz', '', 'fizzbuzz'],
     drivers: [
       {
         id: '4',
         language: Language.TypeScript,
-        image: 'code-executor-ts',
+        image: 'code-executor-typescript',
         uiTemplate: `export function fizzBuzz(a: number): string {
     // Your code here
 }
 `,
-        driverCode: `import { fizzBuzz } from './solution';
+        driverCode: `import fs from 'fs';
+import { fizzBuzz } from './solution';
 
-let input = '';
+interface SubmissionResult {
+  pass: boolean;
+  testCaseCount: number;
+  passedTestCases: number;
+  failedTestCases: number;
+  errorMessage: string;
+  executionTimeInMs: number;
+}
 
-process.stdin.on('data', (chunk) => {
-    input += chunk;
-});
+function main(): void {
+  const args = process.argv.slice(2);
 
-process.stdin.on('end', () => {
-    const str = input.trim(); // Removing extra newline characters
-    const split = str.split(',');
-    let result = '';
+  if (args.length < 3) {
+    console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+    process.exit(1);
+  }
 
-    for (let i = 0; i < split.length; i++) {
-        const a = parseInt(split[i]);
-        result += fizzBuzz(a).toString();
+  const [inputPath, expectedPath, resultPath] = args;
 
-        if (i + 1 < split.length) {
-            result += ",";
-        }
+  const result: SubmissionResult = {
+    pass: false,
+    testCaseCount: 0,
+    passedTestCases: 0,
+    failedTestCases: 0,
+    errorMessage: '',
+    executionTimeInMs: 0
+  };
+
+  try {
+    const input = fs.readFileSync(inputPath, 'utf8');
+    const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+    const start = Date.now();
+
+    const testResults = runTests(input, expectedOutput);
+
+    result.pass = testResults.pass;
+    result.testCaseCount = testResults.testCaseCount;
+    result.passedTestCases = testResults.passedTestCases;
+    result.failedTestCases = testResults.failedTestCases;
+    result.executionTimeInMs = Date.now() - start;
+  } catch (err: any) {
+    console.error('Error reading files:' + err.message);
+    result.errorMessage = err.message;
+  }
+
+  fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr: string, expectedOutputJsonStr: string): SubmissionResult {
+  const input: number[] = JSON.parse(inputJsonStr);
+  const expectedOutput: string[] = JSON.parse(expectedOutputJsonStr);
+  const testCaseCount = input.length;
+  let passedTestCases = 0;
+  let failedTestCases = 0;
+
+  for (let i = 0; i < input.length; i++) {
+    const a = input[i];
+    const result = fizzBuzz(a); // your test function
+    const expected = expectedOutput[i];
+
+    if (result === expected) {
+      passedTestCases++;
+    } else {
+      failedTestCases++;
     }
+  }
 
-    console.log(result);
-});`
+  return {
+    testCaseCount,
+    passedTestCases,
+    failedTestCases,
+    pass: passedTestCases === testCaseCount,
+    errorMessage: '',
+    executionTimeInMs: 0
+  };
+}
+
+main();
+
+`
       }
     ]
   }

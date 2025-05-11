@@ -12,9 +12,11 @@
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "prettier": "prettier --write **/*.{ts,js,css,html,json} !**/node_modules/** !**/dist/** !**/coverage/** !**/compiled/**",
+    "docker-build-app": "docker build -t code-execution-worker .",
+    "docker-run-app": "docker run -v //./pipe/docker_engine://./pipe/docker_engine -p 3000:3000 code-execution-worker",
     "docker-build-csharp": "cd docker/csharp && docker build -t code-executor-csharp .",
-    "docker-build-js": "cd docker/javascript && docker build -t code-executor-js .",
-    "docker-build-ts": "cd docker/typescript && docker build -t code-executor-ts ."
+    "docker-build-js": "cd docker/javascript && docker build -t code-executor-javascript .",
+    "docker-build-ts": "cd docker/typescript && docker build -t code-executor-typescript ."
   },
   "dependencies": {
     "@types/cors": "^2.8.18",

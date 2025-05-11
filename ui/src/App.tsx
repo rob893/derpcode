@@ -1,28 +1,22 @@
-import { useState } from 'react';
-import type { Problem } from './types/models';
+import { Routes, Route, Navigate } from 'react-router';
 import { ProblemList } from './components/ProblemList';
 import { ProblemView } from './components/ProblemView';
+import { CreateProblem } from './components/CreateProblem';
 import './App.css';
 
 function App() {
-  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
-
   return (
     <div className="app">
       <header>
         <h1>LeetCode Clone</h1>
       </header>
       <main>
-        {selectedProblem ? (
-          <div className="problem-container">
-            <button className="back-button" onClick={() => setSelectedProblem(null)}>
-              ← Back to Problems
-            </button>
-            <ProblemView problem={selectedProblem} />
-          </div>
-        ) : (
-          <ProblemList onProblemSelect={setSelectedProblem} />
-        )}
+        <Routes>
+          <Route path="/" element={<ProblemList />} />
+          <Route path="/problems/new" element={<CreateProblem />} />
+          <Route path="/problems/:id" element={<ProblemView />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
     </div>
   );

@@ -2,38 +2,26 @@ import express from 'express';
 import cors from 'cors';
 import { problems } from './problems';
 import { runWorker } from './utilities';
-
-const userCodeCSharp = `
-using System;
-
-public class Solution
-{
-    public static int Add(int a, int b)
-    {
-        return a + b;
-    }
-}
-`;
-
-const userCodeJs = `
-export function add(a, b) {
-    return a + b;
-}
-`;
-
-const userCodeTs = `
-export function add(a: number, b: number): number {
-    return a + b;
-}
-`;
+import { driverTemplates } from './driverTemplates';
+import { Problem } from './models';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+function mapProblem(problem: Problem): Problem {
+  return {
+    ...problem,
+    drivers: problem.drivers.map(driver => ({
+      ...driver,
+      driverCode: ''
+    }))
+  };
+}
+
 app.get('/problems', (req, res) => {
-  res.json(problems);
+  res.json(problems.map(mapProblem));
 });
 
 app.get('/problems/:id', (req, res) => {
@@ -45,7 +33,37 @@ app.get('/problems/:id', (req, res) => {
     return;
   }
 
-  res.json(problem);
+  res.json(mapProblem(problem));
+});
+
+app.post('/problems', (req, res) => {
+  const problem: Problem = req.body;
+
+  if (
+    !problem.id ||
+    !problem.name ||
+    !problem.description ||
+    !problem.difficulty ||
+    !problem.expectedOutput ||
+    !problem.tags ||
+    !problem.input ||
+    !problem.drivers
+  ) {
+    res.status(400).json({ error: 'Invalid problem data' });
+    return;
+  }
+  const existingProblem = problems.find(p => p.id === problem.id);
+  if (existingProblem) {
+    res.status(409).json({ error: 'Problem with this ID already exists' });
+    return;
+  }
+
+  problems.push(problem);
+  res.status(201).json(mapProblem(problem));
+});
+
+app.get('/driverTemplates', (req, res) => {
+  res.json(driverTemplates);
 });
 
 app.post('/problems/:id/submissions', async (req, res) => {
@@ -65,7 +83,7 @@ app.post('/problems/:id/submissions', async (req, res) => {
     return;
   }
 
-  const result = await runWorker(userCode, driver.driverCode, problem.input, driver.image, problem.expectedOutput);
+  const result = await runWorker(userCode, language, problem);
 
   res.status(200).json(result);
 });
