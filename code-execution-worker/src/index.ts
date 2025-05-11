@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { problems } from './problems';
 import { runWorker } from './utilities';
 
@@ -28,6 +29,7 @@ export function add(a: number, b: number): number {
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/problems', (req, res) => {

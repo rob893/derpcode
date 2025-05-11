@@ -11,8 +11,17 @@ export const problems: Problem[] = [
         id: '1',
         language: Language.CSharp,
         image: 'code-executor-csharp',
-        driverCode: `
-using System;
+        uiTemplate: `using System;
+
+public class Solution
+{
+    public static int Add(int a, int b)
+    {
+        // Your code here
+    }
+}
+`,
+        driverCode: `using System;
 
 public class Program
 {
@@ -42,8 +51,11 @@ public class Program
         id: '2',
         language: Language.JavaScript,
         image: 'code-executor-js',
-        driverCode: `
-import { add } from './solution.js';
+        uiTemplate: `export function add(a, b) {
+    // Your code here
+}
+`,
+        driverCode: `import { add } from './solution.js';
 
 let input = '';
 
@@ -73,8 +85,11 @@ process.stdin.on('end', () => {
         id: '3',
         language: Language.TypeScript,
         image: 'code-executor-ts',
-        driverCode: `
-import { add } from './solution';
+        uiTemplate: `export function add(a: number, b: number): number {
+    // Your code here
+}
+`,
+        driverCode: `import { add } from './solution';
 
 let input = '';
 
@@ -109,11 +124,14 @@ process.stdin.on('end', () => {
     expectedOutput: 'buzz,,fizz,,fizzbuzz',
     drivers: [
       {
-        id: '3',
+        id: '4',
         language: Language.TypeScript,
         image: 'code-executor-ts',
-        driverCode: `
-import { fizzBuzz } from './solution';
+        uiTemplate: `export function fizzBuzz(a: number): string {
+    // Your code here
+}
+`,
+        driverCode: `import { fizzBuzz } from './solution';
 
 let input = '';
 
