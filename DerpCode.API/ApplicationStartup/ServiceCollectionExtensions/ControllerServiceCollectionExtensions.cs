@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.DependencyInjection;
 using DerpCode.API.Core;
+using System.Text.Json.Serialization;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 
@@ -50,6 +51,10 @@ public static class ControllerServiceCollectionExtensions
         .ConfigureApiBehaviorOptions(options =>
         {
             options.InvalidModelStateResponseFactory = _ => new ValidationProblemDetailsResult();
+        })
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
 
         return services;

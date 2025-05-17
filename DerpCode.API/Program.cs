@@ -21,7 +21,8 @@ public static class Program
             .AddHealthCheckServices()
             .AddSwaggerServices(builder.Configuration)
             .AddCors()
-            .AddHttpClient();
+            .AddHttpClient()
+            .AddDockerServices();
 
         var app = builder.Build();
 
