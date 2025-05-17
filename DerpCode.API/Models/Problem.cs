@@ -12,11 +12,11 @@ public sealed class Problem
 
     public string Difficulty { get; set; } = string.Empty;
 
-    public IReadOnlyList<object> ExpectedOutput { get; set; } = [];
+    public List<object> ExpectedOutput { get; set; } = [];
 
-    public IReadOnlyList<object> Tags { get; set; } = [];
+    public List<object> Tags { get; set; } = [];
 
-    public IReadOnlyList<object> Input { get; set; } = [];
+    public List<object> Input { get; set; } = [];
 
-    public IReadOnlyList<ProblemDriver> Drivers { get; set; } = [];
+    public List<ProblemDriver> Drivers { get; set; } = [];
 }

@@ -18,7 +18,7 @@ export const ProblemView = () => {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/problems/${id}`);
+        const response = await fetch(`https://localhost:7059/api/v1/problems/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch problem');
         }
@@ -46,7 +46,7 @@ export const ProblemView = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:3000/problems/${problem.id}/submissions`, {
+      const response = await fetch(`https://localhost:7059/api/v1/problems/${problem.id}/submissions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

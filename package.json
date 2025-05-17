@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build-api": "cd DerpCode.API && dotnet build",
+    "start": "cd DerpCode.API && dotnet watch run",
+    "docker-build-app": "docker build -t code-execution-worker .",
+    "docker-run-app": "docker run -v //./pipe/docker_engine://./pipe/docker_engine -p 3000:3000 code-execution-worker",
+    "docker-build-csharp": "cd DerpCode.API/Docker/CSharp && docker build -t code-executor-csharp .",
+    "docker-build-js": "cd DerpCode.API/Docker/JavaScript && docker build -t code-executor-javascript .",
+    "docker-build-ts": "cd DerpCode.API/Docker/TypeScript && docker build -t code-executor-typescript ."
+  }
+}

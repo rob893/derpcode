@@ -11,7 +11,7 @@ export const ProblemList = () => {
   useEffect(() => {
     const fetchProblems = async () => {
       try {
-        const response = await fetch('http://localhost:3000/problems');
+        const response = await fetch('https://localhost:7059/api/v1/problems');
         if (!response.ok) {
           throw new Error('Failed to fetch problems');
         }

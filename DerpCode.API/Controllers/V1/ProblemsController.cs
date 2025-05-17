@@ -20,7 +20,7 @@ public class ProblemsController : ControllerBase
 
     private readonly ICodeExecutionService codeExecutionService;
 
-    private static readonly List<Problem> problems = [];
+    private static readonly List<Problem> problems = Data.ProblemData.Problems;
 
     private static readonly List<DriverTemplate> driverTemplates = Data.DriverTemplateData.Templates;
 
@@ -108,7 +108,7 @@ public class ProblemsController : ControllerBase
 
         try
         {
-            var result = await this.codeExecutionService.RunCodeAsync(request.UserCode, request.Language, problem);
+            var result = await this.codeExecutionService.RunCodeAsync(request.UserCode, request.Language, problem, this.HttpContext.RequestAborted);
             return Ok(result);
         }
         catch (Exception ex)
@@ -134,7 +134,7 @@ public class ProblemsController : ControllerBase
                 Id = d.Id,
                 Language = d.Language,
                 Image = d.Image,
-                UiTemplate = d.UiTemplate,
+                UITemplate = d.UITemplate,
                 DriverCode = string.Empty
             })]
         };

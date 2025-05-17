@@ -14,11 +14,16 @@ namespace DerpCode.API.Services;
 
 public interface ICodeExecutionService
 {
-    Task<SubmissionResult> RunCodeAsync(string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken = default);
+    Task<SubmissionResult> RunCodeAsync(string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken);
 }
 
 public class CodeExecutionService : ICodeExecutionService
 {
+    private static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IDockerClient dockerClient;
 
     private readonly ILogger<CodeExecutionService> logger;
@@ -29,7 +34,7 @@ public class CodeExecutionService : ICodeExecutionService
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<SubmissionResult> RunCodeAsync(string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken = default)
+    public async Task<SubmissionResult> RunCodeAsync(string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(userCode);
         ArgumentNullException.ThrowIfNull(problem);
@@ -102,7 +107,8 @@ public class CodeExecutionService : ICodeExecutionService
             Image = image,
             Cmd = ["/bin/bash", "/home/runner/run.sh"],
             HostConfig = hostConfig,
-            NetworkDisabled = true
+            NetworkDisabled = true,
+
         }, cancellationToken);
 
         await this.dockerClient.Containers.StartContainerAsync(container.ID, null, cancellationToken).ConfigureAwait(false);
@@ -117,8 +123,12 @@ public class CodeExecutionService : ICodeExecutionService
         var output = File.Exists(outputPath) ? await File.ReadAllTextAsync(outputPath, cancellationToken) : string.Empty;
         var error = File.Exists(errorPath) ? await File.ReadAllTextAsync(errorPath, cancellationToken) : string.Empty;
 
+        this.logger.LogInformation($"Output: {(string.IsNullOrWhiteSpace(output) ? "No output." : output)}");
+
         if (!string.IsNullOrEmpty(error))
         {
+            this.logger.LogError($"Error executing code: {error}");
+
             return new SubmissionResult
             {
                 Pass = false,
@@ -131,7 +141,8 @@ public class CodeExecutionService : ICodeExecutionService
         }
 
         var results = await File.ReadAllTextAsync(resultsPath, cancellationToken).ConfigureAwait(false);
+        var submissionResult = JsonSerializer.Deserialize<SubmissionResult>(results, jsonOptions);
 
-        return JsonSerializer.Deserialize<SubmissionResult>(results) ?? throw new InvalidOperationException("Failed to deserialize results");
+        return submissionResult ?? throw new InvalidOperationException("Failed to deserialize results");
     }
 }

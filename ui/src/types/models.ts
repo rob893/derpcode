@@ -10,9 +10,9 @@ export interface Problem {
 }
 
 export enum Language {
-  CSharp = 'csharp',
-  JavaScript = 'javascript',
-  TypeScript = 'typescript'
+  CSharp = 'CSharp',
+  JavaScript = 'JavaScript',
+  TypeScript = 'TypeScript'
 }
 
 export interface ProblemDriver {

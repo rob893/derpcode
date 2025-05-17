@@ -8,7 +8,7 @@ public sealed class ProblemDriver
 
     public string Image { get; set; } = string.Empty;
 
-    public string UiTemplate { get; set; } = string.Empty;
+    public string UITemplate { get; set; } = string.Empty;
 
     public string DriverCode { get; set; } = string.Empty;
 }

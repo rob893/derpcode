@@ -29,7 +29,7 @@ export const CreateProblem = () => {
   useEffect(() => {
     const fetchDriverTemplates = async () => {
       try {
-        const response = await fetch('http://localhost:3000/driverTemplates');
+        const response = await fetch('https://localhost:7059/api/v1/driverTemplates');
         if (!response.ok) throw new Error('Failed to fetch driver templates');
         const templates: DriverTemplate[] = await response.json();
         setDriverTemplates(templates);
@@ -91,7 +91,7 @@ export const CreateProblem = () => {
         drivers: [driver]
       };
 
-      const response = await fetch('http://localhost:3000/problems', {
+      const response = await fetch('https://localhost:7059/api/v1/problems', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

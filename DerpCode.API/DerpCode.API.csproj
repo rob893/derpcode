@@ -32,5 +32,11 @@
 
   <ItemGroup>
     <Content Update="appsettings.Local.json" CopyToPublishDirectory="Never" />
+
+    <Content
+      Include="Docker\**\*"
+      Exclude="Docker\TypeScript\package.json;Docker\TypeScript\tsconfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>
