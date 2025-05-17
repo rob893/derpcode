@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="app">
       <header>
-        <h1>LeetCode Clone</h1>
+        <h1>DerpCode</h1>
       </header>
       <main>
         <Routes>
