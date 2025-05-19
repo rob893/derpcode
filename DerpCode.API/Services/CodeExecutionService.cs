@@ -108,7 +108,7 @@ public class CodeExecutionService : ICodeExecutionService
             Cmd = ["/bin/bash", "/home/runner/run.sh"],
             HostConfig = hostConfig,
             NetworkDisabled = true,
-
+            User = "root"
         }, cancellationToken);
 
         await this.dockerClient.Containers.StartContainerAsync(container.ID, null, cancellationToken).ConfigureAwait(false);

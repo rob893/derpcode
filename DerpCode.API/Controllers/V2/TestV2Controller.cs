@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Controllers.V1;
 
 [ApiController]
-[AllowAnonymous]
 [ApiVersion("2")]
 [Route("api/v{version:apiVersion}/test")]
 public class TestV2Controller : ControllerBase

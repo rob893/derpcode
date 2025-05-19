@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 using DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 using DerpCode.API.Middleware;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace DerpCode.API;
 
@@ -36,6 +37,11 @@ public static class Program
             .UseRouting()
             .UseHsts()
             .UseHttpsRedirection()
+            .UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.All
+            })
+            .UseMiddleware<PathBaseRewriterMiddleware>()
             .UseAndConfigureCors(builder.Configuration)
             .UseAuthentication()
             .UseAuthorization()

@@ -1,11 +1,29 @@
 {
   "scripts": {
     "build-api": "cd DerpCode.API && dotnet build",
+    "build-api-prod": "npm run clean-dist-api && cd DerpCode.API && dotnet build -c Release -o dist",
+    "clean-dist-api": "rm -rf DerpCode.API/dist",
     "start": "cd DerpCode.API && dotnet watch run",
     "docker-build-app": "docker build -t code-execution-worker .",
     "docker-run-app": "docker run -v //./pipe/docker_engine://./pipe/docker_engine -p 3000:3000 code-execution-worker",
     "docker-build-csharp": "cd DerpCode.API/Docker/CSharp && docker build -t code-executor-csharp .",
     "docker-build-js": "cd DerpCode.API/Docker/JavaScript && docker build -t code-executor-javascript .",
-    "docker-build-ts": "cd DerpCode.API/Docker/TypeScript && docker build -t code-executor-typescript ."
+    "docker-build-ts": "cd DerpCode.API/Docker/TypeScript && docker build -t code-executor-typescript .",
+    "status-vm": "ssh azure-vm \"sudo systemctl status DerpCode.API.service\"",
+    "copy-service-file-to-vm": "scp ./CI/DerpCode.API.service azure-vm:/etc/systemd/system",
+    "copy-dist-to-vm": "scp -r ./DerpCode.API/dist/* azure-vm:/var/www/html/APIs/DerpCode.API",
+    "clean-vm": "ssh azure-vm \"rm -rf /var/www/html/APIs/DerpCode.API/*\"",
+    "add-user-docker-vm": "ssh azure-vm \"sudo usermod -aG docker rherber\"",
+    "build-docker-js-vm": "ssh azure-vm \"cd /var/www/html/APIs/DerpCode.API/Docker/JavaScript && sudo docker build -t code-executor-javascript .\"",
+    "build-docker-ts-vm": "ssh azure-vm \"cd /var/www/html/APIs/DerpCode.API/Docker/TypeScript && sudo docker build -t code-executor-typescript .\"",
+    "build-docker-csharp-vm": "ssh azure-vm \"cd /var/www/html/APIs/DerpCode.API/Docker/CSharp && sudo docker build -t code-executor-csharp .\"",
+    "build-docker-vm": "npm run build-docker-js-vm && npm run build-docker-ts-vm && npm run build-docker-csharp-vm",
+    "restart-vm-service": "ssh azure-vm \"sudo systemctl stop DerpCode.API.service; sudo systemctl enable DerpCode.API.service; sudo systemctl start DerpCode.API.service; sudo systemctl daemon-reload\"",
+    "deploy-api-to-vm": "npm run clean-vm && npm run copy-dist-to-vm && npm run copy-service-file-to-vm && npm run restart-vm-service",
+    "build-and-deploy-api-to-vm": "npm run build-api-prod && npm run deploy-api-to-vm",
+    "view-logs-vm": "ssh azure-vm \"sudo journalctl -fu DerpCode.API.service\""
+  },
+  "notes": {
+    "azure-vm": "This is a config in ~/.ssh/config"
   }
 }
