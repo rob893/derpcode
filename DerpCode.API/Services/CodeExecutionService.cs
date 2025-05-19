@@ -99,7 +99,8 @@ public class CodeExecutionService : ICodeExecutionService
             Binds = [$"{tempDir}:/home/runner/submission:rw"],
             Memory = 512L * 1024 * 1024, // 512MB
             MemorySwap = 512L * 1024 * 1024, // 512MB
-            CPUPercent = 50
+            CPUPercent = 50,
+            AutoRemove = true
         };
 
         var container = await this.dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
