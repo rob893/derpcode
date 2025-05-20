@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Data.Repositories;
@@ -29,7 +30,7 @@ public sealed class JwtTokenService : IJwtTokenService
         this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
     }
 
-    public async Task<(bool, User?)> IsTokenEligibleForRefreshAsync(string token, string refreshToken, string deviceId)
+    public async Task<(bool, User?)> IsTokenEligibleForRefreshAsync(string token, string refreshToken, string deviceId, CancellationToken cancellationToken = default)
     {
         // Still validate the passed in token, but ignore its expiration date by setting validate lifetime to false
         var validationParameters = new TokenValidationParameters
@@ -64,7 +65,7 @@ public sealed class JwtTokenService : IJwtTokenService
             return (false, null);
         }
 
-        var user = await this.userRepository.GetByIdAsync(userId, user => user.RefreshTokens);
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken);
 
         if (user == null)
         {
@@ -77,14 +78,14 @@ public sealed class JwtTokenService : IJwtTokenService
 
         if (currentRefreshToken == null)
         {
-            await this.userRepository.SaveChangesAsync();
+            await this.userRepository.SaveChangesAsync(cancellationToken);
             return (false, null);
         }
 
         return (true, user);
     }
 
-    public async Task<string> GenerateAndSaveRefreshTokenForUserAsync(User user, string deviceId)
+    public async Task<string> GenerateAndSaveRefreshTokenForUserAsync(User user, string deviceId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
 
@@ -108,7 +109,7 @@ public sealed class JwtTokenService : IJwtTokenService
             DeviceId = deviceId
         });
 
-        await this.userRepository.SaveChangesAsync();
+        await this.userRepository.SaveChangesAsync(cancellationToken);
 
         return refreshToken;
     }
@@ -169,9 +170,9 @@ public sealed class JwtTokenService : IJwtTokenService
         return tokenHandler.WriteToken(token);
     }
 
-    public async Task RevokeAllRefreshTokensForUserAsync(int userId)
+    public async Task RevokeAllRefreshTokensForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
-        var user = await this.userRepository.GetByIdAsync(userId, user => user.RefreshTokens);
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken);
 
         if (user == null)
         {
@@ -180,17 +181,17 @@ public sealed class JwtTokenService : IJwtTokenService
 
         // Clear all refresh tokens
         user.RefreshTokens.Clear();
-        await this.userRepository.SaveChangesAsync();
+        await this.userRepository.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RevokeRefreshTokenForDeviceAsync(int userId, string deviceId)
+    public async Task RevokeRefreshTokenForDeviceAsync(int userId, string deviceId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(deviceId))
         {
             throw new ArgumentNullException(nameof(deviceId));
         }
 
-        var user = await this.userRepository.GetByIdAsync(userId, user => user.RefreshTokens);
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken);
 
         if (user == null)
         {
@@ -199,6 +200,6 @@ public sealed class JwtTokenService : IJwtTokenService
 
         // Remove the refresh token for the specified device
         user.RefreshTokens.RemoveAll(token => token.DeviceId == deviceId);
-        await this.userRepository.SaveChangesAsync();
+        await this.userRepository.SaveChangesAsync(cancellationToken);
     }
 }

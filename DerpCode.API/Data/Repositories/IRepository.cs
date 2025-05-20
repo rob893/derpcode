@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
 using DerpCode.API.Models;
@@ -21,17 +22,17 @@ public interface IRepository<TEntity, TEntityKey, TSearchParams>
 
     void RemoveRange(IEnumerable<TEntity> entities);
 
-    Task<int> SaveChangesAsync();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
-    Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> condition, bool track = true);
+    Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default);
 
-    Task<TEntity?> GetByIdAsync(TEntityKey id, bool track = true);
+    Task<TEntity?> GetByIdAsync(TEntityKey id, bool track = true, CancellationToken cancellationToken = default);
 
-    Task<TEntity?> GetByIdAsync(TEntityKey id, params Expression<Func<TEntity, object>>[] includes);
+    Task<TEntity?> GetByIdAsync(TEntityKey id, Expression<Func<TEntity, object>>[] includes, CancellationToken cancellationToken = default);
 
-    Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true);
+    Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default);
 
-    Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true);
+    Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true, CancellationToken cancellationToken = default);
 }
 
 public interface IRepository<TEntity, TSearchParams> : IRepository<TEntity, int, TSearchParams>

@@ -63,7 +63,10 @@ public sealed class GlobalExceptionHandlerMiddleware
 
             var jsonResponse = JsonSerializer.Serialize(problemDetails, this.jsonOptions);
 
-            await context.Response.WriteAsync(jsonResponse);
+            if (!context.Response.HasStarted)
+            {
+                await context.Response.WriteAsync(jsonResponse, context.RequestAborted);
+            }
         }
     }
 }

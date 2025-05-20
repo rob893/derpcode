@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
 using DerpCode.API.Models;
@@ -28,7 +29,8 @@ public static class EntityFrameworkExtensions
         int? last,
         string? afterCursor,
         string? beforeCursor,
-        bool includeTotal)
+        bool includeTotal,
+        CancellationToken cancellationToken = default)
             where TEntity : class
             where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
     {
@@ -65,7 +67,7 @@ public static class EntityFrameworkExtensions
                 throw new ArgumentException($"{nameof(first)} cannot be less than 0.", nameof(first));
             }
 
-            pageList = await src.OrderBy(keySelector).Take(first.Value + 1).ToListAsync();
+            pageList = await src.OrderBy(keySelector).Take(first.Value + 1).ToListAsync(cancellationToken);
 
             hasNextPage = pageList.Count > first.Value;
 
@@ -81,7 +83,7 @@ public static class EntityFrameworkExtensions
                 throw new ArgumentException($"{nameof(last)} cannot be less than 0.", nameof(last));
             }
 
-            pageList = await src.OrderByDescending(keySelector).Take(last.Value + 1).ToListAsync();
+            pageList = await src.OrderByDescending(keySelector).Take(last.Value + 1).ToListAsync(cancellationToken);
 
             hasPreviousPage = pageList.Count > last.Value;
 
@@ -94,7 +96,7 @@ public static class EntityFrameworkExtensions
         }
         else
         {
-            pageList = await src.OrderBy(keySelector).ToListAsync();
+            pageList = await src.OrderBy(keySelector).ToListAsync(cancellationToken);
         }
 
         var firstPageItem = pageList.FirstOrDefault();
@@ -108,7 +110,7 @@ public static class EntityFrameworkExtensions
             hasPreviousPage,
             firstPageItem != null ? keyConverter(keySelectorCompiled(firstPageItem)) : null,
             lastPageItem != null ? keyConverter(keySelectorCompiled(lastPageItem)) : null,
-            includeTotal ? await src.CountAsync() : null);
+            includeTotal ? await src.CountAsync(cancellationToken) : null);
     }
 
     public static Task<CursorPaginatedList<TEntity, TEntityKey>> ToCursorPaginatedListAsync<TEntity, TEntityKey>(
@@ -116,7 +118,8 @@ public static class EntityFrameworkExtensions
         Expression<Func<TEntity, TEntityKey>> keySelector,
         Func<TEntityKey, string> keyConverter,
         Func<string, TEntityKey> cursorConverter,
-        CursorPaginationQueryParameters queryParameters)
+        CursorPaginationQueryParameters queryParameters,
+        CancellationToken cancellationToken = default)
             where TEntity : class
             where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
     {
@@ -130,12 +133,14 @@ public static class EntityFrameworkExtensions
             queryParameters.Last,
             queryParameters.After,
             queryParameters.Before,
-            queryParameters.IncludeTotal);
+            queryParameters.IncludeTotal,
+            cancellationToken);
     }
 
     public static Task<CursorPaginatedList<TEntity, int>> ToCursorPaginatedListAsync<TEntity>(
         this IQueryable<TEntity> src,
-        CursorPaginationQueryParameters queryParameters)
+        CursorPaginationQueryParameters queryParameters,
+        CancellationToken cancellationToken = default)
             where TEntity : class, IIdentifiable<int>
     {
         ArgumentNullException.ThrowIfNull(queryParameters);
@@ -148,6 +153,7 @@ public static class EntityFrameworkExtensions
             queryParameters.Last,
             queryParameters.After,
             queryParameters.Before,
-            queryParameters.IncludeTotal);
+            queryParameters.IncludeTotal,
+            cancellationToken);
     }
 }

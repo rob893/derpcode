@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using DerpCode.API.Data.SeedData;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Entities;
@@ -28,34 +30,35 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         this.roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
     }
 
-    public void SeedDatabase(bool seedData, bool clearCurrentData, bool applyMigrations, bool dropDatabase)
+    public async Task SeedDatabaseAsync(bool seedData, bool clearCurrentData, bool applyMigrations, bool dropDatabase, CancellationToken cancellationToken = default)
     {
         if (dropDatabase)
         {
-            this.context.Database.EnsureDeleted();
+            await this.context.Database.EnsureDeletedAsync(cancellationToken);
         }
 
         if (applyMigrations)
         {
-            this.context.Database.Migrate();
+            await this.context.Database.MigrateAsync(cancellationToken);
         }
 
         if (clearCurrentData)
         {
-            this.ClearAllData();
+            await this.ClearAllDataAsync(cancellationToken);
         }
 
         if (seedData)
         {
-            this.SeedRoles();
+            await this.SeedRolesAsync(cancellationToken);
+
             this.SeedProblems();
             this.SeedDriverTemplates();
 
-            this.context.SaveChanges();
+            await this.context.SaveChangesAsync(cancellationToken);
         }
     }
 
-    private void ClearAllData()
+    private async Task ClearAllDataAsync(CancellationToken cancellationToken = default)
     {
         this.context.RefreshTokens.Clear();
         this.context.Problems.Clear();
@@ -63,22 +66,22 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         this.context.Users.Clear();
         this.context.Roles.Clear();
 
-        this.context.SaveChanges();
+        await this.context.SaveChangesAsync(cancellationToken);
     }
 
-    private void SeedRoles()
+    private async Task SeedRolesAsync(CancellationToken cancellationToken = default)
     {
         if (this.context.Roles.Any())
         {
             return;
         }
 
-        var data = File.ReadAllText("Data/SeedData/RoleSeedData.json");
+        var data = await File.ReadAllTextAsync("Data/SeedData/RoleSeedData.json", cancellationToken);
         var roles = JsonSerializer.Deserialize<List<Role>>(data, jsonOptions) ?? throw new JsonException("Unable to deserialize data.");
 
         foreach (var role in roles)
         {
-            this.roleManager.CreateAsync(role).Wait();
+            await this.roleManager.CreateAsync(role);
         }
     }
 

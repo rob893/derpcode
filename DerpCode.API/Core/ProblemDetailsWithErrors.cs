@@ -40,7 +40,7 @@ public sealed class ProblemDetailsWithErrors : ProblemDetails
     }
 
     public ProblemDetailsWithErrors(string error, int statusCode, HttpRequest? request = null) :
-        this(new List<string> { error }, statusCode, request)
+        this([error], statusCode, request)
     { }
 
     public ProblemDetailsWithErrors(IEnumerable<string> errors, HttpStatusCode statusCode, HttpRequest? request = null) :
@@ -48,7 +48,7 @@ public sealed class ProblemDetailsWithErrors : ProblemDetails
     { }
 
     public ProblemDetailsWithErrors(string error, HttpStatusCode statusCode, HttpRequest? request = null) :
-        this(new List<string> { error }, statusCode, request)
+        this([error], statusCode, request)
     { }
 
     public ProblemDetailsWithErrors(IEnumerable<Exception> errors, int statusCode, HttpRequest? request = null) :

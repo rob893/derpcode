@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
 using DerpCode.API.Extensions;
@@ -57,28 +58,12 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
         this.Context.Set<TEntity>().RemoveRange(entities);
     }
 
-    public virtual Task<int> SaveChangesAsync()
+    public virtual Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return this.Context.SaveChangesAsync();
+        return this.Context.SaveChangesAsync(cancellationToken);
     }
 
-    public virtual async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> condition, bool track = true)
-    {
-        IQueryable<TEntity> query = this.Context.Set<TEntity>();
-
-        if (!track)
-        {
-            query = query.AsNoTracking();
-        }
-
-        query = this.AddIncludes(query);
-
-        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(condition);
-
-        return item;
-    }
-
-    public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, bool track = true)
+    public virtual async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
@@ -89,24 +74,40 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
         query = this.AddIncludes(query);
 
-        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id));
+        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(condition, cancellationToken);
 
         return item;
     }
 
-    public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, params Expression<Func<TEntity, object>>[] includes)
+    public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, bool track = true, CancellationToken cancellationToken = default)
+    {
+        IQueryable<TEntity> query = this.Context.Set<TEntity>();
+
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+
+        query = this.AddIncludes(query);
+
+        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
+
+        return item;
+    }
+
+    public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, Expression<Func<TEntity, object>>[] includes, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
         query = this.AddIncludes(query);
         query = includes.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
 
-        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id));
+        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
 
         return item;
     }
 
-    public virtual Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true)
+    public virtual Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
@@ -117,10 +118,10 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
         query = this.AddIncludes(query);
 
-        return query.Where(condition).ToListAsync();
+        return query.Where(condition).ToListAsync(cancellationToken);
     }
 
-    public virtual Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true)
+    public virtual Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
@@ -136,7 +137,8 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
             item => item.Id,
             this.ConvertIdToBase64,
             this.ConvertBase64ToIdType,
-            searchParams);
+            searchParams,
+            cancellationToken);
     }
 
     protected virtual IQueryable<TEntity> AddWhereClauses(IQueryable<TEntity> query, TSearchParams searchParams)

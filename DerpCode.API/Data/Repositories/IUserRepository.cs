@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
 using DerpCode.API.Models.Entities;
@@ -13,19 +14,19 @@ public interface IUserRepository : IRepository<User, CursorPaginationQueryParame
 {
     UserManager<User> UserManager { get; }
 
-    Task<IdentityResult> CreateUserWithAsync(User user);
+    Task<IdentityResult> CreateUserWithAsync(User user, CancellationToken cancellationToken = default);
 
-    Task<IdentityResult> CreateUserWithPasswordAsync(User user, string password);
+    Task<IdentityResult> CreateUserWithPasswordAsync(User user, string password, CancellationToken cancellationToken = default);
 
-    Task<User?> GetByUsernameAsync(string username);
+    Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
 
-    Task<User?> GetByLinkedAccountAsync(string id, LinkedAccountType accountType, params Expression<Func<User, object>>[] includes);
+    Task<User?> GetByLinkedAccountAsync(string id, LinkedAccountType accountType, Expression<Func<User, object>>[] includes, CancellationToken cancellationToken = default);
 
-    Task<User?> GetByUsernameAsync(string username, params Expression<Func<User, object>>[] includes);
+    Task<User?> GetByUsernameAsync(string username, Expression<Func<User, object>>[] includes, CancellationToken cancellationToken = default);
 
-    Task<bool> CheckPasswordAsync(User user, string password);
+    Task<bool> CheckPasswordAsync(User user, string password, CancellationToken cancellationToken = default);
 
-    Task<CursorPaginatedList<Role, int>> GetRolesAsync(CursorPaginationQueryParameters searchParams);
+    Task<CursorPaginatedList<Role, int>> GetRolesAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken = default);
 
-    Task<List<Role>> GetRolesAsync();
+    Task<List<Role>> GetRolesAsync(CancellationToken cancellationToken = default);
 }

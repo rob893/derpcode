@@ -1,6 +1,9 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace DerpCode.API.Data;
 
 public interface IDatabaseSeeder
 {
-    void SeedDatabase(bool seedData, bool clearCurrentData, bool applyMigrations, bool dropDatabase);
+    Task SeedDatabaseAsync(bool seedData, bool clearCurrentData, bool applyMigrations, bool dropDatabase, CancellationToken cancellationToken = default);
 }

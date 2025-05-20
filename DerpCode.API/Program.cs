@@ -13,12 +13,14 @@ using CommandLine;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using DerpCode.API.Data;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DerpCode.API;
 
 public static class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -40,10 +42,10 @@ public static class Program
 
         if (args.Contains(CommandLineOptions.SeedArgument, StringComparer.OrdinalIgnoreCase))
         {
-            Parser.Default.ParseArguments<CommandLineOptions>(args)
-                .WithParsed(o =>
+            await Parser.Default.ParseArguments<CommandLineOptions>(args)
+                .WithParsedAsync(async o =>
                 {
-                    var scope = app.Services.CreateScope();
+                    using var scope = app.Services.CreateScope();
                     var serviceProvider = scope.ServiceProvider;
                     var logger = serviceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
 
@@ -63,7 +65,7 @@ public static class Program
 
                         if (answer == "yes")
                         {
-                            seeder.SeedDatabase(seedData, clearData, migrate, dropDatabase);
+                            await seeder.SeedDatabaseAsync(seedData, clearData, migrate, dropDatabase, CancellationToken.None);
                         }
                         else
                         {
@@ -74,8 +76,6 @@ public static class Program
                     {
                         logger.LogWarning("Invalid seeder password");
                     }
-
-                    scope.Dispose();
                 });
         }
 
@@ -100,7 +100,7 @@ public static class Program
             .UseAndConfigureSwagger(builder.Configuration)
             .UseAndConfigureEndpoints(builder.Configuration);
 
-        app.Run();
+        await app.RunAsync();
     }
 
     private static string GetSeederPasswordFromConfiguration()

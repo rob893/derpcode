@@ -42,7 +42,7 @@ public class CodeExecutionService : ICodeExecutionService
 
         try
         {
-            await PrepareFilesAsync(tempDir, userCode, driver, problem).ConfigureAwait(false);
+            await PrepareFilesAsync(tempDir, userCode, driver, problem, cancellationToken).ConfigureAwait(false);
             return await this.ExecuteInContainerAsync(tempDir, driver.Image, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -67,7 +67,7 @@ public class CodeExecutionService : ICodeExecutionService
         }
     }
 
-    private static async Task PrepareFilesAsync(string tempDir, string userCode, ProblemDriver driver, Problem problem)
+    private static async Task PrepareFilesAsync(string tempDir, string userCode, ProblemDriver driver, Problem problem, CancellationToken cancellationToken)
     {
         var files = new Dictionary<string, string>
         {
@@ -79,7 +79,7 @@ public class CodeExecutionService : ICodeExecutionService
 
         foreach (var (fileName, content) in files)
         {
-            await File.WriteAllTextAsync(Path.Combine(tempDir, fileName), content).ConfigureAwait(false);
+            await File.WriteAllTextAsync(Path.Combine(tempDir, fileName), content, cancellationToken).ConfigureAwait(false);
         }
     }
 

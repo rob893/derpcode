@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Models.Entities;
 
@@ -5,13 +6,13 @@ namespace DerpCode.API.Services;
 
 public interface IJwtTokenService
 {
-    Task<(bool, User?)> IsTokenEligibleForRefreshAsync(string token, string refreshToken, string deviceId);
+    Task<(bool, User?)> IsTokenEligibleForRefreshAsync(string token, string refreshToken, string deviceId, CancellationToken cancellationToken = default);
 
-    Task<string> GenerateAndSaveRefreshTokenForUserAsync(User user, string deviceId);
+    Task<string> GenerateAndSaveRefreshTokenForUserAsync(User user, string deviceId, CancellationToken cancellationToken = default);
 
     string GenerateJwtTokenForUser(User user);
-    
-    Task RevokeAllRefreshTokensForUserAsync(int userId);
-    
-    Task RevokeRefreshTokenForDeviceAsync(int userId, string deviceId);
+
+    Task RevokeAllRefreshTokensForUserAsync(int userId, CancellationToken cancellationToken = default);
+
+    Task RevokeRefreshTokenForDeviceAsync(int userId, string deviceId, CancellationToken cancellationToken = default);
 }
