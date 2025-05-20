@@ -19,7 +19,6 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
 
     private readonly SignInManager<User> signInManager;
 
-
     public UserRepository(DataContext context, UserManager<User> userManager, SignInManager<User> signInManager) : base(context)
     {
         this.UserManager = userManager;

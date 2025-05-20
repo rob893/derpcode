@@ -1,14 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DerpCode.API.Models;
 using DerpCode.API.Models.Entities;
+using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Services;
-using DerpCode.API.Data.SeedData;
+using DerpCode.API.Data.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using DerpCode.API.Core;
 
 namespace DerpCode.API.Controllers.V1;
 
@@ -16,32 +18,39 @@ namespace DerpCode.API.Controllers.V1;
 [Route("api/v{version:apiVersion}")]
 [ApiVersion("1.0")]
 [AllowAnonymous]
-public class ProblemsController : ControllerBase
+public class ProblemController : ControllerBase
 {
-    private readonly ILogger<ProblemsController> logger;
-
+    private readonly ILogger<ProblemController> logger;
     private readonly ICodeExecutionService codeExecutionService;
+    private readonly IProblemRepository problemRepository;
+    private readonly IDriverTemplateRepository driverTemplateRepository;
 
-    private static readonly List<Problem> problems = ProblemData.Problems;
-
-    private static readonly List<DriverTemplate> driverTemplates = DriverTemplateData.Templates;
-
-    public ProblemsController(ILogger<ProblemsController> logger, ICodeExecutionService codeExecutionService)
+    public ProblemController(
+        ILogger<ProblemController> logger,
+        ICodeExecutionService codeExecutionService,
+        IProblemRepository problemRepository,
+        IDriverTemplateRepository driverTemplateRepository)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
+        this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
+        this.driverTemplateRepository = driverTemplateRepository ?? throw new ArgumentNullException(nameof(driverTemplateRepository));
     }
 
-    [HttpGet("problems")]
-    public ActionResult<IEnumerable<Problem>> GetProblems()
+    [HttpGet("problems", Name = nameof(GetProblemsAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CursorPaginatedList<Problem, int>>> GetProblemsAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
+        var problems = await this.problemRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
         return this.Ok(problems.Select(MapProblem));
     }
 
-    [HttpGet("problems/{id}")]
-    public ActionResult<Problem> GetProblem([FromRoute] int id)
+    [HttpGet("problems/{id}", Name = nameof(GetProblemAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Problem>> GetProblemAsync([FromRoute] int id)
     {
-        var problem = problems.FirstOrDefault(p => p.Id == id);
+        var problem = await this.problemRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
 
         if (problem == null)
         {
@@ -51,14 +60,17 @@ public class ProblemsController : ControllerBase
         return Ok(MapProblem(problem));
     }
 
-    [HttpGet("driverTemplates")]
-    public ActionResult<IEnumerable<DriverTemplate>> GetDriverTemplates()
+    [HttpGet("driverTemplates", Name = nameof(GetDriverTemplatesAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CursorPaginatedList<DriverTemplate, int>>> GetDriverTemplatesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
-        return this.Ok(driverTemplates);
+        var templates = await this.driverTemplateRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
+        return this.Ok(templates);
     }
 
-    [HttpPost("problems")]
-    public ActionResult<Problem> CreateProblem([FromBody] Problem problem)
+    [HttpPost("problems", Name = nameof(CreateProblemAsync))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<Problem>> CreateProblemAsync([FromBody] Problem problem)
     {
         if (problem == null)
         {
@@ -76,17 +88,22 @@ public class ProblemsController : ControllerBase
             return this.BadRequest("Invalid problem data");
         }
 
-        if (problems.Any(p => p.Id == problem.Id))
+        // Check if problem with this ID already exists
+        var existingProblem = await this.problemRepository.GetByIdAsync(problem.Id, track: true, this.HttpContext.RequestAborted);
+
+        if (existingProblem != null)
         {
             return this.Conflict(new { error = "Problem with this ID already exists" });
         }
 
-        problems.Add(problem);
+        this.problemRepository.Add(problem);
+        await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
-        return this.CreatedAtAction(nameof(GetProblem), new { id = problem.Id }, MapProblem(problem));
+        return this.CreatedAtAction(nameof(GetProblemAsync), new { id = problem.Id }, MapProblem(problem));
     }
 
-    [HttpPost("problems/{id}/submissions")]
+    [HttpPost("problems/{id}/submissions", Name = nameof(SubmitSolutionAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<SubmissionResult>> SubmitSolutionAsync([FromRoute] int id, [FromBody] SubmissionRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.UserCode))
@@ -94,7 +111,7 @@ public class ProblemsController : ControllerBase
             return BadRequest(new { error = "User code and language are required" });
         }
 
-        var problem = problems.FirstOrDefault(p => p.Id == id);
+        var problem = await this.problemRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
 
         if (problem == null)
         {

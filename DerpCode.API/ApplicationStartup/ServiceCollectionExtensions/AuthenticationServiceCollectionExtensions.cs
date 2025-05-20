@@ -41,7 +41,7 @@ public static class AuthenticationServiceCollectionExtensions
                 {
                     ClockSkew = TimeSpan.Zero,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(authSettings.APISecret)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.APISecret)),
                     RequireSignedTokens = true,
                     ValidateIssuer = true,
                     ValidateAudience = true,

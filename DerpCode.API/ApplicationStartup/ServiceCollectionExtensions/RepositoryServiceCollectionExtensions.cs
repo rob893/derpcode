@@ -11,6 +11,8 @@ public static class RepositoryServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IProblemRepository, ProblemRepository>();
+        services.AddScoped<IDriverTemplateRepository, DriverTemplateRepository>();
 
         return services;
     }
