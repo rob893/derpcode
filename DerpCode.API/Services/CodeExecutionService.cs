@@ -9,13 +9,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System;
 using System.Linq;
+using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Services;
-
-public interface ICodeExecutionService
-{
-    Task<SubmissionResult> RunCodeAsync(string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken);
-}
 
 public class CodeExecutionService : ICodeExecutionService
 {
@@ -39,12 +35,7 @@ public class CodeExecutionService : ICodeExecutionService
         ArgumentNullException.ThrowIfNull(userCode);
         ArgumentNullException.ThrowIfNull(problem);
 
-        var driver = problem.Drivers.FirstOrDefault(d => d.Language == language);
-
-        if (driver == null)
-        {
-            throw new InvalidOperationException($"No driver found for language: {language}");
-        }
+        var driver = problem.Drivers.FirstOrDefault(d => d.Language == language) ?? throw new InvalidOperationException($"No driver found for language: {language}");
 
         var tempDir = Path.Combine(Path.GetTempPath(), $"submission_{Guid.NewGuid()}");
         Directory.CreateDirectory(tempDir);

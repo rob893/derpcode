@@ -16,10 +16,7 @@ public sealed class ValidationProblemDetailsResult : IActionResult
 
     public async Task ExecuteResultAsync(ActionContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         var errors = context.ModelState
             .Where(e => e.Value != null && e.Value.Errors.Count > 0)

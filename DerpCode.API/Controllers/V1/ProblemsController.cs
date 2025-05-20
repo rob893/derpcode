@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DerpCode.API.Models;
+using DerpCode.API.Models.Entities;
 using DerpCode.API.Services;
+using DerpCode.API.Data.SeedData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,9 +22,9 @@ public class ProblemsController : ControllerBase
 
     private readonly ICodeExecutionService codeExecutionService;
 
-    private static readonly List<Problem> problems = Data.ProblemData.Problems;
+    private static readonly List<Problem> problems = ProblemData.Problems;
 
-    private static readonly List<DriverTemplate> driverTemplates = Data.DriverTemplateData.Templates;
+    private static readonly List<DriverTemplate> driverTemplates = DriverTemplateData.Templates;
 
     public ProblemsController(ILogger<ProblemsController> logger, ICodeExecutionService codeExecutionService)
     {
@@ -37,7 +39,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("problems/{id}")]
-    public ActionResult<Problem> GetProblem([FromRoute] string id)
+    public ActionResult<Problem> GetProblem([FromRoute] int id)
     {
         var problem = problems.FirstOrDefault(p => p.Id == id);
 
@@ -63,8 +65,7 @@ public class ProblemsController : ControllerBase
             return this.BadRequest("Problem cannot be null");
         }
 
-        if (string.IsNullOrEmpty(problem.Id) ||
-            string.IsNullOrEmpty(problem.Name) ||
+        if (string.IsNullOrEmpty(problem.Name) ||
             string.IsNullOrEmpty(problem.Description) ||
             string.IsNullOrEmpty(problem.Difficulty) ||
             problem.ExpectedOutput == null ||
@@ -86,7 +87,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpPost("problems/{id}/submissions")]
-    public async Task<ActionResult<SubmissionResult>> SubmitSolutionAsync([FromRoute] string id, [FromBody] SubmissionRequest request)
+    public async Task<ActionResult<SubmissionResult>> SubmitSolutionAsync([FromRoute] int id, [FromBody] SubmissionRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.UserCode))
         {

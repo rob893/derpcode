@@ -21,10 +21,7 @@ namespace DerpCode.API.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            ArgumentNullException.ThrowIfNull(context);
 
             if (context.Request.Headers.TryGetValue(AppHeaderNames.ForwardedPrefix, out var value))
             {

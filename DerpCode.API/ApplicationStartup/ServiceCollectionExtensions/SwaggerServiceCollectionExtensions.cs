@@ -19,8 +19,8 @@ public static class SwaggerServiceCollectionExtensions
 {
     public static IServiceCollection AddSwaggerServices(this IServiceCollection services, IConfiguration config)
     {
-        ArgumentNullException.ThrowIfNull(services, nameof(services));
-        ArgumentNullException.ThrowIfNull(config, nameof(config));
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(config);
 
         var settingsSection = config.GetSection(ConfigurationKeys.Swagger);
         var settings = settingsSection.Get<SwaggerSettings>();

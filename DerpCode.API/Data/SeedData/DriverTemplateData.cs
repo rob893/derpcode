@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DerpCode.API.Models;
+using DerpCode.API.Models.Entities;
 
-namespace DerpCode.API.Data;
+namespace DerpCode.API.Data.SeedData;
 
 public static class DriverTemplateData
 {
@@ -9,7 +9,7 @@ public static class DriverTemplateData
     [
         new DriverTemplate
         {
-            Id = "1",
+            Id = 1,
             Language = LanguageType.CSharp,
             Template = """
                 using System;
@@ -83,7 +83,7 @@ public static class DriverTemplateData
                     }
                 }
                 """,
-            UiTemplate = """
+            UITemplate = """
                 using System;
 
                 public class Solution
@@ -97,7 +97,7 @@ public static class DriverTemplateData
         },
         new DriverTemplate
         {
-            Id = "2",
+            Id = 2,
             Language = LanguageType.JavaScript,
             Template = """
                 import fs from 'fs';
@@ -163,7 +163,7 @@ public static class DriverTemplateData
 
                 main();
                 """,
-            UiTemplate = """
+            UITemplate = """
                 export function add(a, b) { // update the function signature to match your requirements
                     // Your code here
                 }
@@ -171,7 +171,7 @@ public static class DriverTemplateData
         },
         new DriverTemplate
         {
-            Id = "3",
+            Id = 3,
             Language = LanguageType.TypeScript,
             Template = """
                 import fs from 'fs';
@@ -246,7 +246,7 @@ public static class DriverTemplateData
 
                 main();
                 """,
-            UiTemplate = """
+            UITemplate = """
                 export function add(a: number, b: number): number { // update the function signature to match your requirements
                     // Your code here
                 }

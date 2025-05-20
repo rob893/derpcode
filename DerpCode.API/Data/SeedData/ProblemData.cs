@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DerpCode.API.Models;
+using DerpCode.API.Models.Entities;
 
-namespace DerpCode.API.Data;
+namespace DerpCode.API.Data.SeedData;
 
 public static class ProblemData
 {
@@ -9,10 +9,10 @@ public static class ProblemData
     [
         new Problem
         {
-            Id = "1",
+            Id = 1,
             Name = "Add Two Numbers",
             Input = [5, 1, 6, 4],
-            Tags = ["math", "addition"],
+            Tags = [TagData.Tags[0]],
             Description = "Given two numbers, return their sum.",
             Difficulty = "easy",
             ExpectedOutput = [6, 10],
@@ -20,7 +20,7 @@ public static class ProblemData
             [
                 new()
                 {
-                    Id = "1",
+                    Id = 1,
                     Language = LanguageType.CSharp,
                     Image = "code-executor-csharp",
                     UITemplate = """
@@ -138,7 +138,7 @@ public static class ProblemData
                 },
                 new()
                 {
-                    Id = "2",
+                    Id = 2,
                     Language = LanguageType.JavaScript,
                     Image = "code-executor-javascript",
                     UITemplate = """
@@ -225,7 +225,7 @@ public static class ProblemData
                 },
                 new()
                 {
-                    Id = "3",
+                    Id = 3,
                     Language = LanguageType.TypeScript,
                     Image = "code-executor-typescript",
                     UITemplate = """
@@ -323,9 +323,9 @@ public static class ProblemData
         },
         new Problem
         {
-            Id = "2",
+            Id = 2,
             Name = "FizzBuzz",
-            Tags = ["math", "fizzbuzz"],
+            Tags = [TagData.Tags[0]],
             Description = "Given a number, return \"fizz\" if it is divisible by 3, \"buzz\" if it is divisible by 5, and \"fizzbuzz\" if it is divisible by both.",
             Difficulty = "easy",
             Input = [5, 1, 3, 4, 15],
@@ -334,7 +334,7 @@ public static class ProblemData
             [
                 new()
                 {
-                    Id = "4",
+                    Id = 4,
                     Language = LanguageType.TypeScript,
                     Image = "code-executor-typescript",
                     UITemplate = """

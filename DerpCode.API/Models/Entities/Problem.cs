@@ -1,22 +1,26 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace DerpCode.API.Models;
+namespace DerpCode.API.Models.Entities;
 
-public sealed class Problem
+public sealed class Problem : IIdentifiable<int>
 {
-    public string Id { get; set; } = string.Empty;
+    public int Id { get; set; }
 
+    [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
 
     public string Description { get; set; } = string.Empty;
 
+    [MaxLength(15)]
     public string Difficulty { get; set; } = string.Empty;
 
     public List<object> ExpectedOutput { get; set; } = [];
 
-    public List<object> Tags { get; set; } = [];
-
     public List<object> Input { get; set; } = [];
+
+    public List<Tag> Tags { get; set; } = [];
 
     public List<ProblemDriver> Drivers { get; set; } = [];
 }
+

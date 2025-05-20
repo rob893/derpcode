@@ -34,10 +34,7 @@ public sealed class ProblemDetailsWithErrors : ProblemDetails
 
     public ProblemDetailsWithErrors(IEnumerable<string> errors, int statusCode, HttpRequest? request = null)
     {
-        if (errors == null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         this.SetProblemDetails(errors, statusCode, request);
     }
@@ -60,10 +57,7 @@ public sealed class ProblemDetailsWithErrors : ProblemDetails
 
     public ProblemDetailsWithErrors(Exception error, int statusCode, HttpRequest? request = null)
     {
-        if (error == null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         var errors = new List<string> { error.Message };
 

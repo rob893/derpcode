@@ -9,10 +9,7 @@ public class ApiVersioningErrorResponseProvider : DefaultErrorResponseProvider
 {
     public override IActionResult CreateResponse(ErrorResponseContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         var problemDetails = new ProblemDetailsWithErrors(context.Message ?? context.MessageDetail ?? "Unsupported API version.", StatusCodes.Status400BadRequest, context.Request);
 

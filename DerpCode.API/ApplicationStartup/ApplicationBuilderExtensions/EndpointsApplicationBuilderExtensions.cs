@@ -11,8 +11,8 @@ public static class EndpointsApplicationBuilderExtensions
 {
     public static IApplicationBuilder UseAndConfigureEndpoints(this IApplicationBuilder app, IConfiguration config)
     {
-        ArgumentNullException.ThrowIfNull(app, nameof(app));
-        ArgumentNullException.ThrowIfNull(config, nameof(config));
+        ArgumentNullException.ThrowIfNull(app);
+        ArgumentNullException.ThrowIfNull(config);
 
         app.UseEndpoints(endpoints =>
             {

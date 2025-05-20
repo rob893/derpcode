@@ -19,15 +19,8 @@ public sealed class SwaggerBasicAuthMiddleware
 
     public async Task InvokeAsync(HttpContext context, IOptions<SwaggerSettings> swaggerSettings)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (swaggerSettings == null)
-        {
-            throw new ArgumentNullException(nameof(swaggerSettings));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(swaggerSettings);
 
         var settings = swaggerSettings.Value;
         var authSettings = settings.AuthSettings;

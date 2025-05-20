@@ -39,10 +39,7 @@ public static class UtilityFunctions
 
     public static LogLevel LogLevelFromString(string logLevel)
     {
-        if (logLevel == null)
-        {
-            throw new ArgumentNullException(nameof(logLevel));
-        }
+        ArgumentNullException.ThrowIfNull(logLevel);
 
         return logLevel.ToUpperInvariant() switch
         {

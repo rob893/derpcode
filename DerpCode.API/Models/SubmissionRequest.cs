@@ -1,3 +1,5 @@
+using DerpCode.API.Models.Entities;
+
 namespace DerpCode.API.Models;
 
 public sealed record SubmissionRequest

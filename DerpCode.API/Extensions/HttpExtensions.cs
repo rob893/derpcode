@@ -11,10 +11,7 @@ public static class HttpExtensions
 {
     public static bool TryGetCorrelationId(this IHeaderDictionary headers, [NotNullWhen(true)] out string? correlationId)
     {
-        if (headers == null)
-        {
-            throw new ArgumentNullException(nameof(headers));
-        }
+        ArgumentNullException.ThrowIfNull(headers);
 
         correlationId = null;
 
@@ -29,10 +26,7 @@ public static class HttpExtensions
 
     public static bool TryGetCorrelationId(this HttpHeaders headers, [NotNullWhen(true)] out string? correlationId)
     {
-        if (headers == null)
-        {
-            throw new ArgumentNullException(nameof(headers));
-        }
+        ArgumentNullException.ThrowIfNull(headers);
 
         correlationId = null;
 
@@ -47,10 +41,7 @@ public static class HttpExtensions
 
     public static string GetOrGenerateCorrelationId(this HttpHeaders headers)
     {
-        if (headers == null)
-        {
-            throw new ArgumentNullException(nameof(headers));
-        }
+        ArgumentNullException.ThrowIfNull(headers);
 
         if (headers.TryGetValues(AppHeaderNames.CorrelationId, out var values) && values.Any())
         {
@@ -62,10 +53,7 @@ public static class HttpExtensions
 
     public static string GetOrGenerateCorrelationId(this IHeaderDictionary headers)
     {
-        if (headers == null)
-        {
-            throw new ArgumentNullException(nameof(headers));
-        }
+        ArgumentNullException.ThrowIfNull(headers);
 
         if (headers.TryGetValue(AppHeaderNames.CorrelationId, out var value))
         {

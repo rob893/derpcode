@@ -16,12 +16,12 @@ public static class SwaggerApplicationBuilderExtensions
 {
     public static IApplicationBuilder UseAndConfigureSwagger(this IApplicationBuilder app, IConfiguration config)
     {
-        ArgumentNullException.ThrowIfNull(app, nameof(app));
-        ArgumentNullException.ThrowIfNull(config, nameof(config));
+        ArgumentNullException.ThrowIfNull(app);
+        ArgumentNullException.ThrowIfNull(config);
 
         var settings = config.GetSection(ConfigurationKeys.Swagger).Get<SwaggerSettings>();
 
-        ArgumentNullException.ThrowIfNull(settings, nameof(settings));
+        ArgumentNullException.ThrowIfNull(settings);
 
         if (!settings.Enabled)
         {

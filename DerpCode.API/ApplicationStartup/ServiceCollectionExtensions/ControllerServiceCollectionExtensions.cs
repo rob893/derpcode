@@ -14,7 +14,7 @@ public static class ControllerServiceCollectionExtensions
 {
     public static IServiceCollection AddControllerServices(this IServiceCollection services)
     {
-        ArgumentNullException.ThrowIfNull(services, nameof(services));
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddVersionedApiExplorer(
             options =>

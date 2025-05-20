@@ -9,8 +9,8 @@ public static class CorsApplicationBuilderExtensions
 {
     public static IApplicationBuilder UseAndConfigureCors(this IApplicationBuilder app, IConfiguration config)
     {
-        ArgumentNullException.ThrowIfNull(app, nameof(app));
-        ArgumentNullException.ThrowIfNull(config, nameof(config));
+        ArgumentNullException.ThrowIfNull(app);
+        ArgumentNullException.ThrowIfNull(config);
 
         app.UseCors(header =>
             header.WithOrigins(config.GetSection(ConfigurationKeys.CorsAllowedOrigins).Get<string[]>() ?? ["*"])

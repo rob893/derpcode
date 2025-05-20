@@ -27,10 +27,7 @@ public sealed class GlobalExceptionHandlerMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         var error = context.Features.Get<IExceptionHandlerFeature>();
 
