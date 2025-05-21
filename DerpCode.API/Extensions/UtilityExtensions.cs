@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using DerpCode.API.Constants;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace DerpCode.API.Extensions;
 
@@ -95,5 +96,31 @@ public static class UtilityExtensions
         ArgumentNullException.ThrowIfNull(principal);
 
         return principal.IsInRole(UserRoleName.Admin);
+    }
+
+    public static JsonPatchDocument<TDestination> MapPatchDocument<TSource, TDestination>(
+        JsonPatchDocument<TSource> sourceDoc,
+        Func<string, string>? pathMapper = null)
+        where TSource : class, new()
+        where TDestination : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(sourceDoc);
+
+        var destDoc = new JsonPatchDocument<TDestination>();
+
+        foreach (var sourceOp in sourceDoc.Operations)
+        {
+            var mappedOp = new Operation<TDestination>
+            {
+                op = sourceOp.op,
+                path = pathMapper != null ? pathMapper(sourceOp.path) : sourceOp.path,
+                from = pathMapper != null ? pathMapper(sourceOp.from) : sourceOp.from,
+                value = sourceOp.value
+            };
+
+            destDoc.Operations.Add(mappedOp);
+        }
+
+        return destDoc;
     }
 }

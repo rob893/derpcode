@@ -14,7 +14,7 @@ public static class ProblemData
             Input = [5, 1, 6, 4],
             Tags = [TagData.Tags[0]],
             Description = "Given two numbers, return their sum.",
-            Difficulty = "easy",
+            Difficulty = ProblemDifficulty.VeryEasy,
             ExpectedOutput = [6, 10],
             Drivers =
             [
@@ -327,7 +327,7 @@ public static class ProblemData
             Name = "FizzBuzz",
             Tags = [TagData.Tags[0]],
             Description = "Given a number, return \"fizz\" if it is divisible by 3, \"buzz\" if it is divisible by 5, and \"fizzbuzz\" if it is divisible by both.",
-            Difficulty = "easy",
+            Difficulty = ProblemDifficulty.Easy,
             Input = [5, 1, 3, 4, 15],
             ExpectedOutput = ["buzz", "", "fizz", "", "fizzbuzz"],
             Drivers =

@@ -71,6 +71,8 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
         builder.Entity<Problem>(problem =>
         {
+            problem.Property(p => p.Difficulty).HasConversion<string>();
+
             // Use JSON serialization for MySQL
             var options = new JsonSerializerOptions
             {

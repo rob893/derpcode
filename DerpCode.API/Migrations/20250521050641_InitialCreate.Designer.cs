@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250520061021_InitialCreate")]
+    [Migration("20250521050641_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

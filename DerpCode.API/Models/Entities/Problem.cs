@@ -13,7 +13,7 @@ public sealed class Problem : IIdentifiable<int>
     public string Description { get; set; } = string.Empty;
 
     [MaxLength(15)]
-    public string Difficulty { get; set; } = string.Empty;
+    public ProblemDifficulty Difficulty { get; set; }
 
     public List<object> ExpectedOutput { get; set; } = [];
 
