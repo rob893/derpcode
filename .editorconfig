@@ -222,18 +222,9 @@ dotnet_diagnostic.CA1031.severity = none
 # Do not expose generic lists.
 # Disabled because I disagree with this.
 dotnet_diagnostic.CA1002.severity = none
-# Review SQL queries for security vulnerabilities.
-# Disabled because EF core is used for all user input queries. The only non-ef core query is create db if not exists which does not take in user input.
-dotnet_diagnostic.CA2100.severity = none
-# Specify StringComparison for clarity.
-# Disabled because using String comparison with MySQL ef core provider breaks ef core.
-dotnet_diagnostic.CA1307.severity = none
 # URI return values should not be strings.
 # Disabled because it thinks having url in function name should raise this.
 dotnet_diagnostic.CA1055.severity = none
-# Do not use insecure randomness.
-# Disabled because I don't need secure randomness.
-dotnet_diagnostic.CA5394.severity = none
 # Avoid uninstantiated internal classes.
 # Disabled as many internal classes are created through reflection.
 dotnet_diagnostic.CA1812.severity = none
@@ -243,26 +234,6 @@ dotnet_diagnostic.CA1848.severity = none
 # Do not disable token validation checks.
 # Disabled because we still validate JWT for refresh tokens but without lifetime validation.
 dotnet_diagnostic.CA5404.severity = none
-# Something about logging templates?
-# Disabled because I don't know what it is talking about.
-dotnet_diagnostic.CA2254.severity = none
-
-# TODO: Disable and fix these eventually
-dotnet_diagnostic.CA1852.severity = none
-dotnet_diagnostic.CA1859.severity = none
-dotnet_diagnostic.CA1510.severity = none
-dotnet_diagnostic.CA1860.severity = none
-dotnet_diagnostic.CA1851.severity = none
-dotnet_diagnostic.CA1854.severity = none
-dotnet_diagnostic.CS8603.severity = none
-dotnet_diagnostic.CA1862.severity = none
-dotnet_diagnostic.ASP0019.severity = none
-dotnet_diagnostic.CS8602.severity = none
-dotnet_diagnostic.CA1849.severity = none
-dotnet_diagnostic.CS8600.severity = none
-dotnet_diagnostic.CS8604.severity = none
-dotnet_diagnostic.CS8762.severity = none
-dotnet_diagnostic.CA1861.severity = none
 
 [*/Migrations/**]
 generated_code = true

@@ -51,7 +51,14 @@ public sealed class JwtTokenService : IJwtTokenService
 
         try
         {
-            tokenClaims = new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out var _);
+            var result = await new JwtSecurityTokenHandler().ValidateTokenAsync(token, validationParameters);
+
+            if (result == null || !result.IsValid)
+            {
+                return (false, null);
+            }
+
+            tokenClaims = new ClaimsPrincipal(result.ClaimsIdentity);
         }
         catch (SecurityTokenException)
         {
@@ -121,8 +128,8 @@ public sealed class JwtTokenService : IJwtTokenService
         var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer),
-                new(ClaimTypes.Name, user.UserName),
-                new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.Name, user.UserName ?? throw new InvalidOperationException("UserName cannot be null")),
+                new(ClaimTypes.Email, user.Email ?? throw new InvalidOperationException("Email cannot be null")),
                 new(AppClaimTypes.EmailVerified, user.EmailConfirmed.ToString(), ClaimValueTypes.Boolean)
             };
 
@@ -140,7 +147,7 @@ public sealed class JwtTokenService : IJwtTokenService
         {
             foreach (var role in user.UserRoles.Select(r => r.Role.Name))
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim(ClaimTypes.Role, role ?? throw new InvalidOperationException("Role cannot be null")));
             }
         }
 

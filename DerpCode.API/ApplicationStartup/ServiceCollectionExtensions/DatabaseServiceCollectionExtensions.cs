@@ -17,7 +17,8 @@ public static class DatabaseServiceCollectionExtensions
 
         services.Configure<MySQLSettings>(config.GetSection(ConfigurationKeys.MySQL));
 
-        var settings = config.GetSection(ConfigurationKeys.MySQL).Get<MySQLSettings>();
+        var settings = config.GetSection(ConfigurationKeys.MySQL)?.Get<MySQLSettings>()
+            ?? throw new InvalidOperationException($"Missing {ConfigurationKeys.MySQL} section in configuration.");
 
         services.AddDbContext<DataContext>(
             dbContextOptions =>

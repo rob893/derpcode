@@ -16,7 +16,7 @@ public static class UtilityFunctions
         var sourceName = string.Empty;
         if (!string.IsNullOrWhiteSpace(sourceFilePath))
         {
-            sourceName = sourceFilePath.Contains('\\')
+            sourceName = sourceFilePath.Contains('\\', StringComparison.Ordinal)
                 ? sourceFilePath.Split('\\').Last().Split('.').First()
                 : sourceFilePath.Split('/').Last().Split('.').First();
         }

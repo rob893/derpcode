@@ -23,7 +23,7 @@ public static class SwaggerServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(config);
 
         var settingsSection = config.GetSection(ConfigurationKeys.Swagger);
-        var settings = settingsSection.Get<SwaggerSettings>();
+        var settings = settingsSection.Get<SwaggerSettings>() ?? throw new InvalidOperationException($"Missing {ConfigurationKeys.Swagger} section in configuration.");
 
         services.Configure<SwaggerSettings>(settingsSection);
 
@@ -79,7 +79,7 @@ public static class SwaggerServiceCollectionExtensions
         return services;
     }
 
-    private class RemoveVersionParameterFilter : IOperationFilter
+    private sealed class RemoveVersionParameterFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
@@ -94,14 +94,14 @@ public static class SwaggerServiceCollectionExtensions
         }
     }
 
-    private class ReplaceVersionWithExactValueInPathFilter : IDocumentFilter
+    private sealed class ReplaceVersionWithExactValueInPathFilter : IDocumentFilter
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
             var paths = new OpenApiPaths();
             foreach (var path in swaggerDoc.Paths)
             {
-                paths.Add(path.Key.Replace("v{version}", swaggerDoc.Info.Version), path.Value);
+                paths.Add(path.Key.Replace("v{version}", swaggerDoc.Info.Version, StringComparison.Ordinal), path.Value);
             }
             swaggerDoc.Paths = paths;
         }

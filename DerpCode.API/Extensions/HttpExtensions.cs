@@ -18,6 +18,8 @@ public static class HttpExtensions
         if (headers.TryGetValue(AppHeaderNames.CorrelationId, out var value))
         {
             correlationId = value;
+            correlationId ??= string.Empty;
+
             return true;
         }
 
@@ -57,7 +59,7 @@ public static class HttpExtensions
 
         if (headers.TryGetValue(AppHeaderNames.CorrelationId, out var value))
         {
-            return value.First();
+            return value.First() ?? Guid.NewGuid().ToString();
         }
 
         return Guid.NewGuid().ToString();

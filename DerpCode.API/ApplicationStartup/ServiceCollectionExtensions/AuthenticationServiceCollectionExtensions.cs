@@ -31,7 +31,8 @@ public static class AuthenticationServiceCollectionExtensions
 
         services.Configure<AuthenticationSettings>(config.GetSection(ConfigurationKeys.Authentication));
 
-        var authSettings = config.GetSection(ConfigurationKeys.Authentication).Get<AuthenticationSettings>();
+        var authSettings = config.GetSection(ConfigurationKeys.Authentication)?.Get<AuthenticationSettings>() ??
+            throw new InvalidOperationException($"Missing {ConfigurationKeys.Authentication} section in configuration.");
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -78,7 +79,7 @@ public static class AuthenticationServiceCollectionExtensions
                     {
                         if (context.Exception is SecurityTokenExpiredException)
                         {
-                            context.Response.Headers.Add(AppHeaderNames.TokenExpired, "true");
+                            context.Response.Headers[AppHeaderNames.TokenExpired] = "true";
                         }
 
                         return Task.CompletedTask;

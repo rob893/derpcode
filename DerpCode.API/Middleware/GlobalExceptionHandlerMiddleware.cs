@@ -54,11 +54,11 @@ public sealed class GlobalExceptionHandlerMiddleware
 
             if (statusCode >= StatusCodes.Status500InternalServerError)
             {
-                this.logger.LogError(sourceName, correlationId, thrownException.Message);
+                this.logger.LogError("{SourceName} {ErrorMessage}", sourceName, thrownException.Message);
             }
             else
             {
-                this.logger.LogWarning(sourceName, correlationId, thrownException.Message);
+                this.logger.LogWarning("{SourceName} {ErrorMessage}", sourceName, thrownException.Message);
             }
 
             var jsonResponse = JsonSerializer.Serialize(problemDetails, this.jsonOptions);

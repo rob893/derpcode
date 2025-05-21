@@ -110,16 +110,16 @@ public class CodeExecutionService : ICodeExecutionService
         var errorPath = Path.Combine(tempDir, "error.txt");
         var outputPath = Path.Combine(tempDir, "output.txt");
 
-        this.logger.LogInformation($"Results path: {resultsPath}");
+        this.logger.LogInformation("Results path: {ResultsPath}", resultsPath);
 
         var output = File.Exists(outputPath) ? await File.ReadAllTextAsync(outputPath, cancellationToken) : string.Empty;
         var error = File.Exists(errorPath) ? await File.ReadAllTextAsync(errorPath, cancellationToken) : string.Empty;
 
-        this.logger.LogInformation($"Output: {(string.IsNullOrWhiteSpace(output) ? "No output." : output)}");
+        this.logger.LogInformation("Output: {OutPut}", string.IsNullOrWhiteSpace(output) ? "No output." : output);
 
         if (!string.IsNullOrEmpty(error))
         {
-            this.logger.LogError($"Error executing code: {error}");
+            this.logger.LogError("Error executing code: {Error}", error);
 
             return new SubmissionResult
             {

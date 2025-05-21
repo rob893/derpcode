@@ -18,7 +18,7 @@ namespace DerpCode.API.Controllers.V1;
 [Route("api/v{version:apiVersion}")]
 [ApiVersion("1.0")]
 [AllowAnonymous]
-public class ProblemController : ControllerBase
+public class ProblemController : ServiceControllerBase
 {
     private readonly ILogger<ProblemController> logger;
     private readonly ICodeExecutionService codeExecutionService;
@@ -27,9 +27,11 @@ public class ProblemController : ControllerBase
 
     public ProblemController(
         ILogger<ProblemController> logger,
+        ICorrelationIdService correlationIdService,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
         IDriverTemplateRepository driverTemplateRepository)
+            : base(correlationIdService)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));

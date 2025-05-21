@@ -83,21 +83,32 @@ public sealed class ProblemDetailsWithErrors : ProblemDetails
 
     public ProblemDetailsWithErrors(IEnumerable<string> errors, HttpRequest? request = null) : this(errors, StatusCodes.Status500InternalServerError, request) { }
 
-    public ProblemDetailsWithErrors(string error, HttpRequest? request = null) : this(new List<string> { error }, StatusCodes.Status500InternalServerError, request) { }
+    public ProblemDetailsWithErrors(string error, HttpRequest? request = null) : this([error], StatusCodes.Status500InternalServerError, request) { }
 
     public ProblemDetailsWithErrors(Exception error, HttpRequest? request = null) : this(error, StatusCodes.Status500InternalServerError, request) { }
 
     private void SetProblemDetails(IEnumerable<string> errors, int statusCode, HttpRequest? request)
     {
         var correlationId = request?.Headers.GetOrGenerateCorrelationId() ?? Guid.NewGuid().ToString();
+        var errorsList = errors.ToList();
 
-        this.Detail = errors.Any() ? errors.First() : "Unknown error.";
+        if (!this.errorTitles.TryGetValue(statusCode, out var title))
+        {
+            title = "There was an error.";
+        }
+
+        if (!this.errorTypes.TryGetValue(statusCode, out var type))
+        {
+            type = "https://tools.ietf.org/html/rfc7231";
+        }
+
+        this.Detail = errorsList.Count > 0 ? errorsList[0] : "Unknown error.";
         this.Status = statusCode;
-        this.Title = this.errorTitles.ContainsKey(statusCode) ? this.errorTitles[statusCode] : "There was an error.";
+        this.Title = title;
         this.Instance = request != null ? $"{request.Method}: {request.GetDisplayUrl()}" : "";
-        this.Type = this.errorTypes.ContainsKey(statusCode) ? this.errorTypes[statusCode] : "https://tools.ietf.org/html/rfc7231";
+        this.Type = type;
         this.Extensions["correlationId"] = correlationId;
-        this.Extensions["errors"] = errors.ToList();
+        this.Extensions["errors"] = errorsList;
         this.Extensions["traceId"] = Activity.Current?.Id ?? request?.HttpContext?.TraceIdentifier ?? correlationId;
     }
 }

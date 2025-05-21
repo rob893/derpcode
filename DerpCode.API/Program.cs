@@ -15,6 +15,7 @@ using System.Linq;
 using DerpCode.API.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Services;
 
 namespace DerpCode.API;
 
@@ -30,6 +31,7 @@ public static class Program
         builder.Services.AddControllerServices()
             .AddHealthCheckServices()
             .AddIdentityServices()
+            .AddScoped<ICorrelationIdService, CorrelationIdService>()
             .AddAuthenticationServices(builder.Configuration)
             .AddDatabaseServices(builder.Configuration)
             .AddRepositoryServices()
@@ -58,7 +60,7 @@ public static class Program
 
                         var seeder = serviceProvider.GetRequiredService<IDatabaseSeeder>();
 
-                        logger.LogInformation($"Seeding database:\nDrop database: {dropDatabase}\nApply Migrations: {migrate}\nClear old data: {clearData}\nSeed new data: {seedData}");
+                        logger.LogInformation("Seeding database:\nDrop database: {DropDatabase}\nApply Migrations: {Migrate}\nClear old data: {ClearData}\nSeed new data: {SeedData}", dropDatabase, migrate, clearData, seedData);
                         logger.LogWarning("Are you sure you want to apply these actions to the database in that order? Only 'yes' will continue.");
 
                         var answer = Console.ReadLine();
@@ -89,6 +91,7 @@ public static class Program
             .UseRouting()
             .UseHsts()
             .UseHttpsRedirection()
+            .UseMiddleware<CorrelationIdMiddleware>()
             .UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.All
@@ -114,6 +117,6 @@ public static class Program
 
         var config = builder.Build();
 
-        return config.GetValue<string>("SeederPassword");
+        return config.GetValue<string>("SeederPassword") ?? throw new InvalidOperationException("Seeder password not found in configuration.");
     }
 }

@@ -11,8 +11,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DerpCode.API.Extensions;
 
+/// <summary>
+/// Extension methods for Entity Framework Core.
+/// </summary>
 public static class EntityFrameworkExtensions
 {
+    /// <summary>
+    /// Removes all entities from the specified DbSet.
+    /// </summary>
+    /// <typeparam name="T">The entity type.</typeparam>
+    /// <param name="dbSet">The DbSet to clear.</param>
+    /// <exception cref="ArgumentNullException">Thrown when dbSet is null.</exception>
     public static void Clear<T>(this DbSet<T> dbSet) where T : class
     {
         ArgumentNullException.ThrowIfNull(dbSet);
@@ -20,6 +29,25 @@ public static class EntityFrameworkExtensions
         dbSet.RemoveRange(dbSet);
     }
 
+    /// <summary>
+    /// Creates a cursor-paginated list from an IQueryable source.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type.</typeparam>
+    /// <typeparam name="TEntityKey">The type of the entity key used for cursor-based pagination.</typeparam>
+    /// <param name="src">The IQueryable source.</param>
+    /// <param name="keySelector">Expression to select the key from the entity.</param>
+    /// <param name="keyConverter">Function to convert the key to a string cursor.</param>
+    /// <param name="cursorConverter">Function to convert a string cursor back to a key.</param>
+    /// <param name="first">Number of items to take from the beginning of the result set.</param>
+    /// <param name="last">Number of items to take from the end of the result set.</param>
+    /// <param name="afterCursor">Cursor indicating to start after this position.</param>
+    /// <param name="beforeCursor">Cursor indicating to end before this position.</param>
+    /// <param name="includeTotal">Whether to include the total count of items.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A cursor paginated list.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when src, keySelector, keyConverter, or cursorConverter is null.</exception>
+    /// <exception cref="NotSupportedException">Thrown when both first and last parameters are provided.</exception>
+    /// <exception cref="ArgumentException">Thrown when first or last is less than 0.</exception>
     public static async Task<CursorPaginatedList<TEntity, TEntityKey>> ToCursorPaginatedListAsync<TEntity, TEntityKey>(
         this IQueryable<TEntity> src,
         Expression<Func<TEntity, TEntityKey>> keySelector,
@@ -113,6 +141,19 @@ public static class EntityFrameworkExtensions
             includeTotal ? await src.CountAsync(cancellationToken) : null);
     }
 
+    /// <summary>
+    /// Creates a cursor-paginated list from an IQueryable source using query parameters.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type.</typeparam>
+    /// <typeparam name="TEntityKey">The type of the entity key used for cursor-based pagination.</typeparam>
+    /// <param name="src">The IQueryable source.</param>
+    /// <param name="keySelector">Expression to select the key from the entity.</param>
+    /// <param name="keyConverter">Function to convert the key to a string cursor.</param>
+    /// <param name="cursorConverter">Function to convert a string cursor back to a key.</param>
+    /// <param name="queryParameters">The pagination query parameters.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A cursor paginated list.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when queryParameters is null.</exception>
     public static Task<CursorPaginatedList<TEntity, TEntityKey>> ToCursorPaginatedListAsync<TEntity, TEntityKey>(
         this IQueryable<TEntity> src,
         Expression<Func<TEntity, TEntityKey>> keySelector,
@@ -137,6 +178,15 @@ public static class EntityFrameworkExtensions
             cancellationToken);
     }
 
+    /// <summary>
+    /// Creates a cursor-paginated list from an IQueryable source of entities with integer IDs.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type that implements IIdentifiable with int key.</typeparam>
+    /// <param name="src">The IQueryable source.</param>
+    /// <param name="queryParameters">The pagination query parameters.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A cursor paginated list.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when queryParameters is null.</exception>
     public static Task<CursorPaginatedList<TEntity, int>> ToCursorPaginatedListAsync<TEntity>(
         this IQueryable<TEntity> src,
         CursorPaginationQueryParameters queryParameters,
