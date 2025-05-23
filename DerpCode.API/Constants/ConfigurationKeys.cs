@@ -11,4 +11,6 @@ public static class ConfigurationKeys
     public const string Swagger = "Swagger";
 
     public const string MySQL = "MySQL";
+
+    public const string KeyVaultUrl = "KeyVaultUrl";
 }
