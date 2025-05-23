@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Language } from '../types/models';
+import { Language, ProblemDifficulty } from '../types/models';
 import type { Problem, SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 
@@ -92,17 +92,31 @@ export const ProblemView = () => {
               className="difficulty-badge"
               style={{
                 backgroundColor:
-                  problem.difficulty === 'easy' ? '#00af9b' : problem.difficulty === 'medium' ? '#ffc01e' : '#ff375f'
+                  problem.difficulty === ProblemDifficulty.VeryEasy || problem.difficulty === ProblemDifficulty.Easy
+                    ? '#00af9b'
+                    : problem.difficulty === ProblemDifficulty.Medium
+                      ? '#ffc01e'
+                      : '#ff375f'
               }}
             >
-              {problem.difficulty}
+              {problem.difficulty === ProblemDifficulty.VeryEasy
+                ? 'Very Easy'
+                : problem.difficulty === ProblemDifficulty.Easy
+                  ? 'Easy'
+                  : problem.difficulty === ProblemDifficulty.Medium
+                    ? 'Medium'
+                    : problem.difficulty === ProblemDifficulty.Hard
+                      ? 'Hard'
+                      : problem.difficulty === ProblemDifficulty.VeryHard
+                        ? 'Very Hard'
+                        : problem.difficulty}
             </span>
           </div>
 
           <div className="problem-tags">
             {problem.tags.map((tag, index) => (
               <span key={index} className="tag">
-                {tag}
+                {tag.name}
               </span>
             ))}
           </div>

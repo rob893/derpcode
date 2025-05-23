@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { type DriverTemplate, type Problem, type ProblemDriver, Language } from '../types/models';
+import {
+  type CreateProblemDriverRequest,
+  type CreateProblemRequest,
+  type CursorPaginatedResponse,
+  type DriverTemplate,
+  Language,
+  ProblemDifficulty
+} from '../types/models';
 import { CodeEditor } from './CodeEditor';
 
 export const CreateProblem = () => {
@@ -10,10 +17,10 @@ export const CreateProblem = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.JavaScript);
 
-  const [problem, setProblem] = useState<Partial<Problem>>({
+  const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
     name: '',
     description: '',
-    difficulty: 'easy',
+    difficulty: ProblemDifficulty.Easy,
     tags: [],
     input: [],
     expectedOutput: [],
@@ -31,7 +38,8 @@ export const CreateProblem = () => {
       try {
         const response = await fetch('https://localhost:7059/api/v1/driverTemplates');
         if (!response.ok) throw new Error('Failed to fetch driver templates');
-        const templates: DriverTemplate[] = await response.json();
+        const paginatedRes: CursorPaginatedResponse<DriverTemplate> = await response.json();
+        const templates = paginatedRes.nodes || paginatedRes.edges?.map(edge => edge.node) || [];
         setDriverTemplates(templates);
 
         // Set initial driver code from first available template
@@ -58,10 +66,10 @@ export const CreateProblem = () => {
   };
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !problem.tags?.includes(tagInput.trim())) {
+    if (tagInput.trim() && !problem.tags?.map(x => x.name).includes(tagInput.trim())) {
       setProblem(prev => ({
         ...prev,
-        tags: [...(prev.tags || []), tagInput.trim()]
+        tags: [...(prev.tags || []), { name: tagInput.trim() }]
       }));
       setTagInput('');
     }
@@ -70,24 +78,22 @@ export const CreateProblem = () => {
   const handleRemoveTag = (tagToRemove: string) => {
     setProblem(prev => ({
       ...prev,
-      tags: prev.tags?.filter(tag => tag !== tagToRemove) || []
+      tags: prev.tags?.filter(tag => tag.name !== tagToRemove) || []
     }));
   };
 
   const handleSubmit = async () => {
     try {
       // Create a driver for the current language
-      const driver: ProblemDriver = {
-        id: crypto.randomUUID(),
+      const driver: CreateProblemDriverRequest = {
         language: selectedLanguage,
         image: `code-executor-${selectedLanguage.toLowerCase()}`,
         driverCode,
         uiTemplate
       };
 
-      const newProblem: Problem = {
-        ...(problem as Problem),
-        id: crypto.randomUUID(),
+      const newProblem: CreateProblemRequest = {
+        ...(problem as CreateProblemRequest),
         drivers: [driver]
       };
 
@@ -143,11 +149,13 @@ export const CreateProblem = () => {
         <label>Difficulty:</label>
         <select
           value={problem.difficulty}
-          onChange={e => setProblem(prev => ({ ...prev, difficulty: e.target.value as 'easy' | 'medium' | 'hard' }))}
+          onChange={e => setProblem(prev => ({ ...prev, difficulty: e.target.value as ProblemDifficulty }))}
         >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
+          <option value={ProblemDifficulty.VeryEasy}>Very Easy</option>
+          <option value={ProblemDifficulty.Easy}>Easy</option>
+          <option value={ProblemDifficulty.Medium}>Medium</option>
+          <option value={ProblemDifficulty.Hard}>Hard</option>
+          <option value={ProblemDifficulty.VeryHard}>Very Hard</option>
         </select>
       </div>
 
@@ -167,9 +175,9 @@ export const CreateProblem = () => {
         </div>
         <div className="tags-list">
           {problem.tags?.map(tag => (
-            <span key={tag} className="tag">
-              {tag}
-              <button onClick={() => handleRemoveTag(tag)}>&times;</button>
+            <span key={tag.name} className="tag">
+              {tag.name}
+              <button onClick={() => handleRemoveTag(tag.name)}>&times;</button>
             </span>
           ))}
         </div>

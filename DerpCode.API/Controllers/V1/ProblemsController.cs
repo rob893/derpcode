@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using DerpCode.API.Models;
-using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Services;
 using DerpCode.API.Data.Repositories;
@@ -90,7 +89,7 @@ public class ProblemsController : ServiceControllerBase
         this.problemRepository.Add(newProblem);
         await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
-        return this.CreatedAtAction(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
+        return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
     }
 
     [HttpPost("problems/{id}/submissions", Name = nameof(SubmitSolutionAsync))]

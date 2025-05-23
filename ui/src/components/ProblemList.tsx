@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import type { Problem } from '../types/models';
+import { ProblemDifficulty } from '../types/models';
+import type { Problem, CursorPaginatedResponse } from '../types/models';
 
 export const ProblemList = () => {
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -15,8 +16,10 @@ export const ProblemList = () => {
         if (!response.ok) {
           throw new Error('Failed to fetch problems');
         }
-        const data = await response.json();
-        setProblems(data);
+        const data: CursorPaginatedResponse<Problem> = await response.json();
+        // Extract problems from paginated response
+        const problemList = data.nodes || data.edges?.map(edge => edge.node) || [];
+        setProblems(problemList);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -30,16 +33,35 @@ export const ProblemList = () => {
   if (loading) return <div>Loading problems...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  const getDifficultyColor = (difficulty: 'easy' | 'medium' | 'hard') => {
-    switch (difficulty.toLowerCase()) {
-      case 'easy':
+  const getDifficultyColor = (difficulty: ProblemDifficulty) => {
+    switch (difficulty) {
+      case ProblemDifficulty.VeryEasy:
+      case ProblemDifficulty.Easy:
         return '#00af9b';
-      case 'medium':
+      case ProblemDifficulty.Medium:
         return '#ffc01e';
-      case 'hard':
+      case ProblemDifficulty.Hard:
+      case ProblemDifficulty.VeryHard:
         return '#ff375f';
       default:
         return '#808080';
+    }
+  };
+
+  const getDifficultyLabel = (difficulty: ProblemDifficulty): string => {
+    switch (difficulty) {
+      case ProblemDifficulty.VeryEasy:
+        return 'Very Easy';
+      case ProblemDifficulty.Easy:
+        return 'Easy';
+      case ProblemDifficulty.Medium:
+        return 'Medium';
+      case ProblemDifficulty.Hard:
+        return 'Hard';
+      case ProblemDifficulty.VeryHard:
+        return 'Very Hard';
+      default:
+        return 'Unknown';
     }
   };
 
@@ -57,14 +79,14 @@ export const ProblemList = () => {
             <div className="problem-header">
               <h3>{problem.name}</h3>
               <span className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(problem.difficulty) }}>
-                {problem.difficulty}
+                {getDifficultyLabel(problem.difficulty)}
               </span>
             </div>
             {problem.tags && problem.tags.length > 0 && (
               <div className="problem-tags">
                 {problem.tags.map((tag, index) => (
                   <span key={index} className="tag">
-                    {tag}
+                    {tag.name}
                   </span>
                 ))}
               </div>
