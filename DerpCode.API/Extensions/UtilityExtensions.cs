@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Security.Claims;
 using DerpCode.API.Constants;
 using Microsoft.AspNetCore.JsonPatch;
@@ -99,7 +100,7 @@ public static class UtilityExtensions
     }
 
     public static JsonPatchDocument<TDestination> MapPatchDocument<TSource, TDestination>(
-        JsonPatchDocument<TSource> sourceDoc,
+        this JsonPatchDocument<TSource> sourceDoc,
         Func<string, string>? pathMapper = null)
         where TSource : class, new()
         where TDestination : class, new()

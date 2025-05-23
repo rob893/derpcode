@@ -14,7 +14,7 @@ public interface IUserRepository : IRepository<User, CursorPaginationQueryParame
 {
     UserManager<User> UserManager { get; }
 
-    Task<IdentityResult> CreateUserWithAsync(User user, CancellationToken cancellationToken = default);
+    Task<IdentityResult> CreateUserWithoutPasswordAsync(User user, CancellationToken cancellationToken = default);
 
     Task<IdentityResult> CreateUserWithPasswordAsync(User user, string password, CancellationToken cancellationToken = default);
 

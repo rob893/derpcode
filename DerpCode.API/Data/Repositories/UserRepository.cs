@@ -25,12 +25,18 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
         this.signInManager = signInManager;
     }
 
-    public async Task<IdentityResult> CreateUserWithAsync(User user, CancellationToken cancellationToken = default)
+    public async Task<IdentityResult> CreateUserWithoutPasswordAsync(User user, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
 
         user.Created = DateTime.UtcNow;
         var created = await this.UserManager.CreateAsync(user);
+
+        if (!created.Succeeded)
+        {
+            return created;
+        }
+
         await this.UserManager.AddToRoleAsync(user, "User");
 
         return created;
@@ -42,6 +48,12 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
 
         user.Created = DateTime.UtcNow;
         var created = await this.UserManager.CreateAsync(user, password);
+
+        if (!created.Succeeded)
+        {
+            return created;
+        }
+
         await this.UserManager.AddToRoleAsync(user, "User");
 
         return created;

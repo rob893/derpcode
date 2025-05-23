@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.DependencyInjection;
 using DerpCode.API.Core;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 
@@ -52,11 +53,13 @@ public static class ControllerServiceCollectionExtensions
         {
             options.InvalidModelStateResponseFactory = _ => new ValidationProblemDetailsResult();
         })
-        .AddJsonOptions(options =>
+        .AddNewtonsoftJson(options =>
         {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        });
+            options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            options.SerializerSettings.Converters.Add(new StringEnumConverter());
+            options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+        }); // newtonsoft required for JsonPatchDocument. System.Text.Json does not support this.
 
         return services;
     }
