@@ -231,9 +231,6 @@ dotnet_diagnostic.CA1812.severity = none
 # High-performance logging with LoggerMessage in ASP.NET Core.
 # Disabled because I don't want to refactor logging right now.
 dotnet_diagnostic.CA1848.severity = none
-# Do not disable token validation checks.
-# Disabled because we still validate JWT for refresh tokens but without lifetime validation.
-dotnet_diagnostic.CA5404.severity = none
 
 [*/Migrations/**]
 generated_code = true

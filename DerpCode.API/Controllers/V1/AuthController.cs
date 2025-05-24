@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Dtos;
+using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.Requests.Auth;
 using DerpCode.API.Models.Responses.Auth;
 using DerpCode.API.Models.Settings;
@@ -68,8 +70,7 @@ public sealed class AuthController : ServiceControllerBase
             return this.BadRequest([.. result.Errors.Select(e => e.Description)]);
         }
 
-        var token = this.jwtTokenService.GenerateJwtTokenForUser(user);
-        var refreshToken = await this.jwtTokenService.GenerateAndSaveRefreshTokenForUserAsync(user, registerUserRequest.DeviceId, this.HttpContext.RequestAborted);
+        var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, registerUserRequest.DeviceId);
 
         // await this.SendConfirmEmailLink(user);
 
@@ -85,7 +86,6 @@ public sealed class AuthController : ServiceControllerBase
             new LoginResponse
             {
                 Token = token,
-                RefreshToken = refreshToken,
                 User = userToReturn
             });
     }
@@ -123,8 +123,7 @@ public sealed class AuthController : ServiceControllerBase
             return this.Unauthorized("Invalid username or password.");
         }
 
-        var token = this.jwtTokenService.GenerateJwtTokenForUser(user);
-        var refreshToken = await this.jwtTokenService.GenerateAndSaveRefreshTokenForUserAsync(user, loginRequest.DeviceId, this.HttpContext.RequestAborted);
+        var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, loginRequest.DeviceId);
 
         var userToReturn = UserDto.FromEntity(user);
 
@@ -132,13 +131,12 @@ public sealed class AuthController : ServiceControllerBase
             new LoginResponse
             {
                 Token = token,
-                RefreshToken = refreshToken,
                 User = userToReturn
             });
     }
 
     /// <summary>
-    /// Refreshes a user's access token.
+    /// Refreshes a user's access token. Refresh token is stored in a cookie.
     /// </summary>
     /// <param name="refreshTokenRequest">The refresh token request.</param>
     /// <returns>A new set of tokens.</returns>
@@ -156,9 +154,13 @@ public sealed class AuthController : ServiceControllerBase
             return this.BadRequest();
         }
 
+        if (!this.Request.Cookies.TryGetValue(CookieKeys.RefreshToken, out var refreshToken) || string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return this.Unauthorized("Missing refresh token cookie");
+        }
+
         var (isTokenEligibleForRefresh, user) = await this.jwtTokenService.IsTokenEligibleForRefreshAsync(
-            refreshTokenRequest.Token,
-            refreshTokenRequest.RefreshToken,
+            refreshToken,
             refreshTokenRequest.DeviceId,
             this.HttpContext.RequestAborted);
 
@@ -167,14 +169,12 @@ public sealed class AuthController : ServiceControllerBase
             return this.Unauthorized("Invalid token.");
         }
 
-        var token = this.jwtTokenService.GenerateJwtTokenForUser(user);
-        var refreshToken = await this.jwtTokenService.GenerateAndSaveRefreshTokenForUserAsync(user, refreshTokenRequest.DeviceId, this.HttpContext.RequestAborted);
+        var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, refreshTokenRequest.DeviceId);
 
         return this.Ok(
             new RefreshTokenResponse
             {
-                Token = token,
-                RefreshToken = refreshToken
+                Token = token
             });
     }
 
@@ -282,6 +282,25 @@ public sealed class AuthController : ServiceControllerBase
         }
 
         return this.NoContent();
+    }
+
+    private async Task<string> GenerateAndSaveAccessAndRefreshTokensAsync(User user, string deviceId)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
+
+        var token = this.jwtTokenService.GenerateJwtTokenForUser(user);
+        var refreshToken = await this.jwtTokenService.GenerateAndSaveRefreshTokenForUserAsync(user, deviceId, this.HttpContext.RequestAborted);
+
+        this.Response.Cookies.Append(CookieKeys.RefreshToken, refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes)
+        });
+
+        return token;
     }
 
     // private async Task SendConfirmEmailLink(User user)

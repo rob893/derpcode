@@ -29,4 +29,6 @@ public interface IUserRepository : IRepository<User, CursorPaginationQueryParame
     Task<CursorPaginatedList<Role, int>> GetRolesAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken = default);
 
     Task<List<Role>> GetRolesAsync(CancellationToken cancellationToken = default);
+
+    Task<List<RefreshToken>> GetRefreshTokensForDeviceAsync(string deviceId, bool track = true, CancellationToken cancellationToken = default);
 }

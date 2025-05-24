@@ -13,7 +13,12 @@ public sealed class RefreshToken : IOwnedByUser<int>
     public User User { get; set; } = default!;
 
     [MaxLength(255)]
-    public string Token { get; set; } = string.Empty;
+    public string TokenHash { get; set; } = string.Empty;
+
+    [MaxLength(255)]
+    public string TokenSalt { get; set; } = string.Empty;
+
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset Expiration { get; set; }
 }

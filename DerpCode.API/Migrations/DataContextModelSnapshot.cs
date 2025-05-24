@@ -148,10 +148,18 @@ namespace DerpCode.API.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTimeOffset>("Expiration")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("TokenSalt")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");

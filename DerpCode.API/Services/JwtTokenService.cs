@@ -30,62 +30,41 @@ public sealed class JwtTokenService : IJwtTokenService
         this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
     }
 
-    public async Task<(bool, User?)> IsTokenEligibleForRefreshAsync(string token, string refreshToken, string deviceId, CancellationToken cancellationToken = default)
+    public async Task<(bool IsEligible, User? User)> IsTokenEligibleForRefreshAsync(string refreshToken, string deviceId, CancellationToken cancellationToken = default)
     {
-        // Still validate the passed in token, but ignore its expiration date by setting validate lifetime to false
-        var validationParameters = new TokenValidationParameters
-        {
-            ClockSkew = TimeSpan.Zero,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.authSettings.APISecret)),
-            RequireSignedTokens = true,
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            RequireExpirationTime = true,
-            ValidateLifetime = false,
-            ValidAudience = this.authSettings.TokenAudience,
-            ValidIssuer = this.authSettings.TokenIssuer
-        };
+        ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
+        ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
 
-        ClaimsPrincipal tokenClaims;
+        var refreshTokens = await this.userRepository.GetRefreshTokensForDeviceAsync(deviceId, track: true, cancellationToken);
 
-        try
-        {
-            var result = await new JwtSecurityTokenHandler().ValidateTokenAsync(token, validationParameters);
-
-            if (result == null || !result.IsValid)
-            {
-                return (false, null);
-            }
-
-            tokenClaims = new ClaimsPrincipal(result.ClaimsIdentity);
-        }
-        catch (SecurityTokenException)
+        if (refreshTokens.Count == 0)
         {
             return (false, null);
         }
 
-        var userIdClaim = tokenClaims.FindFirstValue(ClaimTypes.NameIdentifier);
+        var refreshTokenObj = refreshTokens.FirstOrDefault(token => VerifyTokenHash(refreshToken, token.TokenHash, token.TokenSalt));
 
-        if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
+        if (refreshTokenObj == null)
         {
             return (false, null);
         }
 
-        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken);
+        var user = refreshTokenObj.User;
 
         if (user == null)
         {
             return (false, null);
         }
 
-        user.RefreshTokens.RemoveAll(token => token.Expiration <= DateTime.UtcNow);
-
-        var currentRefreshToken = user.RefreshTokens.FirstOrDefault(token => token.DeviceId == deviceId && token.Token == refreshToken);
-
-        if (currentRefreshToken == null)
+        var expiredTokens = user.RefreshTokens.Where(token => token.Expiration <= DateTimeOffset.UtcNow).ToList();
+        if (expiredTokens.Count > 0)
         {
+            user.RefreshTokens.RemoveAll(token => token.Expiration <= DateTimeOffset.UtcNow);
             await this.userRepository.SaveChangesAsync(cancellationToken);
+        }
+
+        if (refreshTokenObj.Expiration <= DateTimeOffset.UtcNow)
+        {
             return (false, null);
         }
 
@@ -101,7 +80,7 @@ public sealed class JwtTokenService : IJwtTokenService
             throw new ArgumentNullException(nameof(deviceId));
         }
 
-        user.RefreshTokens.RemoveAll(token => token.Expiration <= DateTime.UtcNow || token.DeviceId == deviceId);
+        user.RefreshTokens.RemoveAll(token => token.Expiration <= DateTimeOffset.UtcNow || token.DeviceId == deviceId);
 
         var randomNumber = new byte[32];
         using var rng = RandomNumberGenerator.Create();
@@ -109,9 +88,13 @@ public sealed class JwtTokenService : IJwtTokenService
 
         var refreshToken = Convert.ToBase64String(randomNumber).ConvertToBase64Url();
 
+        CreateTokenHash(refreshToken, out var tokenHash, out var tokenSalt);
+
         user.RefreshTokens.Add(new RefreshToken
         {
-            Token = refreshToken,
+            TokenHash = tokenHash,
+            TokenSalt = tokenSalt,
+            CreatedAt = DateTimeOffset.UtcNow,
             Expiration = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes),
             DeviceId = deviceId
         });
@@ -179,12 +162,7 @@ public sealed class JwtTokenService : IJwtTokenService
 
     public async Task RevokeAllRefreshTokensForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
-        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken);
-
-        if (user == null)
-        {
-            throw new ArgumentException($"User with ID {userId} not found.");
-        }
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
 
         // Clear all refresh tokens
         user.RefreshTokens.Clear();
@@ -198,15 +176,35 @@ public sealed class JwtTokenService : IJwtTokenService
             throw new ArgumentNullException(nameof(deviceId));
         }
 
-        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken);
-
-        if (user == null)
-        {
-            throw new ArgumentException($"User with ID {userId} not found.");
-        }
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
 
         // Remove the refresh token for the specified device
         user.RefreshTokens.RemoveAll(token => token.DeviceId == deviceId);
         await this.userRepository.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void CreateTokenHash(string token, out string tokenHash, out string tokenSalt)
+    {
+        using var hmac = new HMACSHA512();
+        var tokenSaltBytes = hmac.Key;
+        var tokenHashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(token));
+
+        tokenHash = Convert.ToBase64String(tokenHashBytes);
+        tokenSalt = Convert.ToBase64String(tokenSaltBytes);
+    }
+
+    private static bool VerifyTokenHash(string token, string tokenHash, string tokenSalt)
+    {
+        if (string.IsNullOrWhiteSpace(tokenHash) || string.IsNullOrWhiteSpace(tokenSalt))
+        {
+            return false;
+        }
+
+        var tokenSaltBytes = Convert.FromBase64String(tokenSalt);
+        var tokenHashBytes = Convert.FromBase64String(tokenHash);
+        using var hmac = new HMACSHA512(tokenSaltBytes);
+        byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(token));
+
+        return CryptographicOperations.FixedTimeEquals(computedHash, tokenHashBytes);
     }
 }

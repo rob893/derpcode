@@ -6,7 +6,7 @@ namespace DerpCode.API.Services;
 
 public interface IJwtTokenService
 {
-    Task<(bool, User?)> IsTokenEligibleForRefreshAsync(string token, string refreshToken, string deviceId, CancellationToken cancellationToken = default);
+    Task<(bool IsEligible, User? User)> IsTokenEligibleForRefreshAsync(string refreshToken, string deviceId, CancellationToken cancellationToken = default);
 
     Task<string> GenerateAndSaveRefreshTokenForUserAsync(User user, string deviceId, CancellationToken cancellationToken = default);
 

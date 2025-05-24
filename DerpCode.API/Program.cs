@@ -29,7 +29,9 @@ public static class Program
 
         var keyVaultUrl = builder.Configuration[ConfigurationKeys.KeyVaultUrl] ?? throw new InvalidOperationException("KeyVaultUrl not found in configuration.");
 
+#if !DEBUG
         builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), new DefaultAzureCredential(), new PrefixKeyVaultSecretManager(["DerpCode", "All"]));
+#endif
         builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
         builder.Services.AddControllerServices()

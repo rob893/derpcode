@@ -112,6 +112,24 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
         return this.Context.Roles.ToListAsync(cancellationToken);
     }
 
+    public Task<List<RefreshToken>> GetRefreshTokensForDeviceAsync(string deviceId, bool track = true, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
+
+        IQueryable<RefreshToken> query = this.Context.Set<RefreshToken>();
+
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return query
+            .Where(t => t.DeviceId == deviceId)
+            .Include(t => t.User)
+            .ThenInclude(u => u.RefreshTokens)
+            .ToListAsync(cancellationToken);
+    }
+
     protected override IQueryable<User> AddIncludes(IQueryable<User> query)
     {
         return query
