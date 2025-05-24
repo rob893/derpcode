@@ -1,80 +1,47 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Language, ProblemDifficulty } from '../types/models';
-import type { Problem, SubmissionResult } from '../types/models';
+import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
+import { useProblem, useSubmitSolution } from '../hooks/api';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [problem, setProblem] = useState<Problem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: problem, isLoading, error } = useProblem(Number(id!));
+  const submitSolution = useSubmitSolution(problem?.id || 0);
+
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.JavaScript);
   const [code, setCode] = useState('');
   const [result, setResult] = useState<SubmissionResult | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
+  // Set initial language and template when problem data is loaded
   useEffect(() => {
-    const fetchProblem = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems/${id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch problem');
-        }
-        const data = await response.json();
-        setProblem(data);
-
-        // Set initial language and template
-        const initialDriver = data.drivers.find((d: any) => d.language === Language.JavaScript) || data.drivers[0];
-        if (initialDriver) {
-          setSelectedLanguage(initialDriver.language);
-          setCode(initialDriver.uiTemplate);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+    if (problem) {
+      const initialDriver = problem.drivers.find((d: any) => d.language === Language.JavaScript) || problem.drivers[0];
+      if (initialDriver) {
+        setSelectedLanguage(initialDriver.language);
+        setCode(initialDriver.uiTemplate);
       }
-    };
-
-    fetchProblem();
-  }, [id]);
+    }
+  }, [problem]);
 
   const handleSubmit = async () => {
     if (!problem) return;
 
-    setSubmitting(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems/${problem.id}/submissions`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            userCode: code,
-            language: selectedLanguage
-          })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Submission failed');
-      }
-
-      const result = await response.json();
-      setResult(result);
+      const submissionResult = await submitSolution.mutateAsync({
+        userCode: code,
+        language: selectedLanguage
+      });
+      setResult(submissionResult);
     } catch (error) {
       console.error('Submission error:', error);
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  if (loading) return <div>Loading problem...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (isLoading) return <div>Loading problem...</div>;
+  if (error) return <div>Error: {error.message}</div>;
   if (!problem) return <div>Problem not found</div>;
 
   const formatValue = (value: any): string => {
@@ -171,8 +138,8 @@ export const ProblemView = () => {
           />
 
           <div className="submission-controls">
-            <button onClick={handleSubmit} disabled={submitting || !code.trim()}>
-              {submitting ? 'Submitting...' : 'Submit Solution'}
+            <button onClick={handleSubmit} disabled={submitSolution.isPending || !code.trim()}>
+              {submitSolution.isPending ? 'Submitting...' : 'Submit Solution'}
             </button>
           </div>
 

@@ -3,18 +3,16 @@ import { useNavigate } from 'react-router';
 import {
   type CreateProblemDriverRequest,
   type CreateProblemRequest,
-  type CursorPaginatedResponse,
-  type DriverTemplate,
   Language,
   ProblemDifficulty
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
+import { useDriverTemplates, useCreateProblem } from '../hooks/api';
 
 export const CreateProblem = () => {
   const navigate = useNavigate();
-  const [driverTemplates, setDriverTemplates] = useState<DriverTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: driverTemplates = [], isLoading, error } = useDriverTemplates();
+  const createProblem = useCreateProblem();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.JavaScript);
 
   const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
@@ -33,31 +31,15 @@ export const CreateProblem = () => {
   const [problemInput, setProblemInput] = useState('');
   const [problemExpectedOutput, setProblemExpectedOutput] = useState('');
 
+  // Set initial driver code from first available template
   useEffect(() => {
-    const fetchDriverTemplates = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/driverTemplates`);
-        if (!response.ok) throw new Error('Failed to fetch driver templates');
-        const paginatedRes: CursorPaginatedResponse<DriverTemplate> = await response.json();
-        const templates = paginatedRes.nodes || paginatedRes.edges?.map(edge => edge.node) || [];
-        setDriverTemplates(templates);
-
-        // Set initial driver code from first available template
-        if (templates.length > 0) {
-          const firstLanguage = templates[0].language;
-          setSelectedLanguage(firstLanguage);
-          setDriverCode(templates[0].template);
-          setUITemplate(templates[0].uiTemplate);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch driver templates');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDriverTemplates();
-  }, []);
+    if (driverTemplates.length > 0) {
+      const firstLanguage = driverTemplates[0].language;
+      setSelectedLanguage(firstLanguage);
+      setDriverCode(driverTemplates[0].template);
+      setUITemplate(driverTemplates[0].uiTemplate);
+    }
+  }, [driverTemplates]);
 
   const handleLanguageChange = (newLanguage: Language) => {
     setSelectedLanguage(newLanguage);
@@ -97,25 +79,15 @@ export const CreateProblem = () => {
         drivers: [driver]
       };
 
-      const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newProblem)
-      });
-
-      if (!response.ok) throw new Error('Failed to create problem');
-
-      const createdProblem = await response.json();
+      const createdProblem = await createProblem.mutateAsync(newProblem);
       navigate(`/problems/${createdProblem.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create problem');
+      console.error('Failed to create problem:', err);
     }
   };
 
-  if (loading) return <div>Loading driver templates...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (isLoading) return <div>Loading driver templates...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div className="create-problem">
@@ -254,9 +226,9 @@ export const CreateProblem = () => {
         <button
           className="submit-button"
           onClick={handleSubmit}
-          disabled={!problem.name || !problem.description || !driverCode}
+          disabled={!problem.name || !problem.description || !driverCode || createProblem.isPending}
         >
-          Create Problem
+          {createProblem.isPending ? 'Creating...' : 'Create Problem'}
         </button>
       </div>
     </div>

@@ -1,37 +1,13 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ProblemDifficulty } from '../types/models';
-import type { Problem, CursorPaginatedResponse } from '../types/models';
+import { useProblems } from '../hooks/api';
 
 export const ProblemList = () => {
-  const [problems, setProblems] = useState<Problem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { data: problems = [], isLoading, error } = useProblems();
 
-  useEffect(() => {
-    const fetchProblems = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch problems');
-        }
-        const data: CursorPaginatedResponse<Problem> = await response.json();
-        // Extract problems from paginated response
-        const problemList = data.nodes || data.edges?.map(edge => edge.node) || [];
-        setProblems(problemList);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProblems();
-  }, []);
-
-  if (loading) return <div>Loading problems...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (isLoading) return <div>Loading problems...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   const getDifficultyColor = (difficulty: ProblemDifficulty) => {
     switch (difficulty) {
