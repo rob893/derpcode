@@ -18,7 +18,7 @@ export const ProblemView = () => {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const response = await fetch(`https://localhost:7059/api/v1/problems/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch problem');
         }
@@ -46,16 +46,19 @@ export const ProblemView = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`https://localhost:7059/api/v1/problems/${problem.id}/submissions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userCode: code,
-          language: selectedLanguage
-        })
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems/${problem.id}/submissions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userCode: code,
+            language: selectedLanguage
+          })
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Submission failed');

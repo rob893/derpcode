@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using DerpCode.API.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
+using DerpCode.API.Models.Requests;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 
@@ -53,13 +55,12 @@ public static class ControllerServiceCollectionExtensions
         {
             options.InvalidModelStateResponseFactory = _ => new ValidationProblemDetailsResult();
         })
-        .AddNewtonsoftJson(options =>
+        .AddJsonOptions(options =>
         {
-            options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            options.SerializerSettings.Converters.Add(new StringEnumConverter());
-            options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-        }); // newtonsoft required for JsonPatchDocument. System.Text.Json does not support this.
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(new JsonPatchDocumentConverterFactory());
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
 
         return services;
     }

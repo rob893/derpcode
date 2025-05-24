@@ -36,7 +36,7 @@ export const CreateProblem = () => {
   useEffect(() => {
     const fetchDriverTemplates = async () => {
       try {
-        const response = await fetch('https://localhost:7059/api/v1/driverTemplates');
+        const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/driverTemplates`);
         if (!response.ok) throw new Error('Failed to fetch driver templates');
         const paginatedRes: CursorPaginatedResponse<DriverTemplate> = await response.json();
         const templates = paginatedRes.nodes || paginatedRes.edges?.map(edge => edge.node) || [];
@@ -97,7 +97,7 @@ export const CreateProblem = () => {
         drivers: [driver]
       };
 
-      const response = await fetch('https://localhost:7059/api/v1/problems', {
+      const response = await fetch(`${import.meta.env.VITE_DERPCODE_API_BASE_URL}/api/v1/problems`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
