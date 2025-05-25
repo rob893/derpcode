@@ -50,7 +50,7 @@ export const ProblemView = () => {
 
   return (
     <>
-      <button className="back-button" onClick={() => navigate('/')}>
+      <button className="back-button" onClick={() => navigate('/problems')}>
         ← Back to Problems
       </button>
 

@@ -1,24 +1,62 @@
 import { Routes, Route, Navigate } from 'react-router';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AppLayout } from './components/AppLayout';
 import { ProblemList } from './components/ProblemList';
 import { ProblemView } from './components/ProblemView';
 import { CreateProblem } from './components/CreateProblem';
+import { LandingPage } from './pages/LandingPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import './App.css';
 
 function App() {
   return (
-    <div className="app">
-      <header>
-        <h1>DerpCode</h1>
-      </header>
-      <main>
+    <AuthProvider>
+      <div className="app">
         <Routes>
-          <Route path="/" element={<ProblemList />} />
-          <Route path="/problems/new" element={<CreateProblem />} />
-          <Route path="/problems/:id" element={<ProblemView />} />
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
+          {/* Protected routes */}
+          <Route
+            path="/problems"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProblemList />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CreateProblem />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProblemView />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </main>
-    </div>
+      </div>
+    </AuthProvider>
   );
 }
 

@@ -104,6 +104,7 @@ export const CreateProblem = () => {
           value={problem.name}
           onChange={e => setProblem(prev => ({ ...prev, name: e.target.value }))}
           placeholder="Problem name"
+          autoComplete="off"
         />
       </div>
 
@@ -114,6 +115,7 @@ export const CreateProblem = () => {
           onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Problem description"
           rows={4}
+          autoComplete="off"
         />
       </div>
 
@@ -140,6 +142,7 @@ export const CreateProblem = () => {
             onChange={e => setTagInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAddTag()}
             placeholder="Add tag and press Enter"
+            autoComplete="off"
           />
           <button type="button" onClick={handleAddTag}>
             Add Tag
@@ -170,6 +173,7 @@ export const CreateProblem = () => {
           }}
           placeholder="[1, 2, 3]"
           rows={4}
+          autoComplete="off"
         />
       </div>
 
@@ -188,6 +192,7 @@ export const CreateProblem = () => {
           }}
           placeholder="[3, 5, 7]"
           rows={4}
+          autoComplete="off"
         />
       </div>
 

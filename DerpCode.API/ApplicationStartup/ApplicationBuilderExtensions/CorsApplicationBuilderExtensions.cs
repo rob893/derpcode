@@ -16,6 +16,7 @@ public static class CorsApplicationBuilderExtensions
             header.WithOrigins(config.GetSection(ConfigurationKeys.CorsAllowedOrigins).Get<string[]>() ?? ["*"])
                 .AllowAnyMethod()
                 .AllowAnyHeader()
+                .AllowCredentials()
                 .WithExposedHeaders(config.GetSection(ConfigurationKeys.CorsExposedHeaders).Get<string[]>() ?? [AppHeaderNames.TokenExpired, AppHeaderNames.CorrelationId]));
 
         return app;
