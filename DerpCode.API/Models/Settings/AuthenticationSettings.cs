@@ -37,4 +37,6 @@ public sealed record AuthenticationSettings
     public Uri ForgotPasswordCallbackUrl { get; init; } = default!;
 
     public Uri ConfirmEmailCallbackUrl { get; init; } = default!;
+
+    public string? CookieDomain { get; init; }
 }

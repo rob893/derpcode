@@ -310,7 +310,7 @@ public sealed class AuthController : ServiceControllerBase
             SameSite = SameSiteMode.None, // Required for cross-origin requests
             Expires = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes),
             IsEssential = true, // Mark as essential for GDPR compliance
-            Domain = null // Don't set domain to restrict to exact host
+            Domain = this.authSettings.CookieDomain // Don't set domain to restrict to exact host
         });
 
         // Generate and set CSRF token cookie for Double Submit Cookie pattern
@@ -321,7 +321,8 @@ public sealed class AuthController : ServiceControllerBase
             Secure = true, // Always require HTTPS
             SameSite = SameSiteMode.None, // Required for cross-origin requests
             Expires = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes),
-            IsEssential = true // Mark as essential for GDPR compliance
+            IsEssential = true, // Mark as essential for GDPR compliance
+            Domain = this.authSettings.CookieDomain // Set domain to allow cross-origin requests
         });
 
         return token;

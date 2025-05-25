@@ -99,9 +99,8 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
 
       return retryResponse;
     } else {
-      // Refresh failed, redirect to login
+      // Refresh failed, clear token and let React components handle navigation
       clearAccessToken();
-      window.location.href = '/login';
       throw new ApiError('Authentication required', 401, 'Unauthorized');
     }
   }
