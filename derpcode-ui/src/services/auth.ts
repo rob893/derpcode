@@ -38,17 +38,33 @@ export function clearAccessToken(): void {
   accessToken = null;
 }
 
-// Enhanced fetch with automatic auth handling
+// CSRF Token management for Double Submit Cookie pattern
+function getCsrfTokenFromCookie(): string | null {
+  const match = document.cookie.match(/csrf_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Enhanced fetch with automatic auth and CSRF token for refresh calls
 export async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = getAccessToken();
 
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  // Add CSRF token header for refresh token requests
+  const csrfHeaders: Record<string, string> = {};
+  if (url.includes('/refreshToken')) {
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken) {
+      csrfHeaders['X-CSRF-Token'] = csrfToken;
+    }
+  }
 
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...authHeaders,
+      ...csrfHeaders,
       ...options.headers
     } as any,
     credentials: 'include' // Include cookies for refresh token
@@ -62,11 +78,20 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     if (refreshSuccess) {
       // Retry the original request with the new token
       const newToken = getAccessToken();
+      const retryCsrfHeaders: Record<string, string> = {};
+      if (url.includes('/refreshToken')) {
+        const csrfToken = getCsrfTokenFromCookie();
+        if (csrfToken) {
+          retryCsrfHeaders['X-CSRF-Token'] = csrfToken;
+        }
+      }
+
       const retryResponse = await fetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
           ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
+          ...retryCsrfHeaders,
           ...options.headers
         },
         credentials: 'include'
@@ -87,10 +112,18 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
 async function tryRefreshToken(): Promise<boolean> {
   try {
     const deviceId = getDeviceId();
+    const csrfToken = getCsrfTokenFromCookie();
+
+    if (!csrfToken) {
+      console.error('CSRF token not found in cookie');
+      return false;
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/refreshToken`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken // Include CSRF token in header
       },
       credentials: 'include',
       body: JSON.stringify({ deviceId })
@@ -176,10 +209,17 @@ export const authApi = {
 
   refreshToken: async (): Promise<RefreshTokenResponse> => {
     const deviceId = getDeviceId();
+    const csrfToken = getCsrfTokenFromCookie();
+
+    if (!csrfToken) {
+      throw new ApiError('CSRF token not found', 400, 'Bad Request');
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/refreshToken`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken // Required for CSRF protection
       },
       credentials: 'include',
       body: JSON.stringify({ deviceId })

@@ -154,6 +154,16 @@ public sealed class AuthController : ServiceControllerBase
             return this.BadRequest();
         }
 
+        // CSRF protection using Double Submit Cookie pattern. This is the only endpoint that requires CSRF token as it is the only one that uses cookies.
+        // This isn't really needed as the device id is effectively a CSRF token, but it's a good practice to have it.
+        var csrfHeader = this.Request.Headers[AppHeaderNames.CsrfToken].ToString();
+        var csrfCookie = this.Request.Cookies[CookieKeys.CsrfToken];
+
+        if (string.IsNullOrEmpty(csrfHeader) || csrfHeader != csrfCookie)
+        {
+            return this.Unauthorized("CSRF token mismatch.");
+        }
+
         if (!this.Request.Cookies.TryGetValue(CookieKeys.RefreshToken, out var refreshToken) || string.IsNullOrWhiteSpace(refreshToken))
         {
             return this.Unauthorized("Missing refresh token cookie");
@@ -292,12 +302,26 @@ public sealed class AuthController : ServiceControllerBase
         var token = this.jwtTokenService.GenerateJwtTokenForUser(user);
         var refreshToken = await this.jwtTokenService.GenerateAndSaveRefreshTokenForUserAsync(user, deviceId, this.HttpContext.RequestAborted);
 
+        // Set the refresh token cookie
         this.Response.Cookies.Append(CookieKeys.RefreshToken, refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes)
+            Secure = true, // Always require HTTPS
+            SameSite = SameSiteMode.None, // Required for cross-origin requests
+            Expires = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes),
+            IsEssential = true, // Mark as essential for GDPR compliance
+            Domain = null // Don't set domain to restrict to exact host
+        });
+
+        // Generate and set CSRF token cookie for Double Submit Cookie pattern
+        var csrfToken = Guid.NewGuid().ToString();
+        this.Response.Cookies.Append(CookieKeys.CsrfToken, csrfToken, new CookieOptions
+        {
+            HttpOnly = false, // Must be false so JavaScript can read it
+            Secure = true, // Always require HTTPS
+            SameSite = SameSiteMode.None, // Required for cross-origin requests
+            Expires = DateTimeOffset.UtcNow.AddMinutes(this.authSettings.RefreshTokenExpirationTimeInMinutes),
+            IsEssential = true // Mark as essential for GDPR compliance
         });
 
         return token;
