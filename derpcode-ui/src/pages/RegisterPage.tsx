@@ -62,37 +62,6 @@ export function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="error-message">{error}</div>}
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="firstName">First Name</label>
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                value={formData.firstName}
-                onChange={handleChange}
-                disabled={isLoading}
-                placeholder="First name (optional)"
-                autoComplete="given-name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="lastName">Last Name</label>
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                value={formData.lastName}
-                onChange={handleChange}
-                disabled={isLoading}
-                placeholder="Last name (optional)"
-                autoComplete="family-name"
-              />
-            </div>
-          </div>
-
           <div className="form-group">
             <label htmlFor="userName">Username</label>
             <input

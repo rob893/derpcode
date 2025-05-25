@@ -3,6 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches: [master]
+    paths:
+      - 'derpcode-ui/**'
 
 permissions:
   contents: write
