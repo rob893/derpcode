@@ -2,9 +2,9 @@ using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using DerpCode.API.Models.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using DerpCode.API.Models.Settings;
 
 namespace DerpCode.API.Middleware;
 

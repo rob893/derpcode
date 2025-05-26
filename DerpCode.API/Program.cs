@@ -1,24 +1,24 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Identity; // don't remove. Shows as unused becuase of the conditional compilation
+using Azure.Monitor.OpenTelemetry.AspNetCore; // don't remove. Shows as unused becuase of the conditional compilation
+using CommandLine;
+using DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
+using DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
+using DerpCode.API.Constants;
+using DerpCode.API.Core;
+using DerpCode.API.Data;
+using DerpCode.API.Middleware;
+using DerpCode.API.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
-using DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
-using DerpCode.API.Middleware;
-using Microsoft.AspNetCore.HttpOverrides;
-using System;
-using System.IO;
-using DerpCode.API.Core;
-using CommandLine;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using DerpCode.API.Data;
-using System.Threading;
-using System.Threading.Tasks;
-using DerpCode.API.Services;
-using DerpCode.API.Constants;
-using Azure.Monitor.OpenTelemetry.AspNetCore; // don't remove. Shows as unused becuase of the conditional compilation
 
 namespace DerpCode.API;
 

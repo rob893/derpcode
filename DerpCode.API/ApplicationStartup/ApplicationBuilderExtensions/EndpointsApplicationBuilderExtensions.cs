@@ -1,9 +1,9 @@
 using System;
+using DerpCode.API.Constants;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
-using DerpCode.API.Constants;
 
 namespace DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 

@@ -1,7 +1,7 @@
-using Docker.DotNet;
-using DerpCode.API.Services;
-using Microsoft.Extensions.DependencyInjection;
 using System;
+using DerpCode.API.Services;
+using Docker.DotNet;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 

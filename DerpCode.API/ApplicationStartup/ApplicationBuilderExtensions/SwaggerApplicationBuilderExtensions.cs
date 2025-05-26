@@ -1,14 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
 using DerpCode.API.Middleware;
 using DerpCode.API.Models.Settings;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 

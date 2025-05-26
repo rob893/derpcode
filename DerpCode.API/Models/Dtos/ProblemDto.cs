@@ -40,4 +40,3 @@ public sealed record ProblemDto : IIdentifiable<int>
         };
     }
 }
-

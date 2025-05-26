@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DerpCode.API.Constants;
+using DerpCode.API.Extensions;
+using DerpCode.API.Models.Settings;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using DerpCode.API.Constants;
-using DerpCode.API.Extensions;
-using DerpCode.API.Models.Settings;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;

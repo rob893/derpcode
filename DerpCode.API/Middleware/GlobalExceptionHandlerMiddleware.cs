@@ -1,12 +1,11 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DerpCode.API.Core;
+using DerpCode.API.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using DerpCode.API.Core;
-using DerpCode.API.Extensions;
-
 using static DerpCode.API.Utilities.UtilityFunctions;
 
 namespace DerpCode.API.Middleware;

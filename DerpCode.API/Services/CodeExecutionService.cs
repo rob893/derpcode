@@ -1,15 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using DerpCode.API.Models;
+using DerpCode.API.Models.Entities;
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using DerpCode.API.Models;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Threading;
-using System;
-using System.Linq;
-using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Services;
 

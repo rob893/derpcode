@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Http;
 using DerpCode.API.Constants;
+using Microsoft.AspNetCore.Http;
 
 namespace DerpCode.API.Extensions;
 

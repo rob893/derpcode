@@ -1,7 +1,7 @@
 using System;
+using DerpCode.API.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using DerpCode.API.Constants;
 
 namespace DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 

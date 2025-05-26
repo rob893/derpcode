@@ -23,4 +23,3 @@ public sealed class Problem : IIdentifiable<int>
 
     public List<ProblemDriver> Drivers { get; set; } = [];
 }
-
