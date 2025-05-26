@@ -3,14 +3,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Identity; // don't remove. Shows as unused becuase of the conditional compilation
-using Azure.Monitor.OpenTelemetry.AspNetCore; // don't remove. Shows as unused becuase of the conditional compilation
+using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using CommandLine;
 using DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 using DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data;
+using DerpCode.API.Extensions;
 using DerpCode.API.Middleware;
 using DerpCode.API.Services;
 using Microsoft.AspNetCore.Builder;
@@ -30,22 +31,23 @@ public static class Program
 
         var keyVaultUrl = builder.Configuration[ConfigurationKeys.KeyVaultUrl] ?? throw new InvalidOperationException("KeyVaultUrl not found in configuration.");
 
-#if !DEBUG
-        builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), new DefaultAzureCredential(), new PrefixKeyVaultSecretManager(["DerpCode", "All"]));
-
-        var appInsightsConnectionString = builder.Configuration[ConfigurationKeys.ApplicationInsightsConnectionString] ?? throw new InvalidOperationException("ApplicationInsightsConnectionString not found in configuration.");
-
-        builder.Logging.AddOpenTelemetry(options =>
+        if (builder.Configuration.GetEnvironment() != EnvironmentNames.Development)
         {
-            options.IncludeScopes = true;
-        });
-        builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
-        {
-            options.ConnectionString = appInsightsConnectionString;
-            options.Credential = new DefaultAzureCredential();
-            options.SamplingRatio = 0.5f;
-        });
-#endif
+            builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), new DefaultAzureCredential(), new PrefixKeyVaultSecretManager(["DerpCode", "All"]));
+
+            var appInsightsConnectionString = builder.Configuration[ConfigurationKeys.ApplicationInsightsConnectionString] ?? throw new InvalidOperationException("ApplicationInsightsConnectionString not found in configuration.");
+
+            builder.Logging.AddOpenTelemetry(options =>
+            {
+                options.IncludeScopes = true;
+            });
+            builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
+            {
+                options.ConnectionString = appInsightsConnectionString;
+                options.Credential = new DefaultAzureCredential();
+                options.SamplingRatio = 0.5f;
+            });
+        }
 
         builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
