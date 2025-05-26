@@ -7,7 +7,6 @@ using System.Reflection;
 using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Settings;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
