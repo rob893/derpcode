@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
+import { Card, CardBody, CardHeader, Input, Button, Divider } from '@heroui/react';
 import { useAuth } from '../hooks/useAuth';
 
 export function LoginPage() {
@@ -30,56 +31,73 @@ export function LoginPage() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>DerpCode</h1>
-          <h2>Sign In</h2>
-          <p>Welcome back! Please sign in to your account.</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-background to-content1 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl">
+        <CardHeader className="flex flex-col items-center pb-6 pt-8">
+          <h1 className="text-4xl font-bold text-primary mb-2">DerpCode</h1>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Sign In</h2>
+          <p className="text-default-600 text-center">Welcome back! Please sign in to your account.</p>
+        </CardHeader>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="error-message">{error}</div>}
+        <CardBody className="px-8 pb-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-danger/10 border border-danger/20 rounded-lg p-3">
+                <p className="text-danger text-sm text-center">{error}</p>
+              </div>
+            )}
 
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              id="username"
-              type="text"
+            <Input
+              label="Username"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              required
-              disabled={isLoading}
+              isRequired
+              isDisabled={isLoading}
               placeholder="Enter your username"
               autoComplete="username"
+              variant="bordered"
+              color="primary"
+              size="lg"
             />
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
+            <Input
+              label="Password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
+              isRequired
+              isDisabled={isLoading}
               placeholder="Enter your password"
               autoComplete="current-password"
+              variant="bordered"
+              color="primary"
+              size="lg"
             />
+
+            <Button
+              type="submit"
+              color="primary"
+              size="lg"
+              className="w-full font-semibold"
+              isLoading={isLoading}
+              isDisabled={!username || !password}
+            >
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </form>
+
+          <Divider className="my-6" />
+
+          <div className="text-center">
+            <p className="text-default-600">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-primary hover:text-primary-600 font-medium transition-colors">
+                Sign up
+              </Link>
+            </p>
           </div>
-
-          <button type="submit" className="auth-button" disabled={isLoading || !username || !password}>
-            {isLoading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          <p>
-            Don't have an account? <Link to="/register">Sign up</Link>
-          </p>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     </div>
   );
 }

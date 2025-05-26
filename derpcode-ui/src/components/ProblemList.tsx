@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { Card, CardBody, Chip, Button, Spinner, Divider } from '@heroui/react';
 import { ProblemDifficulty } from '../types/models';
 import { useProblems } from '../hooks/api';
 
@@ -6,21 +7,36 @@ export const ProblemList = () => {
   const navigate = useNavigate();
   const { data: problems = [], isLoading, error } = useProblems();
 
-  if (isLoading) return <div>Loading problems...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Spinner size="lg" color="primary" label="Loading problems..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardBody className="text-center py-8">
+          <p className="text-danger text-lg">Error: {error.message}</p>
+        </CardBody>
+      </Card>
+    );
+  }
 
   const getDifficultyColor = (difficulty: ProblemDifficulty) => {
     switch (difficulty) {
       case ProblemDifficulty.VeryEasy:
       case ProblemDifficulty.Easy:
-        return '#00af9b';
+        return 'success';
       case ProblemDifficulty.Medium:
-        return '#ffc01e';
+        return 'warning';
       case ProblemDifficulty.Hard:
       case ProblemDifficulty.VeryHard:
-        return '#ff375f';
+        return 'danger';
       default:
-        return '#808080';
+        return 'default';
     }
   };
 
@@ -42,32 +58,52 @@ export const ProblemList = () => {
   };
 
   return (
-    <div className="problem-list">
-      <div className="list-header">
-        <h2>Problems</h2>
-        <button className="create-button" onClick={() => navigate('/problems/new')}>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-foreground">Problems</h2>
+        <Button
+          color="primary"
+          variant="solid"
+          size="lg"
+          onPress={() => navigate('/problems/new')}
+          className="font-semibold"
+        >
           Create Problem
-        </button>
+        </Button>
       </div>
-      <div className="problems">
+
+      <Divider />
+
+      <div className="grid gap-4">
         {problems.map(problem => (
-          <div key={problem.id} className="problem-item" onClick={() => navigate(`/problems/${problem.id}`)}>
-            <div className="problem-header">
-              <h3>{problem.name}</h3>
-              <span className="difficulty-badge" style={{ backgroundColor: getDifficultyColor(problem.difficulty) }}>
-                {getDifficultyLabel(problem.difficulty)}
-              </span>
-            </div>
-            {problem.tags && problem.tags.length > 0 && (
-              <div className="problem-tags">
-                {problem.tags.map((tag, index) => (
-                  <span key={index} className="tag">
-                    {tag.name}
-                  </span>
-                ))}
+          <Card
+            key={problem.id}
+            isPressable
+            isHoverable
+            onPress={() => navigate(`/problems/${problem.id}`)}
+            className="transition-all duration-200 hover:scale-[1.02]"
+          >
+            <CardBody className="p-6">
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="text-xl font-semibold text-foreground hover:text-primary transition-colors">
+                  {problem.name}
+                </h3>
+                <Chip color={getDifficultyColor(problem.difficulty)} variant="flat" size="sm" className="font-medium">
+                  {getDifficultyLabel(problem.difficulty)}
+                </Chip>
               </div>
-            )}
-          </div>
+
+              {problem.tags && problem.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {problem.tags.map((tag, index) => (
+                    <Chip key={index} size="sm" variant="bordered" color="secondary" className="text-xs">
+                      {tag.name}
+                    </Chip>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
         ))}
       </div>
     </div>

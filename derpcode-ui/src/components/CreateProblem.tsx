@@ -8,6 +8,8 @@ import {
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { useDriverTemplates, useCreateProblem } from '../hooks/api';
+import { Button, Card, CardBody, CardHeader, Input, Textarea, Select, SelectItem, Chip, Spinner } from '@heroui/react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export const CreateProblem = () => {
   const navigate = useNavigate();
@@ -86,155 +88,211 @@ export const CreateProblem = () => {
     }
   };
 
-  if (isLoading) return <div>Loading driver templates...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="lg" color="primary" />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Card className="max-w-md">
+          <CardBody className="text-center">
+            <p className="text-danger">Error: {error.message}</p>
+          </CardBody>
+        </Card>
+      </div>
+    );
 
   return (
-    <div className="create-problem">
-      <button className="back-button" onClick={() => navigate('/')}>
-        ← Back to Problems
-      </button>
-
-      <h2>Create New Problem</h2>
-
-      <div className="form-group">
-        <label>Name:</label>
-        <input
-          type="text"
-          value={problem.name}
-          onChange={e => setProblem(prev => ({ ...prev, name: e.target.value }))}
-          placeholder="Problem name"
-          autoComplete="off"
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-4">
+        <Button
+          isIconOnly
+          variant="light"
+          onPress={() => navigate('/')}
+          startContent={<ArrowLeftIcon className="w-5 h-5" />}
         />
+        <h2 className="text-3xl font-bold text-white">Create New Problem</h2>
       </div>
 
-      <div className="form-group">
-        <label>Description:</label>
-        <textarea
-          value={problem.description}
-          onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
-          placeholder="Problem description"
-          rows={4}
-          autoComplete="off"
-        />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <h3 className="text-xl font-semibold">Problem Details</h3>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <Input
+                label="Name"
+                placeholder="Problem name"
+                value={problem.name}
+                onChange={e => setProblem(prev => ({ ...prev, name: e.target.value }))}
+                variant="bordered"
+                color="primary"
+              />
 
-      <div className="form-group">
-        <label>Difficulty:</label>
-        <select
-          value={problem.difficulty}
-          onChange={e => setProblem(prev => ({ ...prev, difficulty: e.target.value as ProblemDifficulty }))}
-        >
-          <option value={ProblemDifficulty.VeryEasy}>Very Easy</option>
-          <option value={ProblemDifficulty.Easy}>Easy</option>
-          <option value={ProblemDifficulty.Medium}>Medium</option>
-          <option value={ProblemDifficulty.Hard}>Hard</option>
-          <option value={ProblemDifficulty.VeryHard}>Very Hard</option>
-        </select>
-      </div>
+              <Textarea
+                label="Description"
+                placeholder="Problem description"
+                value={problem.description}
+                onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
+                variant="bordered"
+                color="primary"
+                minRows={4}
+              />
 
-      <div className="form-group">
-        <label>Tags:</label>
-        <div className="tag-input">
-          <input
-            type="text"
-            value={tagInput}
-            onChange={e => setTagInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAddTag()}
-            placeholder="Add tag and press Enter"
-            autoComplete="off"
-          />
-          <button type="button" onClick={handleAddTag}>
-            Add Tag
-          </button>
+              <Select
+                label="Difficulty"
+                selectedKeys={[problem.difficulty || ProblemDifficulty.Easy]}
+                onSelectionChange={keys => {
+                  const difficulty = Array.from(keys)[0] as ProblemDifficulty;
+                  setProblem(prev => ({ ...prev, difficulty }));
+                }}
+                variant="bordered"
+                color="primary"
+              >
+                <SelectItem key={ProblemDifficulty.VeryEasy}>Very Easy</SelectItem>
+                <SelectItem key={ProblemDifficulty.Easy}>Easy</SelectItem>
+                <SelectItem key={ProblemDifficulty.Medium}>Medium</SelectItem>
+                <SelectItem key={ProblemDifficulty.Hard}>Hard</SelectItem>
+                <SelectItem key={ProblemDifficulty.VeryHard}>Very Hard</SelectItem>
+              </Select>
+
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add tag and press Enter"
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddTag()}
+                    variant="bordered"
+                    color="primary"
+                    className="flex-1"
+                  />
+                  <Button color="primary" onPress={handleAddTag}>
+                    Add Tag
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {problem.tags?.map(tag => (
+                    <Chip key={tag.name} onClose={() => handleRemoveTag(tag.name)} variant="flat" color="primary">
+                      {tag.name}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
         </div>
-        <div className="tags-list">
-          {problem.tags?.map(tag => (
-            <span key={tag.name} className="tag">
-              {tag.name}
-              <button onClick={() => handleRemoveTag(tag.name)}>&times;</button>
-            </span>
-          ))}
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <h3 className="text-xl font-semibold">Test Data</h3>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <Textarea
+                label="Input Array (JSON)"
+                placeholder="[1, 2, 3]"
+                value={problemInput}
+                onChange={e => {
+                  try {
+                    setProblemInput(e.target.value);
+                    const parsed = JSON.parse(e.target.value);
+                    setProblem(prev => ({ ...prev, input: parsed }));
+                  } catch (e) {
+                    console.error('Invalid JSON:', e);
+                  }
+                }}
+                variant="bordered"
+                color="primary"
+                minRows={4}
+              />
+
+              <Textarea
+                label="Expected Output Array (JSON)"
+                placeholder="[3, 5, 7]"
+                value={problemExpectedOutput}
+                onChange={e => {
+                  try {
+                    setProblemExpectedOutput(e.target.value);
+                    const parsed = JSON.parse(e.target.value);
+                    setProblem(prev => ({ ...prev, expectedOutput: parsed }));
+                  } catch (e) {
+                    console.error('Invalid JSON:', e);
+                  }
+                }}
+                variant="bordered"
+                color="primary"
+                minRows={4}
+              />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h3 className="text-xl font-semibold">Code Configuration</h3>
+            </CardHeader>
+            <CardBody>
+              <Select
+                label="Language"
+                selectedKeys={[selectedLanguage]}
+                onSelectionChange={keys => handleLanguageChange(Array.from(keys)[0] as Language)}
+                variant="bordered"
+                color="primary"
+              >
+                {driverTemplates.map(x => (
+                  <SelectItem key={x.language}>{x.language}</SelectItem>
+                ))}
+              </Select>
+            </CardBody>
+          </Card>
         </div>
       </div>
 
-      <div className="form-group">
-        <label>Input Array (JSON):</label>
-        <textarea
-          value={problemInput}
-          onChange={e => {
-            try {
-              setProblemInput(e.target.value);
-              const parsed = JSON.parse(e.target.value);
-              setProblem(prev => ({ ...prev, input: parsed }));
-            } catch (e) {
-              console.error('Invalid JSON:', e);
-            }
-          }}
-          placeholder="[1, 2, 3]"
-          rows={4}
-          autoComplete="off"
-        />
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <h3 className="text-xl font-semibold">UI Template</h3>
+          </CardHeader>
+          <CardBody className="p-2">
+            <CodeEditor
+              language={selectedLanguage}
+              code={uiTemplate}
+              onChange={value => setUITemplate(value ?? '')}
+              uiTemplate=""
+            />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <h3 className="text-xl font-semibold">Driver Code</h3>
+          </CardHeader>
+          <CardBody className="p-2">
+            <CodeEditor
+              language={selectedLanguage}
+              code={driverCode}
+              onChange={value => setDriverCode(value ?? '')}
+              uiTemplate=""
+            />
+          </CardBody>
+        </Card>
       </div>
 
-      <div className="form-group">
-        <label>Expected Output Array (JSON):</label>
-        <textarea
-          value={problemExpectedOutput}
-          onChange={e => {
-            try {
-              setProblemExpectedOutput(e.target.value);
-              const parsed = JSON.parse(e.target.value);
-              setProblem(prev => ({ ...prev, expectedOutput: parsed }));
-            } catch (e) {
-              console.error('Invalid JSON:', e);
-            }
-          }}
-          placeholder="[3, 5, 7]"
-          rows={4}
-          autoComplete="off"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Language:</label>
-        <select value={selectedLanguage} onChange={e => handleLanguageChange(e.target.value as Language)}>
-          {driverTemplates.map(x => (
-            <option key={x.language} value={x.language}>
-              {x.language}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="form-group">
-        <label>UI Template:</label>
-        <CodeEditor
-          language={selectedLanguage}
-          code={uiTemplate}
-          onChange={value => setUITemplate(value ?? '')}
-          uiTemplate=""
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Driver Code:</label>
-        <CodeEditor
-          language={selectedLanguage}
-          code={driverCode}
-          onChange={value => setDriverCode(value ?? '')}
-          uiTemplate=""
-        />
-      </div>
-
-      <div className="form-actions">
-        <button
-          className="submit-button"
-          onClick={handleSubmit}
-          disabled={!problem.name || !problem.description || !driverCode || createProblem.isPending}
+      <div className="flex justify-end">
+        <Button
+          color="primary"
+          size="lg"
+          onPress={handleSubmit}
+          isDisabled={!problem.name || !problem.description || !driverCode}
+          isLoading={createProblem.isPending}
         >
           {createProblem.isPending ? 'Creating...' : 'Create Problem'}
-        </button>
+        </Button>
       </div>
     </div>
   );

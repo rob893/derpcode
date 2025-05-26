@@ -23,7 +23,7 @@ export const CodeEditor = ({ language, code, onChange, uiTemplate }: CodeEditorP
   };
 
   return (
-    <div className="code-editor">
+    <div className="rounded-lg overflow-hidden border border-divider bg-content1">
       <Editor
         height="70vh"
         language={getMonacoLanguage(language)}

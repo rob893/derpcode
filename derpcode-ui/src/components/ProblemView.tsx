@@ -1,5 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Chip,
+  Select,
+  SelectItem,
+  Spinner,
+  Divider,
+  Code as CodeBlock
+} from '@heroui/react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
@@ -26,6 +39,38 @@ export const ProblemView = () => {
     }
   }, [problem]);
 
+  const getDifficultyColor = (difficulty: ProblemDifficulty) => {
+    switch (difficulty) {
+      case ProblemDifficulty.VeryEasy:
+      case ProblemDifficulty.Easy:
+        return 'success';
+      case ProblemDifficulty.Medium:
+        return 'warning';
+      case ProblemDifficulty.Hard:
+      case ProblemDifficulty.VeryHard:
+        return 'danger';
+      default:
+        return 'default';
+    }
+  };
+
+  const getDifficultyLabel = (difficulty: ProblemDifficulty): string => {
+    switch (difficulty) {
+      case ProblemDifficulty.VeryEasy:
+        return 'Very Easy';
+      case ProblemDifficulty.Easy:
+        return 'Easy';
+      case ProblemDifficulty.Medium:
+        return 'Medium';
+      case ProblemDifficulty.Hard:
+        return 'Hard';
+      case ProblemDifficulty.VeryHard:
+        return 'Very Hard';
+      default:
+        return 'Unknown';
+    }
+  };
+
   const handleSubmit = async () => {
     if (!problem) return;
 
@@ -40,139 +85,184 @@ export const ProblemView = () => {
     }
   };
 
-  if (isLoading) return <div>Loading problem...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  if (!problem) return <div>Problem not found</div>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Spinner size="lg" color="primary" label="Loading problem..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardBody className="text-center py-8">
+          <p className="text-danger text-lg">Error: {error.message}</p>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  if (!problem) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardBody className="text-center py-8">
+          <p className="text-warning text-lg">Problem not found</p>
+        </CardBody>
+      </Card>
+    );
+  }
 
   const formatValue = (value: any): string => {
     return JSON.stringify(value, null, 2);
   };
 
   return (
-    <>
-      <button className="back-button" onClick={() => navigate('/problems')}>
-        ← Back to Problems
-      </button>
+    <div className="space-y-6">
+      <Button
+        variant="ghost"
+        color="primary"
+        startContent={<ArrowLeftIcon className="h-4 w-4" />}
+        onPress={() => navigate('/problems')}
+        className="mb-4"
+      >
+        Back to Problems
+      </Button>
 
-      <div className="problem-view">
-        <div className="problem-details">
-          <div className="problem-header">
-            <h2>{problem.name}</h2>
-            <span
-              className="difficulty-badge"
-              style={{
-                backgroundColor:
-                  problem.difficulty === ProblemDifficulty.VeryEasy || problem.difficulty === ProblemDifficulty.Easy
-                    ? '#00af9b'
-                    : problem.difficulty === ProblemDifficulty.Medium
-                      ? '#ffc01e'
-                      : '#ff375f'
-              }}
-            >
-              {problem.difficulty === ProblemDifficulty.VeryEasy
-                ? 'Very Easy'
-                : problem.difficulty === ProblemDifficulty.Easy
-                  ? 'Easy'
-                  : problem.difficulty === ProblemDifficulty.Medium
-                    ? 'Medium'
-                    : problem.difficulty === ProblemDifficulty.Hard
-                      ? 'Hard'
-                      : problem.difficulty === ProblemDifficulty.VeryHard
-                        ? 'Very Hard'
-                        : problem.difficulty}
-            </span>
-          </div>
-
-          <div className="problem-tags">
-            {problem.tags.map((tag, index) => (
-              <span key={index} className="tag">
-                {tag.name}
-              </span>
-            ))}
-          </div>
-
-          <div className="problem-description">
-            <h3>Description</h3>
-            <p>{problem.description}</p>
-          </div>
-
-          <div className="test-data">
-            <div className="problem-input">
-              <h3>Input</h3>
-              <pre className="data-block">{formatValue(problem.input)}</pre>
-            </div>
-
-            <div className="problem-expected">
-              <h3>Expected Output</h3>
-              <pre className="data-block">{formatValue(problem.expectedOutput)}</pre>
-            </div>
-          </div>
-        </div>
-
-        <div className="code-section">
-          <div className="language-selector">
-            <select
-              value={selectedLanguage}
-              onChange={e => {
-                const newLanguage = e.target.value as Language;
-                setSelectedLanguage(newLanguage);
-                const selectedDriver = problem.drivers.find(driver => driver.language === newLanguage);
-                if (selectedDriver) {
-                  setCode(selectedDriver.uiTemplate);
-                }
-              }}
-            >
-              {problem.drivers.map(driver => (
-                <option key={driver.id} value={driver.language}>
-                  {driver.language}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <CodeEditor
-            language={selectedLanguage}
-            code={code}
-            onChange={value => setCode(value ?? '')}
-            uiTemplate={problem.drivers.find(d => d.language === selectedLanguage)?.uiTemplate ?? ''}
-          />
-
-          <div className="submission-controls">
-            <button onClick={handleSubmit} disabled={submitSolution.isPending || !code.trim()}>
-              {submitSolution.isPending ? 'Submitting...' : 'Submit Solution'}
-            </button>
-          </div>
-
-          {result && (
-            <div className={`submission-result ${result.pass ? 'success' : 'failure'}`}>
-              <h4>{result.pass ? 'Success!' : 'Failed'}</h4>
-              <div className="result-stats">
-                <div className="stat">
-                  <span>Test Cases:</span>
-                  <span>{result.testCaseCount}</span>
-                </div>
-                <div className="stat">
-                  <span>Passed:</span>
-                  <span>{result.passedTestCases}</span>
-                </div>
-                <div className="stat">
-                  <span>Failed:</span>
-                  <span>{result.failedTestCases}</span>
-                </div>
-                <div className="stat">
-                  <span>Execution Time:</span>
-                  <span>{result.executionTimeInMs}ms</span>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start w-full">
+                <h2 className="text-2xl font-bold text-foreground">{problem.name}</h2>
+                <Chip color={getDifficultyColor(problem.difficulty)} variant="flat" size="md" className="font-medium">
+                  {getDifficultyLabel(problem.difficulty)}
+                </Chip>
               </div>
-              {result.errorMessage && (
-                <div className="error-message">
-                  <pre>{result.errorMessage}</pre>
+            </CardHeader>
+            <CardBody className="pt-0">
+              {problem.tags && problem.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {problem.tags.map((tag, index) => (
+                    <Chip key={index} size="sm" variant="bordered" color="secondary" className="text-xs">
+                      {tag.name}
+                    </Chip>
+                  ))}
                 </div>
               )}
-            </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">Description</h3>
+                  <p className="text-default-600 leading-relaxed">{problem.description}</p>
+                </div>
+
+                <Divider />
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">Input</h3>
+                    <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.input)}</CodeBlock>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">Expected Output</h3>
+                    <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.expectedOutput)}</CodeBlock>
+                  </div>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {result && (
+            <Card className={`border-2 ${result.pass ? 'border-success' : 'border-danger'}`}>
+              <CardHeader className="pb-3">
+                <h4 className={`text-xl font-bold ${result.pass ? 'text-success' : 'text-danger'}`}>
+                  {result.pass ? '✅ Success!' : '❌ Failed'}
+                </h4>
+              </CardHeader>
+              <CardBody className="pt-0">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-sm text-default-600">Test Cases</div>
+                    <div className="text-lg font-semibold">{result.testCaseCount}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-default-600">Passed</div>
+                    <div className="text-lg font-semibold text-success">{result.passedTestCases}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-default-600">Failed</div>
+                    <div className="text-lg font-semibold text-danger">{result.failedTestCases}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-default-600">Execution Time</div>
+                    <div className="text-lg font-semibold">{result.executionTimeInMs}ms</div>
+                  </div>
+                </div>
+
+                {result.errorMessage && (
+                  <div className="mt-4">
+                    <h5 className="text-danger font-semibold mb-2">Error Message:</h5>
+                    <CodeBlock className="w-full text-danger">{result.errorMessage}</CodeBlock>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
           )}
         </div>
+
+        <div className="lg:col-span-2 space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center w-full">
+                <h3 className="text-xl font-semibold">Code Editor</h3>
+                <Select
+                  label="Language"
+                  selectedKeys={[selectedLanguage]}
+                  onSelectionChange={keys => {
+                    const newLanguage = Array.from(keys)[0] as Language;
+                    setSelectedLanguage(newLanguage);
+                    const selectedDriver = problem.drivers.find(driver => driver.language === newLanguage);
+                    if (selectedDriver) {
+                      setCode(selectedDriver.uiTemplate);
+                    }
+                  }}
+                  className="max-w-xs"
+                  size="sm"
+                >
+                  {problem.drivers.map(driver => (
+                    <SelectItem key={driver.language}>{driver.language}</SelectItem>
+                  ))}
+                </Select>
+              </div>
+            </CardHeader>
+            <CardBody className="pt-0">
+              <div className="space-y-4">
+                <CodeEditor
+                  language={selectedLanguage}
+                  code={code}
+                  onChange={value => setCode(value ?? '')}
+                  uiTemplate={problem.drivers.find(d => d.language === selectedLanguage)?.uiTemplate ?? ''}
+                />
+
+                <div className="flex justify-end">
+                  <Button
+                    color="primary"
+                    size="lg"
+                    isLoading={submitSolution.isPending}
+                    isDisabled={!code.trim()}
+                    onPress={handleSubmit}
+                    className="font-semibold"
+                  >
+                    {submitSolution.isPending ? 'Submitting...' : 'Submit Solution'}
+                  </Button>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
       </div>
-    </>
+    </div>
   );
 };

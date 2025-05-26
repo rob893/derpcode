@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router';
+import { Spinner } from '@heroui/react';
 import { useAuth } from '../hooks/useAuth';
 
 interface ProtectedRouteProps {
@@ -11,8 +12,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <div>Loading...</div>
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="lg" color="primary" label="Loading..." />
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppHeader } from './AppHeader';
+import { AppHeader } from '../components/AppHeader';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -7,10 +7,10 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="app-layout">
+    <div className="min-h-screen bg-background flex flex-col">
       <AppHeader />
-      <main className="app-main">
-        <div className="container">{children}</div>
+      <main className="flex-1 py-8">
+        <div className="w-full px-4">{children}</div>
       </main>
     </div>
   );
