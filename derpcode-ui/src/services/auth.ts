@@ -1,9 +1,6 @@
-import { ApiError } from './api';
+import apiClient from './axiosConfig';
 import type { LoginRequest, RegisterRequest, LoginResponse, RefreshTokenResponse } from '../types/auth';
 
-const API_BASE_URL = import.meta.env.VITE_DERPCODE_API_BASE_URL;
-
-// Storage keys
 const STORAGE_KEYS = {
   DEVICE_ID: 'device_id'
 } as const;
@@ -11,7 +8,6 @@ const STORAGE_KEYS = {
 let accessToken: string | null = null;
 let cachedDeviceId: string | null = null;
 
-// Generate or get device ID
 export function getDeviceId(): string {
   let deviceId = cachedDeviceId ?? localStorage.getItem(STORAGE_KEYS.DEVICE_ID);
 
@@ -25,7 +21,6 @@ export function getDeviceId(): string {
   return deviceId;
 }
 
-// Token management
 export function getAccessToken(): string | null {
   return accessToken;
 }
@@ -38,198 +33,46 @@ export function clearAccessToken(): void {
   accessToken = null;
 }
 
-// CSRF Token management for Double Submit Cookie pattern
-function getCsrfTokenFromCookie(): string | null {
-  const match = document.cookie.match(/csrf_token=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-// Enhanced fetch with automatic auth and CSRF token for refresh calls
-export async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = getAccessToken();
-
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
-  // Add CSRF token header for refresh token requests
-  const csrfHeaders: Record<string, string> = {};
-  if (url.includes('/refreshToken')) {
-    const csrfToken = getCsrfTokenFromCookie();
-    if (csrfToken) {
-      csrfHeaders['X-CSRF-Token'] = csrfToken;
-    }
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...csrfHeaders,
-      ...options.headers
-    } as any,
-    credentials: 'include' // Include cookies for refresh token
-  });
-
-  // Check for token expiration
-  if (response.status === 401 && response.headers.get('X-Token-Expired')) {
-    // Try to refresh the token
-    const refreshSuccess = await tryRefreshToken();
-
-    if (refreshSuccess) {
-      // Retry the original request with the new token
-      const newToken = getAccessToken();
-      const retryCsrfHeaders: Record<string, string> = {};
-      if (url.includes('/refreshToken')) {
-        const csrfToken = getCsrfTokenFromCookie();
-        if (csrfToken) {
-          retryCsrfHeaders['X-CSRF-Token'] = csrfToken;
-        }
-      }
-
-      const retryResponse = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
-          ...retryCsrfHeaders,
-          ...options.headers
-        },
-        credentials: 'include'
-      });
-
-      return retryResponse;
-    } else {
-      // Refresh failed, clear token and let React components handle navigation
-      clearAccessToken();
-      throw new ApiError('Authentication required', 401, 'Unauthorized');
-    }
-  }
-
-  return response;
-}
-
-async function tryRefreshToken(): Promise<boolean> {
-  try {
-    const deviceId = getDeviceId();
-    const csrfToken = getCsrfTokenFromCookie();
-
-    if (!csrfToken) {
-      console.error('CSRF token not found in cookie');
-      return false;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/refreshToken`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken // Include CSRF token in header
-      },
-      credentials: 'include',
-      body: JSON.stringify({ deviceId })
-    });
-
-    if (response.ok) {
-      const data: RefreshTokenResponse = await response.json();
-      setAccessToken(data.token);
-      return true;
-    }
-  } catch (error) {
-    console.error('Token refresh failed:', error);
-  }
-
-  return false;
-}
-
 export const authApi = {
   login: async (credentials: Omit<LoginRequest, 'deviceId'>): Promise<LoginResponse> => {
     const deviceId = getDeviceId();
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        ...credentials,
-        deviceId
-      })
+    const response = await apiClient.post<LoginResponse>('/api/v1/auth/login', {
+      ...credentials,
+      deviceId
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new ApiError(errorText || 'Login failed', response.status, response.statusText);
-    }
-
-    const data: LoginResponse = await response.json();
-    setAccessToken(data.token);
-    return data;
+    setAccessToken(response.data.token);
+    return response.data;
   },
 
   register: async (userData: Omit<RegisterRequest, 'deviceId'>): Promise<LoginResponse> => {
     const deviceId = getDeviceId();
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        ...userData,
-        deviceId
-      })
+    const response = await apiClient.post<LoginResponse>('/api/v1/auth/register', {
+      ...userData,
+      deviceId
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new ApiError(errorText || 'Registration failed', response.status, response.statusText);
-    }
-
-    const data: LoginResponse = await response.json();
-    setAccessToken(data.token);
-    return data;
+    setAccessToken(response.data.token);
+    return response.data;
   },
 
   logout: async (): Promise<void> => {
-    // Clear the access token
     clearAccessToken();
 
-    // Clear the refresh token cookie by making a request to logout endpoint (if it exists)
-    // For now, we'll just clear client-side state
     try {
-      await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await apiClient.post('/api/v1/auth/logout');
     } catch {
-      // Ignore logout endpoint errors
       console.warn('Logout endpoint not available or failed');
     }
   },
 
   refreshToken: async (): Promise<RefreshTokenResponse> => {
     const deviceId = getDeviceId();
-    const csrfToken = getCsrfTokenFromCookie();
-
-    if (!csrfToken) {
-      throw new ApiError('CSRF token not found', 400, 'Bad Request');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/refreshToken`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken // Required for CSRF protection
-      },
-      credentials: 'include',
-      body: JSON.stringify({ deviceId })
+    const response = await apiClient.post<RefreshTokenResponse>('/api/v1/auth/refreshToken', {
+      deviceId
     });
 
-    if (!response.ok) {
-      throw new ApiError('Token refresh failed', response.status, response.statusText);
-    }
-
-    const data: RefreshTokenResponse = await response.json();
-    setAccessToken(data.token);
-    return data;
+    setAccessToken(response.data.token);
+    return response.data;
   }
 };
