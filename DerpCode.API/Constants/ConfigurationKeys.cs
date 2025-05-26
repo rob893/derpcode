@@ -2,6 +2,8 @@ namespace DerpCode.API.Constants;
 
 public static class ConfigurationKeys
 {
+    public const string ApplicationInsightsConnectionString = "ApplicationInsightsConnectionString";
+
     public const string Authentication = "Authentication";
 
     public const string CorsAllowedOrigins = "Cors:AllowedOrigins";

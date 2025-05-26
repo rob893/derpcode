@@ -1,18 +1,17 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DerpCode.API.Models;
-using DerpCode.API.Models.QueryParameters;
-using DerpCode.API.Services;
 using DerpCode.API.Data.Repositories;
-using Microsoft.AspNetCore.Authorization;
+using DerpCode.API.Extensions;
+using DerpCode.API.Models;
+using DerpCode.API.Models.Dtos;
+using DerpCode.API.Models.QueryParameters;
+using DerpCode.API.Models.Requests;
+using DerpCode.API.Models.Responses.Pagination;
+using DerpCode.API.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
-using DerpCode.API.Models.Responses.Pagination;
-using DerpCode.API.Models.Dtos;
-using DerpCode.API.Extensions;
-using DerpCode.API.Models.Requests;
 
 namespace DerpCode.API.Controllers.V1;
 

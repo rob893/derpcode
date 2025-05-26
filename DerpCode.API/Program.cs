@@ -1,4 +1,4 @@
-using Azure.Identity;
+using Azure.Identity; // don't remove. Shows as unused becuase of the conditional compilation
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Services;
 using DerpCode.API.Constants;
+using Azure.Monitor.OpenTelemetry.AspNetCore; // don't remove. Shows as unused becuase of the conditional compilation
 
 namespace DerpCode.API;
 
@@ -31,7 +32,21 @@ public static class Program
 
 #if !DEBUG
         builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), new DefaultAzureCredential(), new PrefixKeyVaultSecretManager(["DerpCode", "All"]));
+
+        var appInsightsConnectionString = builder.Configuration[ConfigurationKeys.ApplicationInsightsConnectionString] ?? throw new InvalidOperationException("ApplicationInsightsConnectionString not found in configuration.");
+
+        builder.Logging.AddOpenTelemetry(options =>
+        {
+            options.IncludeScopes = true;
+        });
+        builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
+        {
+            options.ConnectionString = appInsightsConnectionString;
+            options.Credential = new DefaultAzureCredential();
+            options.SamplingRatio = 0.5f;
+        });
 #endif
+
         builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
         builder.Services.AddControllerServices()
