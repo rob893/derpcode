@@ -75,8 +75,8 @@ export function LandingPage() {
                 <div className="text-4xl mb-4">⚡</div>
                 <h4 className="text-xl font-semibold mb-3 text-primary">Instant Feedback</h4>
                 <p className="text-foreground/70">
-                  Get immediate results and detailed feedback. Because waiting to find out you're wrong is so last
-                  century.
+                  Get immediate results and detailed feedback. Because we all know that being able to solve algorithm
+                  puzzles is more important than being able to build real software.
                 </p>
               </CardBody>
             </Card>
