@@ -22,12 +22,19 @@ export function LandingPage() {
       <main className="flex-1 container mx-auto px-6 py-12">
         <section className="text-center mb-20">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent leading-tight pb-2">
               Practice Coding with DerpCode
             </h2>
             <p className="text-xl text-foreground/80 mb-8 leading-relaxed">
-              Sharpen your programming skills with our collection of coding challenges. Practice algorithms, data
-              structures, and problem-solving in multiple programming languages.
+              Tired of working at Wendy's (or the dumpster behind it)? Tired of being poor because you lost all your
+              money following advice from r/WallStreetBets? Sharpen your programming skills with{' '}
+              <span className="font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+                DerpCode
+              </span>{' '}
+              and land that FAANG job you've always dreamed of!{' '}
+              <span className="text-xs italic text-foreground/40 font-light align-top">
+                (or at least a job that pays more than minimum wage)
+              </span>
             </p>
             <div className="flex gap-4 justify-center">
               <Button onPress={() => navigate('/register')} color="primary" size="lg" variant="solid">
@@ -48,7 +55,8 @@ export function LandingPage() {
                 <div className="text-4xl mb-4">💡</div>
                 <h4 className="text-xl font-semibold mb-3 text-primary">Multiple Languages</h4>
                 <p className="text-foreground/70">
-                  Practice in JavaScript, TypeScript, Python, and more programming languages.
+                  Practice in JavaScript, TypeScript, Python, and more. Because apparently knowing one language isn't
+                  enough to get past HR these days.
                 </p>
               </CardBody>
             </Card>
@@ -57,7 +65,8 @@ export function LandingPage() {
                 <div className="text-4xl mb-4">🎯</div>
                 <h4 className="text-xl font-semibold mb-3 text-secondary">Difficulty Levels</h4>
                 <p className="text-foreground/70">
-                  From very easy to very hard - find challenges that match your skill level.
+                  From "hello world" easy to "why did I choose this career" hard. We'll crush your confidence
+                  systematically!
                 </p>
               </CardBody>
             </Card>
@@ -65,14 +74,19 @@ export function LandingPage() {
               <CardBody className="text-center p-6">
                 <div className="text-4xl mb-4">⚡</div>
                 <h4 className="text-xl font-semibold mb-3 text-primary">Instant Feedback</h4>
-                <p className="text-foreground/70">Get immediate results and detailed feedback on your solutions.</p>
+                <p className="text-foreground/70">
+                  Get immediate results and detailed feedback. Because waiting to find out you're wrong is so last
+                  century.
+                </p>
               </CardBody>
             </Card>
             <Card className="bg-content2 border-content3">
               <CardBody className="text-center p-6">
                 <div className="text-4xl mb-4">📊</div>
                 <h4 className="text-xl font-semibold mb-3 text-secondary">Track Progress</h4>
-                <p className="text-foreground/70">Monitor your improvement and see detailed execution statistics.</p>
+                <p className="text-foreground/70">
+                  Monitor your improvement and watch your impostor syndrome grow with detailed execution statistics.
+                </p>
               </CardBody>
             </Card>
           </div>
