@@ -22,6 +22,10 @@ public sealed record CreateProblemDriverRequest
     [Required]
     public string DriverCode { get; init; } = string.Empty;
 
+    [MinLength(1)]
+    [Required]
+    public string Answer { get; init; } = string.Empty;
+
     public ProblemDriver ToEntity()
     {
         return new ProblemDriver
@@ -29,7 +33,8 @@ public sealed record CreateProblemDriverRequest
             Language = this.Language ?? throw new InvalidOperationException("Language is required"),
             UITemplate = this.UITemplate,
             Image = this.Image,
-            DriverCode = this.DriverCode
+            DriverCode = this.DriverCode,
+            Answer = this.Answer
         };
     }
 }

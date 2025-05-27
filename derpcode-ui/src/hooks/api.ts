@@ -44,10 +44,16 @@ export const useCreateProblem = () => {
   });
 };
 
+export const useValidateProblem = () => {
+  return useMutation({
+    mutationFn: (problem: CreateProblemRequest) => problemsApi.validateProblem(problem)
+  });
+};
+
 export const useSubmitSolution = (problemId: number) => {
   return useMutation({
-    mutationFn: ({ userCode, language }: { userCode: string; language: Language }) =>
-      problemsApi.submitSolution(problemId, userCode, language)
+    mutationFn: ({ userCode, language, userId }: { userCode: string; language: Language; userId: number }) =>
+      problemsApi.submitSolution(problemId, userId, userCode, language)
   });
 };
 

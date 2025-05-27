@@ -1,14 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
+using DerpCode.API.Models.Responses;
 using DerpCode.API.Models.Responses.Pagination;
 using DerpCode.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,30 +20,34 @@ using Microsoft.Extensions.Logging;
 namespace DerpCode.API.Controllers.V1;
 
 [ApiController]
-[Route("api/v{version:apiVersion}")]
+[Route("api/v{version:apiVersion}/problems")]
 [ApiVersion("1.0")]
 public class ProblemsController : ServiceControllerBase
 {
     private readonly ILogger<ProblemsController> logger;
+
     private readonly ICodeExecutionService codeExecutionService;
+
     private readonly IProblemRepository problemRepository;
-    private readonly IDriverTemplateRepository driverTemplateRepository;
+
+    private readonly ITagRepository tagRepository;
 
     public ProblemsController(
         ILogger<ProblemsController> logger,
         ICorrelationIdService correlationIdService,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
-        IDriverTemplateRepository driverTemplateRepository)
+        ITagRepository tagRepository)
             : base(correlationIdService)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
-        this.driverTemplateRepository = driverTemplateRepository ?? throw new ArgumentNullException(nameof(driverTemplateRepository));
+        this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
     }
 
-    [HttpGet("problems", Name = nameof(GetProblemsAsync))]
+    [AllowAnonymous]
+    [HttpGet(Name = nameof(GetProblemsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<ProblemDto>>> GetProblemsAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
@@ -48,7 +56,8 @@ public class ProblemsController : ServiceControllerBase
         return this.Ok(response);
     }
 
-    [HttpGet("problems/{id}", Name = nameof(GetProblemAsync))]
+    [AllowAnonymous]
+    [HttpGet("{id}", Name = nameof(GetProblemAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProblemDto>> GetProblemAsync([FromRoute] int id)
@@ -63,16 +72,8 @@ public class ProblemsController : ServiceControllerBase
         return this.Ok(ProblemDto.FromEntity(problem));
     }
 
-    [HttpGet("driverTemplates", Name = nameof(GetDriverTemplatesAsync))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CursorPaginatedResponse<DriverTemplateDto>>> GetDriverTemplatesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
-    {
-        var templates = await this.driverTemplateRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
-        var response = templates.Select(DriverTemplateDto.FromEntity).ToCursorPaginatedResponse(searchParams);
-        return this.Ok(response);
-    }
-
-    [HttpPost("problems", Name = nameof(CreateProblemAsync))]
+    [HttpPost(Name = nameof(CreateProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<ProblemDto>> CreateProblemAsync([FromBody] CreateProblemRequest problem)
     {
@@ -82,7 +83,13 @@ public class ProblemsController : ServiceControllerBase
         }
 
         var newProblem = problem.ToEntity();
-        // ToDo: For tags, find all tags with the same name and use them instead of creating new ones to avoid duplicates.
+
+        if (problem.Tags != null && problem.Tags.Count > 0)
+        {
+            var tagNames = problem.Tags.Select(t => t.Name).ToHashSet();
+            var existingTags = await this.tagRepository.SearchAsync(t => tagNames.Contains(t.Name), track: true, this.HttpContext.RequestAborted);
+            newProblem.Tags = [.. existingTags.Union(newProblem.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
+        }
 
         this.problemRepository.Add(newProblem);
         await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
@@ -90,37 +97,61 @@ public class ProblemsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
     }
 
-    [HttpPost("problems/{id}/submissions", Name = nameof(SubmitSolutionAsync))]
+    [HttpPost("validate", Name = nameof(ValidateCreateProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<SubmissionResult>> SubmitSolutionAsync([FromRoute] int id, [FromBody] SubmissionRequest request)
+    public async Task<ActionResult<CreateProblemValidationResponse>> ValidateCreateProblemAsync([FromBody] CreateProblemRequest problem)
     {
-        if (request == null || string.IsNullOrEmpty(request.UserCode))
-        {
-            return this.BadRequest("User code and language are required");
-        }
-
-        var problem = await this.problemRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
-
         if (problem == null)
         {
-            return this.NotFound($"Problem with ID {id} not found");
+            return this.BadRequest("Problem cannot be null");
         }
 
-        var driver = problem.Drivers.FirstOrDefault(d => d.Language == request.Language);
-        if (driver == null)
+        var newProblem = problem.ToEntity();
+
+        var driverValidations = new List<CreateProblemDriverValidationResponse>();
+        foreach (var driver in newProblem.Drivers)
         {
-            return this.BadRequest($"No driver template found for language {request.Language}");
+            try
+            {
+                var result = await this.codeExecutionService.RunCodeAsync(driver.Answer, driver.Language, newProblem, this.HttpContext.RequestAborted);
+                driverValidations.Add(new CreateProblemDriverValidationResponse
+                {
+                    Language = driver.Language,
+                    IsValid = result.Pass,
+                    Image = driver.Image,
+                    ErrorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage) ?
+                        result.Pass ? null : "Supplied driver answer did not pass supplied test cases." :
+                        result.ErrorMessage,
+                    SubmissionResult = result
+                });
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error validating driver template for language {Language}", driver.Language);
+                driverValidations.Add(new CreateProblemDriverValidationResponse
+                {
+                    Language = driver.Language,
+                    IsValid = false,
+                    ErrorMessage = ex.Message,
+                    Image = driver.Image,
+                    SubmissionResult = new SubmissionResult
+                    {
+                        Pass = false,
+                        ErrorMessage = ex.Message
+                    }
+                });
+            }
         }
 
-        try
+        var isValid = driverValidations.All(dv => dv.IsValid);
+        var response = new CreateProblemValidationResponse
         {
-            var result = await this.codeExecutionService.RunCodeAsync(request.UserCode, request.Language, problem, this.HttpContext.RequestAborted);
-            return this.Ok(result);
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(ex, "Error executing code");
-            return this.InternalServerError();
-        }
+            IsValid = isValid,
+            DriverValidations = driverValidations,
+            ErrorMessage = isValid ? null : "One or more driver templates failed validation"
+        };
+
+        return this.Ok(response);
     }
 }

@@ -1,5 +1,6 @@
 import { createContext, useReducer, useEffect, type ReactNode } from 'react';
 import { authApi, getAccessToken, clearAccessToken } from '../services/auth';
+import { decodeJwtToken } from '../utils/auth';
 import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/auth';
 
 interface AuthContextType extends AuthState {
@@ -52,7 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.login(credentials);
-      dispatch({ type: 'SET_USER', payload: response.user });
+
+      const token = getAccessToken();
+
+      if (token) {
+        const userFromToken = decodeJwtToken(token);
+
+        if (userFromToken) {
+          dispatch({ type: 'SET_USER', payload: userFromToken });
+        } else {
+          dispatch({ type: 'SET_USER', payload: response.user });
+        }
+      } else {
+        dispatch({ type: 'SET_USER', payload: response.user });
+      }
     } catch (error) {
       dispatch({ type: 'CLEAR_USER' });
       throw error;
@@ -63,7 +77,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.register(userData);
-      dispatch({ type: 'SET_USER', payload: response.user });
+
+      const token = getAccessToken();
+
+      if (token) {
+        const userFromToken = decodeJwtToken(token);
+
+        if (userFromToken) {
+          dispatch({ type: 'SET_USER', payload: userFromToken });
+        } else {
+          dispatch({ type: 'SET_USER', payload: response.user });
+        }
+      } else {
+        dispatch({ type: 'SET_USER', payload: response.user });
+      }
     } catch (error) {
       dispatch({ type: 'CLEAR_USER' });
       throw error;
@@ -86,12 +113,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = getAccessToken();
 
     if (!token) {
-      // Try to refresh token if we have a refresh token cookie
       try {
         await authApi.refreshToken();
-        // After successful refresh, we have a token but no user data
-        // For now, we'll just mark as authenticated
-        dispatch({ type: 'SET_AUTH_STATE', payload: { user: null, isAuthenticated: true } });
+
+        const newToken = getAccessToken();
+
+        if (newToken) {
+          const user = decodeJwtToken(newToken);
+
+          if (user) {
+            dispatch({ type: 'SET_USER', payload: user });
+          } else {
+            dispatch({ type: 'SET_AUTH_STATE', payload: { user: null, isAuthenticated: true } });
+          }
+        }
+
         return;
       } catch {
         console.log('No valid refresh token available');
@@ -101,9 +137,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // If we have a token, assume we're authenticated
-    // In a real app, you might want to validate the token with the server
-    dispatch({ type: 'SET_AUTH_STATE', payload: { user: null, isAuthenticated: true } });
+    // If we have a token, decode it to get user information
+    const user = decodeJwtToken(token);
+    if (user) {
+      dispatch({ type: 'SET_USER', payload: user });
+    } else {
+      // Token is invalid or expired
+      dispatch({ type: 'CLEAR_USER' });
+    }
   };
 
   useEffect(() => {

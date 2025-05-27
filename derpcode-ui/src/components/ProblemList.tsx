@@ -2,10 +2,15 @@ import { useNavigate } from 'react-router';
 import { Card, CardBody, Chip, Button, Spinner, Divider } from '@heroui/react';
 import { ProblemDifficulty } from '../types/models';
 import { useProblems } from '../hooks/api';
+import { useAuth } from '../hooks/useAuth';
+import { hasAdminRole } from '../utils/auth';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: problems = [], isLoading, error } = useProblems();
+
+  const isAdmin = hasAdminRole(user);
 
   if (isLoading) {
     return (
@@ -61,15 +66,17 @@ export const ProblemList = () => {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-foreground">Problems</h2>
-        <Button
-          color="primary"
-          variant="solid"
-          size="lg"
-          onPress={() => navigate('/problems/new')}
-          className="font-semibold"
-        >
-          Create Problem
-        </Button>
+        {isAdmin && (
+          <Button
+            color="primary"
+            variant="solid"
+            size="lg"
+            onPress={() => navigate('/problems/new')}
+            className="font-semibold"
+          >
+            Create Problem
+          </Button>
+        )}
       </div>
 
       <Divider />

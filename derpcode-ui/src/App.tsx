@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
 import { AppLayout } from './layouts/AppLayout';
 import { ProblemList } from './components/ProblemList';
 import { ProblemView } from './components/ProblemView';
@@ -20,34 +21,34 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Protected routes */}
+          {/* Public problem routes */}
           <Route
             path="/problems"
             element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ProblemList />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/problems/new"
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <CreateProblem />
-                </AppLayout>
-              </ProtectedRoute>
+              <AppLayout>
+                <ProblemList />
+              </AppLayout>
             }
           />
           <Route
             path="/problems/:id"
             element={
+              <AppLayout>
+                <ProblemView />
+              </AppLayout>
+            }
+          />
+
+          {/* Protected routes */}
+          <Route
+            path="/problems/new"
+            element={
               <ProtectedRoute>
-                <AppLayout>
-                  <ProblemView />
-                </AppLayout>
+                <AdminRoute>
+                  <AppLayout>
+                    <CreateProblem />
+                  </AppLayout>
+                </AdminRoute>
               </ProtectedRoute>
             }
           />

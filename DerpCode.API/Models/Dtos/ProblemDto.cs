@@ -19,6 +19,8 @@ public sealed record ProblemDto : IIdentifiable<int>
 
     public required List<object> Input { get; init; }
 
+    public required List<string> Hints { get; init; } = [];
+
     public required List<TagDto> Tags { get; init; }
 
     public required List<ProblemDriverDto> Drivers { get; init; }
@@ -34,6 +36,7 @@ public sealed record ProblemDto : IIdentifiable<int>
             Description = problem.Description,
             Difficulty = problem.Difficulty,
             ExpectedOutput = problem.ExpectedOutput,
+            Hints = [.. problem.Hints],
             Input = problem.Input,
             Tags = [.. problem.Tags.Select(TagDto.FromEntity)],
             Drivers = [.. problem.Drivers.Select(ProblemDriverDto.FromEntity)]

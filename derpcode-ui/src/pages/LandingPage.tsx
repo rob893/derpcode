@@ -1,7 +1,8 @@
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import { useEffect } from 'react';
-import { Button, Card, CardBody, Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/react';
+import { Button, Card, CardBody } from '@heroui/react';
+import { AppHeader } from '../components/AppHeader';
 
 export function LandingPage() {
   const { isAuthenticated } = useAuth();
@@ -16,29 +17,7 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar
-        isBordered
-        classNames={{
-          base: 'bg-content1/95 backdrop-blur-md',
-          wrapper: 'max-w-7xl'
-        }}
-      >
-        <NavbarBrand>
-          <h1 className="text-3xl font-bold text-primary">DerpCode</h1>
-        </NavbarBrand>
-        <NavbarContent justify="end">
-          <NavbarItem>
-            <Button as={Link} to="/login" variant="ghost" color="primary">
-              Sign In
-            </Button>
-          </NavbarItem>
-          <NavbarItem>
-            <Button as={Link} to="/register" color="primary" variant="solid">
-              Sign Up
-            </Button>
-          </NavbarItem>
-        </NavbarContent>
-      </Navbar>
+      <AppHeader />
 
       <main className="flex-1 container mx-auto px-6 py-12">
         <section className="text-center mb-20">
@@ -51,10 +30,10 @@ export function LandingPage() {
               structures, and problem-solving in multiple programming languages.
             </p>
             <div className="flex gap-4 justify-center">
-              <Button as={Link} to="/register" color="primary" size="lg" variant="solid">
+              <Button onPress={() => navigate('/register')} color="primary" size="lg" variant="solid">
                 Get Started
               </Button>
-              <Button as={Link} to="/login" variant="bordered" color="primary" size="lg">
+              <Button onPress={() => navigate('/login')} variant="bordered" color="primary" size="lg">
                 Sign In
               </Button>
             </div>

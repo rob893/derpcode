@@ -19,6 +19,8 @@ public sealed class Problem : IIdentifiable<int>
 
     public List<object> Input { get; set; } = [];
 
+    public List<string> Hints { get; set; } = [];
+
     public List<Tag> Tags { get; set; } = [];
 
     public List<ProblemDriver> Drivers { get; set; } = [];

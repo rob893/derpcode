@@ -9,10 +9,10 @@ public sealed record CursorPaginatedResponseEdge<TEntity>
     /// <summary>
     /// Gets the cursor.
     /// </summary>
-    public string Cursor { get; init; } = default!;
+    public required string Cursor { get; init; }
 
     /// <summary>
     /// Gets the node.
     /// </summary>
-    public TEntity Node { get; init; } = default!;
+    public required TEntity Node { get; init; }
 }

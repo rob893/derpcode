@@ -7,6 +7,7 @@ export interface Problem {
   description: string;
   difficulty: ProblemDifficulty;
   drivers: ProblemDriver[];
+  hints: string[];
 }
 
 export enum Language {
@@ -77,6 +78,7 @@ export interface CreateProblemRequest {
   difficulty: ProblemDifficulty;
   expectedOutput: any[];
   input: any[];
+  hints: string[];
   tags: CreateTagRequest[];
   drivers: CreateProblemDriverRequest[];
 }
@@ -90,4 +92,19 @@ export interface CreateProblemDriverRequest {
   language: Language;
   image: string;
   driverCode: string;
+  answer: string;
+}
+
+export interface CreateProblemValidationResponse {
+  isValid: boolean;
+  errorMessage?: string;
+  driverValidations: CreateProblemDriverValidationResponse[];
+}
+
+export interface CreateProblemDriverValidationResponse {
+  isValid: boolean;
+  errorMessage?: string;
+  language: Language;
+  image: string;
+  submissionResult: SubmissionResult;
 }

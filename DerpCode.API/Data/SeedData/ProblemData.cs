@@ -16,6 +16,7 @@ public static class ProblemData
             Description = "Given two numbers, return their sum.",
             Difficulty = ProblemDifficulty.VeryEasy,
             ExpectedOutput = [6, 10],
+            Hints = ["Use the '+' operator to add two numbers."],
             Drivers =
             [
                 new()
@@ -31,6 +32,17 @@ public static class ProblemData
                             public static int Add(int a, int b)
                             {
                                 // Your code here
+                            }
+                        }
+                        """,
+                    Answer = """
+                        using System;
+
+                        public class Solution
+                        {
+                            public static int Add(int a, int b)
+                            {
+                                return a + b;
                             }
                         }
                         """,
@@ -146,6 +158,11 @@ public static class ProblemData
                             // Your code here
                         }
                         """,
+                    Answer = """
+                        export function add(a, b) {
+                            return a + b;
+                        }
+                        """,
                     DriverCode = """
                         import fs from 'fs';
                         import path from 'path';
@@ -231,6 +248,11 @@ public static class ProblemData
                     UITemplate = """
                         export function add(a: number, b: number): number {
                             // Your code here
+                        }
+                        """,
+                    Answer = """
+                        export function add(a: number, b: number): number {
+                            return a + b;
                         }
                         """,
                     DriverCode = """
@@ -329,6 +351,7 @@ public static class ProblemData
             Description = "Given a number, return \"fizz\" if it is divisible by 3, \"buzz\" if it is divisible by 5, and \"fizzbuzz\" if it is divisible by both.",
             Difficulty = ProblemDifficulty.Easy,
             Input = [5, 1, 3, 4, 15],
+            Hints = ["Use the modulo operator '%' to check divisibility."],
             ExpectedOutput = ["buzz", "", "fizz", "", "fizzbuzz"],
             Drivers =
             [
@@ -340,6 +363,19 @@ public static class ProblemData
                     UITemplate = """
                         export function fizzBuzz(a: number): string {
                             // Your code here
+                        }
+                        """,
+                    Answer = """
+                        export function fizzBuzz(a: number): string {
+                            if (a % 3 === 0 && a % 5 === 0) {
+                                return "fizzbuzz";
+                            } else if (a % 3 === 0) {
+                                return "fizz";
+                            } else if (a % 5 === 0) {
+                                return "buzz";
+                            } else {
+                                return "";
+                            }
                         }
                         """,
                     DriverCode = """

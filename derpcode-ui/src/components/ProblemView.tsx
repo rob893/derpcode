@@ -10,32 +10,41 @@ import {
   SelectItem,
   Spinner,
   Divider,
-  Code as CodeBlock
+  Code as CodeBlock,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure
 } from '@heroui/react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { useProblem, useSubmitSolution } from '../hooks/api';
+import { useAuth } from '../hooks/useAuth';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { data: problem, isLoading, error } = useProblem(Number(id!));
   const submitSolution = useSubmitSolution(problem?.id || 0);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.JavaScript);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
   const [code, setCode] = useState('');
   const [result, setResult] = useState<SubmissionResult | null>(null);
+  const [showHints, setShowHints] = useState(false);
 
   // Set initial language and template when problem data is loaded
   useEffect(() => {
-    if (problem) {
-      const initialDriver = problem.drivers.find((d: any) => d.language === Language.JavaScript) || problem.drivers[0];
-      if (initialDriver) {
-        setSelectedLanguage(initialDriver.language);
-        setCode(initialDriver.uiTemplate);
-      }
+    if (problem && problem.drivers.length > 0) {
+      // Default to JavaScript if available, otherwise use the first driver
+      const initialDriver = problem.drivers.find(d => d.language === Language.JavaScript) || problem.drivers[0];
+      setSelectedLanguage(initialDriver.language);
+      setCode(initialDriver.uiTemplate);
     }
   }, [problem]);
 
@@ -72,12 +81,19 @@ export const ProblemView = () => {
   };
 
   const handleSubmit = async () => {
-    if (!problem) return;
+    if (!problem || !selectedLanguage) return;
+
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      onOpen(); // Show login modal
+      return;
+    }
 
     try {
       const submissionResult = await submitSolution.mutateAsync({
         userCode: code,
-        language: selectedLanguage
+        language: selectedLanguage,
+        userId: user.id || 0
       });
       setResult(submissionResult);
     } catch (error) {
@@ -169,6 +185,36 @@ export const ProblemView = () => {
                     <h3 className="text-lg font-semibold mb-2 text-foreground">Expected Output</h3>
                     <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.expectedOutput)}</CodeBlock>
                   </div>
+
+                  {problem.hints && problem.hints.length > 0 && (
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-semibold text-foreground">Hints</h3>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          color="secondary"
+                          onPress={() => setShowHints(!showHints)}
+                          startContent={
+                            showHints ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />
+                          }
+                        >
+                          {showHints ? 'Hide Hints' : 'Show Hints'}
+                        </Button>
+                      </div>
+                      {showHints && (
+                        <div className="space-y-2">
+                          {problem.hints.map((hint, index) => (
+                            <div key={index} className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                              <p className="text-warning-700 dark:text-warning-300">
+                                <strong>Hint {index + 1}:</strong> {hint}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardBody>
@@ -219,7 +265,7 @@ export const ProblemView = () => {
                 <h3 className="text-xl font-semibold">Code Editor</h3>
                 <Select
                   label="Language"
-                  selectedKeys={[selectedLanguage]}
+                  selectedKeys={selectedLanguage ? [selectedLanguage] : []}
                   onSelectionChange={keys => {
                     const newLanguage = Array.from(keys)[0] as Language;
                     setSelectedLanguage(newLanguage);
@@ -240,7 +286,7 @@ export const ProblemView = () => {
             <CardBody className="pt-0">
               <div className="space-y-4">
                 <CodeEditor
-                  language={selectedLanguage}
+                  language={selectedLanguage || Language.JavaScript}
                   code={code}
                   onChange={value => setCode(value ?? '')}
                   uiTemplate={problem.drivers.find(d => d.language === selectedLanguage)?.uiTemplate ?? ''}
@@ -251,7 +297,7 @@ export const ProblemView = () => {
                     color="primary"
                     size="lg"
                     isLoading={submitSolution.isPending}
-                    isDisabled={!code.trim()}
+                    isDisabled={!code.trim() || !selectedLanguage}
                     onPress={handleSubmit}
                     className="font-semibold"
                   >
@@ -263,6 +309,51 @@ export const ProblemView = () => {
           </Card>
         </div>
       </div>
+
+      {/* Login Modal */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
+        <ModalContent>
+          {onClose => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-2xl font-bold text-primary">LOL!!!</h2>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-default-600">
+                  You thought I'd let you use my compute resources without signing in?
+                  <br />
+                  <br />
+                  Either login, sign up, or gtfo 🖕
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="primary"
+                  variant="ghost"
+                  onPress={() => {
+                    onClose();
+                    navigate('/login');
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    onClose();
+                    navigate('/register');
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

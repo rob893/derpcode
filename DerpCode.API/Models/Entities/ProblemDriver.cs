@@ -19,4 +19,6 @@ public sealed class ProblemDriver : IIdentifiable<int>
     public string UITemplate { get; set; } = string.Empty;
 
     public string DriverCode { get; set; } = string.Empty;
+
+    public string Answer { get; set; } = string.Empty;
 }

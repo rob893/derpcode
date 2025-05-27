@@ -28,6 +28,8 @@ public sealed record CreateProblemRequest
     [Required]
     public List<object> Input { get; init; } = [];
 
+    public List<string> Hints { get; init; } = [];
+
     [MinLength(1)]
     [Required]
     public List<CreateTagRequest> Tags { get; init; } = [];
@@ -44,6 +46,7 @@ public sealed record CreateProblemRequest
             Description = this.Description,
             Difficulty = this.Difficulty ?? throw new InvalidOperationException("Difficulty is required"),
             ExpectedOutput = this.ExpectedOutput,
+            Hints = [.. this.Hints],
             Input = this.Input,
             Tags = [.. this.Tags.Select(tag => tag.ToEntity())],
             Drivers = [.. this.Drivers.Select(driver => driver.ToEntity())]

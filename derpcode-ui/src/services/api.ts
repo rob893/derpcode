@@ -3,6 +3,7 @@ import {
   type CursorPaginatedResponse,
   type DriverTemplate,
   type CreateProblemRequest,
+  type CreateProblemValidationResponse,
   type SubmissionResult,
   type Language
 } from '../types/models';
@@ -19,13 +20,24 @@ export const problemsApi = {
     return response.data;
   },
 
+  validateProblem: async (problem: CreateProblemRequest): Promise<CreateProblemValidationResponse> => {
+    const response = await apiClient.post<CreateProblemValidationResponse>('/api/v1/problems/validate', problem);
+    return response.data;
+  },
+
   createProblem: async (problem: CreateProblemRequest): Promise<Problem> => {
     const response = await apiClient.post<Problem>('/api/v1/problems', problem);
     return response.data;
   },
 
-  submitSolution: async (problemId: number, userCode: string, language: Language): Promise<SubmissionResult> => {
-    const response = await apiClient.post<SubmissionResult>(`/api/v1/problems/${problemId}/submissions`, {
+  submitSolution: async (
+    problemId: number,
+    userId: number,
+    userCode: string,
+    language: Language
+  ): Promise<SubmissionResult> => {
+    const response = await apiClient.post<SubmissionResult>(`/api/v1/users/${userId}/submissions`, {
+      problemId,
       userCode,
       language
     });

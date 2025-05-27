@@ -126,6 +126,9 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
         return query
             .Where(t => t.DeviceId == deviceId)
             .Include(t => t.User)
+            .ThenInclude(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .Include(t => t.User)
             .ThenInclude(u => u.RefreshTokens)
             .ToListAsync(cancellationToken);
     }

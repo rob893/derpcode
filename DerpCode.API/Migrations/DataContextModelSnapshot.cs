@@ -89,6 +89,10 @@ namespace DerpCode.API.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
+                    b.Property<string>("Hints")
+                        .IsRequired()
+                        .HasColumnType("json");
+
                     b.Property<string>("Input")
                         .IsRequired()
                         .HasColumnType("json");
@@ -110,6 +114,10 @@ namespace DerpCode.API.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("DriverCode")
                         .IsRequired()
@@ -240,14 +248,6 @@ namespace DerpCode.API.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");

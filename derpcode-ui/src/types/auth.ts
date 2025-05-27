@@ -1,10 +1,9 @@
 // Auth types
 export interface User {
-  id: string;
+  id: number;
   userName: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
+  roles: string[];
 }
 
 export interface LoginRequest {
@@ -16,8 +15,6 @@ export interface LoginRequest {
 export interface RegisterRequest {
   userName: string;
   password: string;
-  firstName?: string;
-  lastName?: string;
   email: string;
   deviceId: string;
 }

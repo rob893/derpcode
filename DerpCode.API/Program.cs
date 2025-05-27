@@ -73,8 +73,9 @@ public static class Program
                     using var scope = app.Services.CreateScope();
                     var serviceProvider = scope.ServiceProvider;
                     var logger = serviceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
+                    var seederPassword = app.Configuration.GetValue<string>("SeederPassword") ?? throw new InvalidOperationException("Seeder password not found in configuration.");
 
-                    if (o.Password != null && o.Password == GetSeederPasswordFromConfiguration())
+                    if (o.Password != null && o.Password == seederPassword)
                     {
                         var migrate = args.Contains(CommandLineOptions.MigrateArgument, StringComparer.OrdinalIgnoreCase);
                         var clearData = args.Contains(CommandLineOptions.ClearDataArgument, StringComparer.OrdinalIgnoreCase);
@@ -127,19 +128,5 @@ public static class Program
             .UseAndConfigureEndpoints(builder.Configuration);
 
         await app.RunAsync();
-    }
-
-    private static string GetSeederPasswordFromConfiguration()
-    {
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.Secrets.json", false, true)
-            // Add local settings file last so it takes priority. 
-            // This file should only be used for local development.
-            .AddJsonFile("appsettings.Local.json", true, true);
-
-        var config = builder.Build();
-
-        return config.GetValue<string>("SeederPassword") ?? throw new InvalidOperationException("Seeder password not found in configuration.");
     }
 }

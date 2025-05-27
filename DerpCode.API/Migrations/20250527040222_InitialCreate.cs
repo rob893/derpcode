@@ -40,10 +40,6 @@ namespace DerpCode.API.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    FirstName = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    LastName = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Created = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -108,6 +104,8 @@ namespace DerpCode.API.Migrations
                     ExpectedOutput = table.Column<string>(type: "json", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Input = table.Column<string>(type: "json", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Hints = table.Column<string>(type: "json", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -314,6 +312,8 @@ namespace DerpCode.API.Migrations
                     UITemplate = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DriverCode = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Answer = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>

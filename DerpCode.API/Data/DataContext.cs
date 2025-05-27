@@ -81,6 +81,7 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
             // Create a comparer for JSON collections
             var listObjectComparer = new JsonCollectionComparer<List<object>>(options);
+            var listStringComparer = new JsonCollectionComparer<List<string>>(options);
 
             problem.Property(p => p.ExpectedOutput)
                 .HasColumnType("json")
@@ -95,6 +96,13 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
                     v => JsonSerializer.Serialize(v, options),
                     v => JsonSerializer.Deserialize<List<object>>(v, options) ?? new List<object>())
                 .Metadata.SetValueComparer(listObjectComparer);
+
+            problem.Property(p => p.Hints)
+                .HasColumnType("json")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, options),
+                    v => JsonSerializer.Deserialize<List<string>>(v, options) ?? new List<string>())
+                .Metadata.SetValueComparer(listStringComparer);
         });
     }
 }

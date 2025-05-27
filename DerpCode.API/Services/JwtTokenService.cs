@@ -116,16 +116,6 @@ public sealed class JwtTokenService : IJwtTokenService
                 new(AppClaimTypes.EmailVerified, user.EmailConfirmed.ToString(), ClaimValueTypes.Boolean)
             };
 
-        if (user.FirstName != null)
-        {
-            claims.Add(new Claim(ClaimTypes.GivenName, user.FirstName));
-        }
-
-        if (user.LastName != null)
-        {
-            claims.Add(new Claim(ClaimTypes.Surname, user.LastName));
-        }
-
         if (user.UserRoles != null)
         {
             foreach (var role in user.UserRoles.Select(r => r.Role.Name))

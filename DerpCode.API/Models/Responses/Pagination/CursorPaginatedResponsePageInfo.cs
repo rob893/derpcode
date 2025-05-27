@@ -1,4 +1,3 @@
-
 namespace DerpCode.API.Models.Responses.Pagination;
 
 /// <summary>
@@ -19,17 +18,17 @@ public sealed record CursorPaginatedResponsePageInfo
     /// <summary>
     /// Gets a value indicating whether there is a next page or not.
     /// </summary>
-    public bool HasNextPage { get; init; }
+    public required bool HasNextPage { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether there is a previous page or not.
     /// </summary>
-    public bool HasPreviousPage { get; init; }
+    public required bool HasPreviousPage { get; init; }
 
     /// <summary>
     /// Gets the number of results for the current page.
     /// </summary>
-    public int PageCount { get; init; }
+    public required int PageCount { get; init; }
 
     /// <summary>
     /// Gets the total count of all results in all pages.

@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router';
 import {
   type CreateProblemDriverRequest,
   type CreateProblemRequest,
+  type CreateProblemValidationResponse,
   Language,
   ProblemDifficulty
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
-import { useDriverTemplates, useCreateProblem } from '../hooks/api';
+import { useDriverTemplates, useCreateProblem, useValidateProblem } from '../hooks/api';
 import { Button, Card, CardBody, CardHeader, Input, Textarea, Select, SelectItem, Chip, Spinner } from '@heroui/react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
@@ -15,6 +16,7 @@ export const CreateProblem = () => {
   const navigate = useNavigate();
   const { data: driverTemplates = [], isLoading, error } = useDriverTemplates();
   const createProblem = useCreateProblem();
+  const validateProblem = useValidateProblem();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.JavaScript);
 
   const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
@@ -24,14 +26,22 @@ export const CreateProblem = () => {
     tags: [],
     input: [],
     expectedOutput: [],
+    hints: [],
     drivers: []
   });
 
   const [driverCode, setDriverCode] = useState('');
   const [uiTemplate, setUITemplate] = useState('');
+  const [answer, setAnswer] = useState('');
   const [tagInput, setTagInput] = useState('');
+  const [hintInput, setHintInput] = useState('');
   const [problemInput, setProblemInput] = useState('');
   const [problemExpectedOutput, setProblemExpectedOutput] = useState('');
+
+  // Validation state
+  const [isValidated, setIsValidated] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validationResult, setValidationResult] = useState<CreateProblemValidationResponse | null>(null);
 
   // Set initial driver code from first available template
   useEffect(() => {
@@ -40,13 +50,23 @@ export const CreateProblem = () => {
       setSelectedLanguage(firstLanguage);
       setDriverCode(driverTemplates[0].template);
       setUITemplate(driverTemplates[0].uiTemplate);
+      setAnswer(driverTemplates[0].uiTemplate); // Initialize answer with the template
     }
   }, [driverTemplates]);
 
+  // Reset validation when form changes
+  useEffect(() => {
+    setIsValidated(false);
+    setValidationErrors([]);
+    setValidationResult(null);
+  }, [problem, driverCode, uiTemplate, answer, selectedLanguage]);
+
   const handleLanguageChange = (newLanguage: Language) => {
     setSelectedLanguage(newLanguage);
-    setDriverCode(driverTemplates.find(x => x.language === newLanguage)?.template || '');
-    setUITemplate(driverTemplates.find(x => x.language === newLanguage)?.uiTemplate || '');
+    const template = driverTemplates.find(x => x.language === newLanguage);
+    setDriverCode(template?.template || '');
+    setUITemplate(template?.uiTemplate || '');
+    setAnswer(template?.uiTemplate || ''); // Update answer when language changes
   };
 
   const handleAddTag = () => {
@@ -66,6 +86,62 @@ export const CreateProblem = () => {
     }));
   };
 
+  const handleAddHint = () => {
+    if (hintInput.trim() && !problem.hints?.includes(hintInput.trim())) {
+      setProblem(prev => ({
+        ...prev,
+        hints: [...(prev.hints || []), hintInput.trim()]
+      }));
+      setHintInput('');
+    }
+  };
+
+  const handleRemoveHint = (hintToRemove: string) => {
+    setProblem(prev => ({
+      ...prev,
+      hints: prev.hints?.filter(hint => hint !== hintToRemove) || []
+    }));
+  };
+
+  const handleValidate = async () => {
+    try {
+      // Create a driver for the current language
+      const driver: CreateProblemDriverRequest = {
+        language: selectedLanguage,
+        image: `code-executor-${selectedLanguage.toLowerCase()}`,
+        driverCode,
+        uiTemplate,
+        answer
+      };
+
+      const newProblem: CreateProblemRequest = {
+        ...(problem as CreateProblemRequest),
+        drivers: [driver]
+      };
+
+      const validationResponse = await validateProblem.mutateAsync(newProblem);
+      setValidationResult(validationResponse);
+
+      if (validationResponse.isValid) {
+        setIsValidated(true);
+        setValidationErrors([]);
+      } else {
+        setIsValidated(false);
+        const errors = [
+          validationResponse.errorMessage,
+          ...validationResponse.driverValidations
+            .filter(dv => !dv.isValid)
+            .map(dv => `${dv.language}: ${dv.errorMessage}`)
+        ].filter(Boolean) as string[];
+        setValidationErrors(errors);
+      }
+    } catch (err) {
+      console.error('Failed to validate problem:', err);
+      setIsValidated(false);
+      setValidationErrors(['Validation failed. Please check your inputs and try again.']);
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       // Create a driver for the current language
@@ -73,7 +149,8 @@ export const CreateProblem = () => {
         language: selectedLanguage,
         image: `code-executor-${selectedLanguage.toLowerCase()}`,
         driverCode,
-        uiTemplate
+        uiTemplate,
+        answer
       };
 
       const newProblem: CreateProblemRequest = {
@@ -87,6 +164,8 @@ export const CreateProblem = () => {
       console.error('Failed to create problem:', err);
     }
   };
+
+  console.log(!problem.name, !problem.description, !driverCode, !answer, !isValidated);
 
   if (isLoading)
     return (
@@ -184,6 +263,30 @@ export const CreateProblem = () => {
                   ))}
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add hint and press Enter"
+                    value={hintInput}
+                    onChange={e => setHintInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddHint()}
+                    variant="bordered"
+                    color="secondary"
+                    className="flex-1"
+                  />
+                  <Button color="secondary" onPress={handleAddHint}>
+                    Add Hint
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {problem.hints?.map((hint, index) => (
+                    <Chip key={index} onClose={() => handleRemoveHint(hint)} variant="flat" color="secondary">
+                      {hint}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
             </CardBody>
           </Card>
         </div>
@@ -203,8 +306,8 @@ export const CreateProblem = () => {
                     setProblemInput(e.target.value);
                     const parsed = JSON.parse(e.target.value);
                     setProblem(prev => ({ ...prev, input: parsed }));
-                  } catch (e) {
-                    console.error('Invalid JSON:', e);
+                  } catch {
+                    // swallow invalid JSON error
                   }
                 }}
                 variant="bordered"
@@ -221,8 +324,8 @@ export const CreateProblem = () => {
                     setProblemExpectedOutput(e.target.value);
                     const parsed = JSON.parse(e.target.value);
                     setProblem(prev => ({ ...prev, expectedOutput: parsed }));
-                  } catch (e) {
-                    console.error('Invalid JSON:', e);
+                  } catch {
+                    // swallow invalid JSON error
                   }
                 }}
                 variant="bordered"
@@ -281,14 +384,79 @@ export const CreateProblem = () => {
             />
           </CardBody>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <h3 className="text-xl font-semibold">Default Solution</h3>
+          </CardHeader>
+          <CardBody className="p-2">
+            <CodeEditor
+              language={selectedLanguage}
+              code={answer}
+              onChange={value => setAnswer(value ?? '')}
+              uiTemplate=""
+            />
+          </CardBody>
+        </Card>
       </div>
 
-      <div className="flex justify-end">
+      {/* Validation Error Display */}
+      {validationErrors.length > 0 && (
+        <Card className="border-danger">
+          <CardHeader className="pb-3">
+            <h3 className="text-lg font-semibold text-danger">Validation Errors</h3>
+          </CardHeader>
+          <CardBody className="pt-0">
+            <div className="space-y-2">
+              {validationErrors.map((error, index) => (
+                <div key={index} className="bg-danger/10 border border-danger/20 rounded-lg p-3">
+                  <p className="text-danger text-sm">{error}</p>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Validation Success Display */}
+      {isValidated && validationResult?.isValid && (
+        <Card className="border-success">
+          <CardHeader className="pb-3">
+            <h3 className="text-lg font-semibold text-success">✅ Validation Successful</h3>
+          </CardHeader>
+          <CardBody className="pt-0">
+            <p className="text-success text-sm">
+              All driver templates validated successfully. You can now create the problem.
+            </p>
+            {validationResult?.driverValidations?.map((dv: any, index: number) => (
+              <div key={index} className="mt-2 p-3 bg-success/10 border border-success/20 rounded-lg">
+                <p className="text-success text-sm">
+                  <strong>{dv.language}:</strong> {dv.submissionResult.passedTestCases}/
+                  {dv.submissionResult.testCaseCount} test cases passed
+                </p>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      )}
+
+      <div className="flex justify-end gap-3">
+        <Button
+          color="secondary"
+          size="lg"
+          onPress={handleValidate}
+          isDisabled={!problem.name || !problem.description || !driverCode || !answer}
+          isLoading={validateProblem.isPending}
+          variant="bordered"
+        >
+          {validateProblem.isPending ? 'Validating...' : 'Validate'}
+        </Button>
+
         <Button
           color="primary"
           size="lg"
           onPress={handleSubmit}
-          isDisabled={!problem.name || !problem.description || !driverCode}
+          isDisabled={!problem.name || !problem.description || !driverCode || !answer || !isValidated}
           isLoading={createProblem.isPending}
         >
           {createProblem.isPending ? 'Creating...' : 'Create Problem'}
