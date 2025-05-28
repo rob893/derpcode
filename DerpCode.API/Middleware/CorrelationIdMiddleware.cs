@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
@@ -46,27 +45,23 @@ public sealed class CorrelationIdMiddleware
 
         correlationIdService.CorrelationId = correlationId;
 
-        // Create a logging scope with the correlation ID that will apply to the entire request
-        using (this.logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
+        context.Response.OnStarting(() =>
         {
-            context.Response.OnStarting(() =>
+            // Remove previous correlation id as passed correlation id always takes priority.
+            if (context.Response.Headers.TryGetCorrelationId(out var currentCorrelationId))
             {
-                // Remove previous correlation id as passed correlation id always takes priority.
-                if (context.Response.Headers.TryGetCorrelationId(out var currentCorrelationId))
-                {
-                    this.logger.LogDebug("[{SourceName}] Correlation id of {CorId} has already been added to response headers. Removing in favor of correlation id from client.", sourceName, currentCorrelationId);
-                    context.Response.Headers.Remove(AppHeaderNames.CorrelationId);
-                }
+                this.logger.LogDebug("[{SourceName}] Correlation id of {CorId} has already been added to response headers. Removing in favor of correlation id from client.", sourceName, currentCorrelationId);
+                context.Response.Headers.Remove(AppHeaderNames.CorrelationId);
+            }
 
-                context.Response.Headers[AppHeaderNames.CorrelationId] = correlationId;
+            context.Response.Headers[AppHeaderNames.CorrelationId] = correlationId;
 
-                this.logger.LogDebug("[{SourceName}] Correlation id added to the response headers.", sourceName);
+            this.logger.LogDebug("[{SourceName}] Correlation id added to the response headers.", sourceName);
 
-                return Task.CompletedTask;
-            });
+            return Task.CompletedTask;
+        });
 
-            // Process the request within the scope
-            await this.next(context);
-        }
+        // Process the request within the scope
+        await this.next(context);
     }
 }

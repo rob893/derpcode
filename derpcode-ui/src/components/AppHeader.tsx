@@ -37,24 +37,34 @@ export function AppHeader() {
         wrapper: 'max-w-7xl'
       }}
     >
-      <NavbarBrand className="flex gap-4">
+      <NavbarBrand>
         <h1
           className="text-3xl font-bold text-primary cursor-pointer hover:text-primary-600 transition-colors"
           onClick={() => navigate('/problems')}
         >
           DerpCode
         </h1>
-        <Button variant="ghost" color="secondary" onPress={() => navigate('/problems')} className="font-medium">
-          Problems
-        </Button>
-        {isAuthenticated && isAdmin && (
-          <Button variant="ghost" color="primary" onPress={() => navigate('/problems/new')} className="font-medium">
-            Create Problem
-          </Button>
-        )}
       </NavbarBrand>
 
-      <NavbarContent justify="end">
+      <NavbarContent justify="end" className="gap-4">
+        <div className="hidden sm:flex items-center gap-6">
+          <button
+            onClick={() => navigate('/problems')}
+            className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
+          >
+            Problems
+          </button>
+          {isAuthenticated && isAdmin && (
+            <button
+              onClick={() => navigate('/problems/new')}
+              className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
+            >
+              Create Problem
+            </button>
+          )}
+        </div>
+
+        <div className="hidden sm:block w-px h-6 bg-divider"></div>
         {isAuthenticated ? (
           <>
             <NavbarItem className="hidden lg:flex">

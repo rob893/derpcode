@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      // await authApi.logout();
+      await authApi.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

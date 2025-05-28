@@ -34,7 +34,7 @@ export function clearAccessToken(): void {
 }
 
 export const authApi = {
-  login: async (credentials: Omit<LoginRequest, 'deviceId'>): Promise<LoginResponse> => {
+  async login(credentials: Omit<LoginRequest, 'deviceId'>): Promise<LoginResponse> {
     const deviceId = getDeviceId();
     const response = await apiClient.post<LoginResponse>('/api/v1/auth/login', {
       ...credentials,
@@ -57,12 +57,12 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
-    clearAccessToken();
-
     try {
       await apiClient.post('/api/v1/auth/logout');
     } catch {
       console.warn('Logout endpoint not available or failed');
+    } finally {
+      clearAccessToken();
     }
   },
 

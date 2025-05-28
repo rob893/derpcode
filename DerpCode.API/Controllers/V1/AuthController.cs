@@ -136,6 +136,38 @@ public sealed class AuthController : ServiceControllerBase
     }
 
     /// <summary>
+    /// Logs the user out by revoking all refresh tokens and clearing the refresh token cookie.
+    /// </summary>
+    /// <returns>No content.</returns>
+    /// <response code="204">No content.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="401">If provided login information is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [Authorize]
+    [HttpPost("logout", Name = nameof(LogoutAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> LogoutAsync()
+    {
+        if (!this.User.TryGetUserId(out var userId) || userId == null)
+        {
+            return this.Unauthorized("You must be logged in to log out.");
+        }
+
+        await this.jwtTokenService.RevokeAllRefreshTokensForUserAsync(userId.Value, this.HttpContext.RequestAborted);
+        this.Response.Cookies.Delete(CookieKeys.RefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            IsEssential = true,
+            Domain = this.authSettings.CookieDomain
+        });
+
+        return this.NoContent();
+    }
+
+    /// <summary>
     /// Refreshes a user's access token. Refresh token is stored in a cookie.
     /// </summary>
     /// <param name="refreshTokenRequest">The refresh token request.</param>

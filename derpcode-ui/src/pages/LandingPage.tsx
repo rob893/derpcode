@@ -40,7 +40,7 @@ export function LandingPage() {
               <Button onPress={() => navigate('/register')} color="primary" size="lg" variant="solid">
                 Get Started
               </Button>
-              <Button onPress={() => navigate('/login')} variant="bordered" color="primary" size="lg">
+              <Button onPress={() => navigate('/login')} variant="ghost" color="primary" size="lg">
                 Sign In
               </Button>
             </div>
@@ -89,6 +89,24 @@ export function LandingPage() {
                 </p>
               </CardBody>
             </Card>
+          </div>
+        </section>
+
+        <section className="mb-12 text-center">
+          <div className="max-w-2xl mx-auto">
+            <h3 className="text-2xl font-semibold mb-4 text-foreground">Don't want to sign up?</h3>
+            <p className="text-lg text-foreground/70 mb-6">
+              You can still browse and practice coding problems without creating an account.
+            </p>
+            <Button
+              onPress={() => navigate('/problems')}
+              variant="ghost"
+              color="secondary"
+              size="lg"
+              className="font-medium"
+            >
+              Browse Problems →
+            </Button>
           </div>
         </section>
       </main>
