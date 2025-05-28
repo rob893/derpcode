@@ -38,12 +38,13 @@ export function AppHeader() {
       }}
     >
       <NavbarBrand>
-        <h1
-          className="text-3xl font-bold text-primary cursor-pointer hover:text-primary-600 transition-colors"
+        <div
+          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate('/problems')}
         >
-          DerpCode
-        </h1>
+          <img src="/favicon.svg" alt="DerpCode Logo" className="w-8 h-8" />
+          <h1 className="text-3xl font-bold text-primary">DerpCode</h1>
+        </div>
       </NavbarBrand>
 
       <NavbarContent justify="end" className="gap-4">
