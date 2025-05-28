@@ -25,6 +25,8 @@ import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblem, useSubmitSolution } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
+import { useAutoSave } from '../hooks/useAutoSave';
+import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../utils/localStorageUtils';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,15 +42,34 @@ export const ProblemView = () => {
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [showHints, setShowHints] = useState(false);
 
+  // Auto-save functionality
+  useAutoSave(
+    code,
+    user?.id || null,
+    problem?.id || 0,
+    selectedLanguage || Language.JavaScript,
+    3000 // 3 seconds delay
+  );
+
   // Set initial language and template when problem data is loaded
   useEffect(() => {
     if (problem && problem.drivers.length > 0) {
       // Default to JavaScript if available, otherwise use the first driver
       const initialDriver = problem.drivers.find(d => d.language === Language.JavaScript) || problem.drivers[0];
       setSelectedLanguage(initialDriver.language);
-      setCode(initialDriver.uiTemplate);
+
+      // Try to restore saved code with priority logic
+      const { code: savedCode } = loadCodeWithPriority(user?.id || null, problem.id, initialDriver.language);
+
+      // Use saved code if available, otherwise use the template
+      setCode(savedCode || initialDriver.uiTemplate);
     }
-  }, [problem]);
+  }, [problem, user?.id]);
+
+  // Cleanup old auto-save data on component mount
+  useEffect(() => {
+    cleanupOldAutoSaveData(30); // Keep data for 30 days
+  }, []);
 
   const getDifficultyColor = (difficulty: ProblemDifficulty) => {
     switch (difficulty) {
@@ -276,7 +297,11 @@ export const ProblemView = () => {
                     setSelectedLanguage(newLanguage);
                     const selectedDriver = problem.drivers.find(driver => driver.language === newLanguage);
                     if (selectedDriver) {
-                      setCode(selectedDriver.uiTemplate);
+                      // Try to restore saved code for the new language
+                      const { code: savedCode } = loadCodeWithPriority(user?.id || null, problem.id, newLanguage);
+
+                      // Use saved code if available, otherwise use the template
+                      setCode(savedCode || selectedDriver.uiTemplate);
                     }
                   }}
                   className="max-w-xs"
@@ -329,6 +354,9 @@ export const ProblemView = () => {
                   <br />
                   <br />
                   Either login, sign up, or gtfo 🖕
+                  <br />
+                  <br />
+                  (Your code is saved locally)
                 </p>
               </ModalBody>
               <ModalFooter>

@@ -124,7 +124,7 @@ public static class Program
             .UseAndConfigureCors(builder.Configuration)
             .UseAuthentication()
             .UseAuthorization()
-            .UseMiddleware<LoggingScopeMiddleware>()
+            .UseMiddleware<LoggingScopeMiddleware>() // Ensure this is after UseAuthentication and UseAuthorization to capture user information
             .UseAndConfigureSwagger(builder.Configuration)
             .UseAndConfigureEndpoints(builder.Configuration);
 
