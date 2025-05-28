@@ -9,7 +9,7 @@ public sealed record RegisterUserRequest
     public string UserName { get; init; } = default!;
 
     [Required]
-    [StringLength(256, MinimumLength = 6, ErrorMessage = "You must specify a password between 4 and 256 characters")]
+    [StringLength(256, MinimumLength = 8, ErrorMessage = "You must specify a password between 8 and 256 characters")]
     public string Password { get; init; } = default!;
 
     [Required]

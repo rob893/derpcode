@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Card, CardBody, CardHeader, Input, Button, Divider } from '@heroui/react';
+import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
 import { useAuth } from '../hooks/useAuth';
 
 export function RegisterPage() {
@@ -10,25 +11,65 @@ export function RegisterPage() {
     password: '',
     confirmPassword: ''
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState({
+    isValid: false,
+    errors: [] as string[]
+  });
 
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const validatePassword = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+
+    if (!/\d/.test(password)) {
+      errors.push('Password must contain at least 1 number');
+    }
+
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+      errors.push('Password must contain at least 1 special character');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // Validate password when it changes
+    if (name === 'password') {
+      const validation = validatePassword(value);
+      setPasswordValidation(validation);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
+
+    // Validate password requirements
+    const passwordValidationResult = validatePassword(formData.password);
+    if (!passwordValidationResult.isValid) {
+      setError(new Error(passwordValidationResult.errors.join(', ')));
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(new Error('Passwords do not match'));
       return;
     }
 
@@ -42,7 +83,7 @@ export function RegisterPage() {
       });
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err : new Error('Registration failed'));
     } finally {
       setIsLoading(false);
     }
@@ -59,11 +100,7 @@ export function RegisterPage() {
 
         <CardBody className="px-8 pb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-danger/10 border border-danger/20 rounded-lg p-3">
-                <p className="text-danger text-sm text-center">{error}</p>
-              </div>
-            )}
+            {error && <ApiErrorDisplay error={error} title="Registration Failed" showDetails={true} />}
 
             <Input
               label="Username"
@@ -100,11 +137,15 @@ export function RegisterPage() {
               onChange={handleChange}
               isRequired
               isDisabled={isLoading}
-              placeholder="Choose a password (min 6 characters)"
+              placeholder="Choose a password"
               autoComplete="new-password"
               variant="bordered"
-              color="primary"
-              description="Minimum 6 characters"
+              color={formData.password && !passwordValidation.isValid ? 'danger' : 'primary'}
+              description="8+ characters, 1+ number, 1+ special character"
+              errorMessage={
+                formData.password && !passwordValidation.isValid ? passwordValidation.errors.join(', ') : undefined
+              }
+              isInvalid={formData.password.length > 0 && !passwordValidation.isValid}
             />
 
             <Input
@@ -118,7 +159,13 @@ export function RegisterPage() {
               placeholder="Confirm your password"
               autoComplete="new-password"
               variant="bordered"
-              color="primary"
+              color={formData.confirmPassword && formData.password !== formData.confirmPassword ? 'danger' : 'primary'}
+              errorMessage={
+                formData.confirmPassword && formData.password !== formData.confirmPassword
+                  ? 'Passwords do not match'
+                  : undefined
+              }
+              isInvalid={formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword}
             />
 
             <Button
@@ -127,7 +174,14 @@ export function RegisterPage() {
               size="lg"
               className="w-full font-semibold mt-6"
               isLoading={isLoading}
-              isDisabled={!formData.userName || !formData.email || !formData.password || !formData.confirmPassword}
+              isDisabled={
+                !formData.userName ||
+                !formData.email ||
+                !formData.password ||
+                !formData.confirmPassword ||
+                !passwordValidation.isValid ||
+                formData.password !== formData.confirmPassword
+              }
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>

@@ -8,6 +8,7 @@ import {
   ProblemDifficulty
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
+import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useDriverTemplates, useCreateProblem, useValidateProblem } from '../hooks/api';
 import { Button, Card, CardBody, CardHeader, Input, Textarea, Select, SelectItem, Chip, Spinner } from '@heroui/react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -42,6 +43,8 @@ export const CreateProblem = () => {
   const [isValidated, setIsValidated] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationResult, setValidationResult] = useState<CreateProblemValidationResponse | null>(null);
+  const [validationError, setValidationError] = useState<Error | null>(null);
+  const [createError, setCreateError] = useState<Error | null>(null);
 
   // Set initial driver code from first available template
   useEffect(() => {
@@ -59,6 +62,8 @@ export const CreateProblem = () => {
     setIsValidated(false);
     setValidationErrors([]);
     setValidationResult(null);
+    setValidationError(null);
+    setCreateError(null);
   }, [problem, driverCode, uiTemplate, answer, selectedLanguage]);
 
   const handleLanguageChange = (newLanguage: Language) => {
@@ -105,6 +110,7 @@ export const CreateProblem = () => {
 
   const handleValidate = async () => {
     try {
+      setValidationError(null); // Clear any previous errors
       // Create a driver for the current language
       const driver: CreateProblemDriverRequest = {
         language: selectedLanguage,
@@ -137,13 +143,15 @@ export const CreateProblem = () => {
       }
     } catch (err) {
       console.error('Failed to validate problem:', err);
+      setValidationError(err as Error);
       setIsValidated(false);
-      setValidationErrors(['Validation failed. Please check your inputs and try again.']);
+      setValidationErrors([]);
     }
   };
 
   const handleSubmit = async () => {
     try {
+      setCreateError(null); // Clear any previous errors
       // Create a driver for the current language
       const driver: CreateProblemDriverRequest = {
         language: selectedLanguage,
@@ -162,6 +170,7 @@ export const CreateProblem = () => {
       navigate(`/problems/${createdProblem.id}`);
     } catch (err) {
       console.error('Failed to create problem:', err);
+      setCreateError(err as Error);
     }
   };
 
@@ -177,11 +186,12 @@ export const CreateProblem = () => {
   if (error)
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Card className="max-w-md">
-          <CardBody className="text-center">
-            <p className="text-danger">Error: {error.message}</p>
-          </CardBody>
-        </Card>
+        <ApiErrorDisplay
+          error={error}
+          title="Failed to load driver templates"
+          className="max-w-md"
+          showDetails={true}
+        />
       </div>
     );
 
@@ -399,6 +409,14 @@ export const CreateProblem = () => {
           </CardBody>
         </Card>
       </div>
+
+      {/* API Error Display for Validation */}
+      {validationError && (
+        <ApiErrorDisplay error={validationError} title="Validation Request Failed" showDetails={true} />
+      )}
+
+      {/* API Error Display for Creation */}
+      {createError && <ApiErrorDisplay error={createError} title="Problem Creation Failed" showDetails={true} />}
 
       {/* Validation Error Display */}
       {validationErrors.length > 0 && (

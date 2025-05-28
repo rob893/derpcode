@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { Card, CardBody, Chip, Button, Spinner, Divider } from '@heroui/react';
 import { ProblemDifficulty } from '../types/models';
+import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblems } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
@@ -22,11 +23,14 @@ export const ProblemList = () => {
 
   if (error) {
     return (
-      <Card className="max-w-md mx-auto">
-        <CardBody className="text-center py-8">
-          <p className="text-danger text-lg">Error: {error.message}</p>
-        </CardBody>
-      </Card>
+      <div className="max-w-7xl mx-auto p-6">
+        <ApiErrorDisplay
+          error={error}
+          title="Failed to load problems"
+          className="max-w-md mx-auto"
+          showDetails={true}
+        />
+      </div>
     );
   }
 

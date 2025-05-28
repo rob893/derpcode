@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { Card, CardBody, CardHeader, Input, Button, Divider } from '@heroui/react';
+import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
 import { useAuth } from '../hooks/useAuth';
 
 export function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
@@ -17,14 +18,14 @@ export function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setIsLoading(true);
 
     try {
       await login({ username, password });
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err : new Error('Login failed'));
     } finally {
       setIsLoading(false);
     }
@@ -41,11 +42,7 @@ export function LoginPage() {
 
         <CardBody className="px-8 pb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-danger/10 border border-danger/20 rounded-lg p-3">
-                <p className="text-danger text-sm text-center">{error}</p>
-              </div>
-            )}
+            {error && <ApiErrorDisplay error={error} title="Login Failed" showDetails={true} />}
 
             <Input
               label="Username"

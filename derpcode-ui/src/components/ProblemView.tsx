@@ -22,6 +22,7 @@ import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outlin
 import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
+import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblem, useSubmitSolution } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 
@@ -36,6 +37,7 @@ export const ProblemView = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
   const [code, setCode] = useState('');
   const [result, setResult] = useState<SubmissionResult | null>(null);
+  const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [showHints, setShowHints] = useState(false);
 
   // Set initial language and template when problem data is loaded
@@ -90,6 +92,7 @@ export const ProblemView = () => {
     }
 
     try {
+      setSubmissionError(null); // Clear any previous errors
       const submissionResult = await submitSolution.mutateAsync({
         userCode: code,
         language: selectedLanguage,
@@ -98,6 +101,8 @@ export const ProblemView = () => {
       setResult(submissionResult);
     } catch (error) {
       console.error('Submission error:', error);
+      setSubmissionError(error as Error);
+      setResult(null); // Clear any previous results
     }
   };
 
@@ -111,11 +116,9 @@ export const ProblemView = () => {
 
   if (error) {
     return (
-      <Card className="max-w-md mx-auto">
-        <CardBody className="text-center py-8">
-          <p className="text-danger text-lg">Error: {error.message}</p>
-        </CardBody>
-      </Card>
+      <div className="max-w-4xl mx-auto p-6">
+        <ApiErrorDisplay error={error} title="Failed to load problem" className="max-w-md mx-auto" showDetails={true} />
+      </div>
     );
   }
 
@@ -219,6 +222,8 @@ export const ProblemView = () => {
               </div>
             </CardBody>
           </Card>
+
+          {submissionError && <ApiErrorDisplay error={submissionError} title="Submission Failed" showDetails={true} />}
 
           {result && (
             <Card className={`border-2 ${result.pass ? 'border-success' : 'border-danger'}`}>

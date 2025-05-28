@@ -1,18 +1,10 @@
 import axios, { AxiosError, type AxiosRequestConfig } from 'axios';
 import { getDeviceId, getAccessToken, setAccessToken, clearAccessToken } from './auth';
+import { ApiError, type ProblemDetailsError } from '../types/errors';
 
 const API_BASE_URL = import.meta.env.VITE_DERPCODE_API_BASE_URL;
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public statusText: string
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
+const sessionId = crypto.randomUUID();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -36,12 +28,13 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (config.url?.includes('/refreshToken')) {
-      const csrfToken = getCsrfTokenFromCookie();
-      if (csrfToken) {
-        config.headers['X-CSRF-Token'] = csrfToken;
-      }
+    const csrfToken = getCsrfTokenFromCookie();
+
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
     }
+
+    config.headers['X-Correlation-Id'] = `${sessionId}:${crypto.randomUUID()}`;
 
     return config;
   },
@@ -77,11 +70,26 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (error.response) {
-      const apiError = new ApiError(
-        `HTTP ${error.response.status}: ${error.response.statusText}`,
-        error.response.status,
-        error.response.statusText
-      );
+      // Try to parse ProblemDetails from response
+      let problemDetails: ProblemDetailsError | undefined;
+
+      try {
+        if (error.response.data && typeof error.response.data === 'object') {
+          // Check if it's a ProblemDetails response
+          if ('title' in error.response.data && 'status' in error.response.data) {
+            problemDetails = error.response.data as ProblemDetailsError;
+          }
+        }
+      } catch {
+        // If parsing fails, we'll use the default error message
+      }
+
+      const errorMessage =
+        problemDetails?.detail ||
+        problemDetails?.title ||
+        `HTTP ${error.response.status}: ${error.response.statusText}`;
+
+      const apiError = new ApiError(errorMessage, error.response.status, error.response.statusText, problemDetails);
 
       if (
         error.response.status === 401 &&
