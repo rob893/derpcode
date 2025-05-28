@@ -16,9 +16,10 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure
+  useDisclosure,
+  Switch
 } from '@heroui/react';
-import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, EyeIcon, EyeSlashIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
@@ -35,12 +36,14 @@ export const ProblemView = () => {
   const { data: problem, isLoading, error } = useProblem(Number(id!));
   const submitSolution = useSubmitSolution(problem?.id || 0);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange } = useDisclosure();
 
   const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
   const [code, setCode] = useState('');
   const [result, setResult] = useState<SubmissionResult | null>(null);
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [showHints, setShowHints] = useState(false);
+  const [flamesEnabled, setFlamesEnabled] = useState(true);
 
   // Auto-save functionality
   useAutoSave(
@@ -288,29 +291,41 @@ export const ProblemView = () => {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center w-full">
-                <h3 className="text-xl font-semibold">Code Editor</h3>
-                <Select
-                  label="Language"
-                  selectedKeys={selectedLanguage ? [selectedLanguage] : []}
-                  onSelectionChange={keys => {
-                    const newLanguage = Array.from(keys)[0] as Language;
-                    setSelectedLanguage(newLanguage);
-                    const selectedDriver = problem.drivers.find(driver => driver.language === newLanguage);
-                    if (selectedDriver) {
-                      // Try to restore saved code for the new language
-                      const { code: savedCode } = loadCodeWithPriority(user?.id || null, problem.id, newLanguage);
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <h3 className="text-xl font-semibold whitespace-nowrap">Code Editor</h3>
+                  <Select
+                    label="Language"
+                    selectedKeys={selectedLanguage ? [selectedLanguage] : []}
+                    onSelectionChange={keys => {
+                      const newLanguage = Array.from(keys)[0] as Language;
+                      setSelectedLanguage(newLanguage);
+                      const selectedDriver = problem.drivers.find(driver => driver.language === newLanguage);
+                      if (selectedDriver) {
+                        // Try to restore saved code for the new language
+                        const { code: savedCode } = loadCodeWithPriority(user?.id || null, problem.id, newLanguage);
 
-                      // Use saved code if available, otherwise use the template
-                      setCode(savedCode || selectedDriver.uiTemplate);
-                    }
-                  }}
-                  className="max-w-xs"
-                  size="sm"
+                        // Use saved code if available, otherwise use the template
+                        setCode(savedCode || selectedDriver.uiTemplate);
+                      }
+                    }}
+                    className="w-32 flex-shrink-0"
+                    size="sm"
+                  >
+                    {problem.drivers.map(driver => (
+                      <SelectItem key={driver.language}>{driver.language}</SelectItem>
+                    ))}
+                  </Select>
+                </div>
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="md"
+                  onPress={onSettingsOpen}
+                  aria-label="Settings"
+                  className="flex-shrink-0"
                 >
-                  {problem.drivers.map(driver => (
-                    <SelectItem key={driver.language}>{driver.language}</SelectItem>
-                  ))}
-                </Select>
+                  <Cog6ToothIcon className="h-5 w-5" />
+                </Button>
               </div>
             </CardHeader>
             <CardBody className="pt-0">
@@ -320,6 +335,7 @@ export const ProblemView = () => {
                   code={code}
                   onChange={value => setCode(value ?? '')}
                   uiTemplate={problem.drivers.find(d => d.language === selectedLanguage)?.uiTemplate ?? ''}
+                  flamesEnabled={flamesEnabled}
                 />
 
                 <div className="flex justify-end">
@@ -381,6 +397,35 @@ export const ProblemView = () => {
                   }}
                 >
                   Sign Up
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal isOpen={isSettingsOpen} onOpenChange={onSettingsOpenChange} placement="center">
+        <ModalContent>
+          {onClose => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-xl font-bold text-foreground">Editor Settings</h2>
+              </ModalHeader>
+              <ModalBody>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-medium font-semibold">Flame Effects</h3>
+                      <p className="text-small text-default-500">Show fire animations when typing</p>
+                    </div>
+                    <Switch isSelected={flamesEnabled} onValueChange={setFlamesEnabled} color="primary" />
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" onPress={onClose}>
+                  Done
                 </Button>
               </ModalFooter>
             </>
