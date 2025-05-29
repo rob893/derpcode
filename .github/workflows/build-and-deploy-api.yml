@@ -69,15 +69,12 @@ jobs:
           name: derpcode-api-b${{ github.run_number }}
           path: dist
 
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
         with:
-          ssh-private-key: ${{ secrets.AZURE_VM_SSH_KEY }}
-
-      - name: Add SSH host to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.AZURE_VM_HOST }} >> ~/.ssh/known_hosts
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          name: id_rsa
+          known_hosts: ${{ secrets.AZURE_VM_KNOWN_HOSTS }}
 
       - name: Clean VM deployment directory
         run: ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "rm -rf /var/www/html/APIs/DerpCode.API/*"
