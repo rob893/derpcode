@@ -1,14 +1,34 @@
 import { useNavigate } from 'react-router';
 import { useState, useMemo } from 'react';
-import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem } from '@heroui/react';
-import { FunnelIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import {
+  Card,
+  CardBody,
+  Chip,
+  Button,
+  Spinner,
+  Divider,
+  Select,
+  SelectItem,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure
+} from '@heroui/react';
+import { FunnelIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblems } from '../hooks/api';
+import { useProblems, useDeleteProblem } from '../hooks/api';
+import { useAuth } from '../hooks/useAuth';
+import { hasAdminRole } from '../utils/auth';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: problems = [], isLoading, error } = useProblems();
+  const deleteProblem = useDeleteProblem();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   // Filter state
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
@@ -17,6 +37,12 @@ export const ProblemList = () => {
   const [sortBy, setSortBy] = useState<'difficulty-asc' | 'difficulty-desc' | 'name-asc' | 'name-desc'>(
     'difficulty-asc'
   );
+
+  // Delete confirmation state
+  const [problemToDelete, setProblemToDelete] = useState<{ id: number; name: string } | null>(null);
+
+  // Check if user is admin
+  const isAdmin = hasAdminRole(user);
 
   // Get all unique tags from problems
   const allTags = useMemo(() => {
@@ -87,6 +113,30 @@ export const ProblemList = () => {
       const randomProblem = filteredProblems[randomIndex];
       navigate(`/problems/${randomProblem.id}`);
     }
+  };
+
+  // Handle delete problem
+  const handleDeleteClick = (problem: { id: number; name: string }) => {
+    setProblemToDelete(problem);
+    onOpen();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!problemToDelete) return;
+
+    try {
+      await deleteProblem.mutateAsync(problemToDelete.id);
+      setProblemToDelete(null);
+      onOpenChange();
+    } catch (error) {
+      console.error('Failed to delete problem:', error);
+      // Error handling could be enhanced with toast notifications
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setProblemToDelete(null);
+    onOpenChange();
   };
 
   if (isLoading) {
@@ -330,9 +380,29 @@ export const ProblemList = () => {
                   <h3 className="text-xl font-semibold text-foreground hover:text-primary transition-colors">
                     {problem.name}
                   </h3>
-                  <Chip color={getDifficultyColor(problem.difficulty)} variant="flat" size="sm" className="font-medium">
-                    {getDifficultyLabel(problem.difficulty)}
-                  </Chip>
+                  <div className="flex items-center gap-2">
+                    <Chip
+                      color={getDifficultyColor(problem.difficulty)}
+                      variant="flat"
+                      size="sm"
+                      className="font-medium"
+                    >
+                      {getDifficultyLabel(problem.difficulty)}
+                    </Chip>
+                    {isAdmin && (
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        color="danger"
+                        variant="light"
+                        aria-label={`Delete ${problem.name}`}
+                        onPress={() => handleDeleteClick({ id: problem.id, name: problem.name })}
+                        className="opacity-70 hover:opacity-100"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {problem.tags && problem.tags.length > 0 && (
@@ -349,6 +419,40 @@ export const ProblemList = () => {
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-xl font-bold text-danger">Delete Problem</h2>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-foreground">
+                  Are you sure you want to delete the problem "{problemToDelete?.name}"?
+                </p>
+                <p className="text-warning text-sm mt-2">
+                  This action cannot be undone. All associated data will be permanently removed.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="default"
+                  variant="light"
+                  onPress={handleCancelDelete}
+                  isDisabled={deleteProblem.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleConfirmDelete} isLoading={deleteProblem.isPending}>
+                  {deleteProblem.isPending ? 'Deleting...' : 'Delete'}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

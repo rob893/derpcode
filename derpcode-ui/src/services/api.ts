@@ -30,6 +30,10 @@ export const problemsApi = {
     return response.data;
   },
 
+  deleteProblem: async (problemId: number): Promise<void> => {
+    await apiClient.delete(`/api/v1/problems/${problemId}`);
+  },
+
   submitSolution: async (
     problemId: number,
     userId: number,

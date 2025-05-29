@@ -97,6 +97,29 @@ public class ProblemsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
     }
 
+    [HttpDelete("{problemId}", Name = nameof(DeleteProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> DeleteProblemAsync([FromRoute] int problemId)
+    {
+        var problem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
+        if (problem == null)
+        {
+            return this.NotFound($"Problem with ID {problemId} not found");
+        }
+
+        this.problemRepository.Remove(problem);
+
+        var removed = await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+        if (removed == 0)
+        {
+            return this.InternalServerError("Failed to delete problem. Please try again later.");
+        }
+
+        return this.NoContent();
+    }
+
     [HttpPost("validate", Name = nameof(ValidateCreateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]

@@ -10,15 +10,27 @@ import {
 import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useDriverTemplates, useCreateProblem, useValidateProblem } from '../hooks/api';
-import { Button, Card, CardBody, CardHeader, Input, Textarea, Select, SelectItem, Chip, Spinner } from '@heroui/react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  Textarea,
+  Select,
+  SelectItem,
+  Chip,
+  Spinner,
+  Tabs,
+  Tab
+} from '@heroui/react';
+import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export const CreateProblem = () => {
   const navigate = useNavigate();
   const { data: driverTemplates = [], isLoading, error } = useDriverTemplates();
   const createProblem = useCreateProblem();
   const validateProblem = useValidateProblem();
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.JavaScript);
 
   const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
     name: '',
@@ -31,13 +43,13 @@ export const CreateProblem = () => {
     drivers: []
   });
 
-  const [driverCode, setDriverCode] = useState('');
-  const [uiTemplate, setUITemplate] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [drivers, setDrivers] = useState<CreateProblemDriverRequest[]>([]);
+  const [activeTab, setActiveTab] = useState('basic');
   const [tagInput, setTagInput] = useState('');
   const [hintInput, setHintInput] = useState('');
   const [problemInput, setProblemInput] = useState('');
   const [problemExpectedOutput, setProblemExpectedOutput] = useState('');
+  const [selectedLanguageToAdd, setSelectedLanguageToAdd] = useState<Language | null>(null);
 
   // Validation state
   const [isValidated, setIsValidated] = useState(false);
@@ -46,17 +58,6 @@ export const CreateProblem = () => {
   const [validationError, setValidationError] = useState<Error | null>(null);
   const [createError, setCreateError] = useState<Error | null>(null);
 
-  // Set initial driver code from first available template
-  useEffect(() => {
-    if (driverTemplates.length > 0) {
-      const firstLanguage = driverTemplates[0].language;
-      setSelectedLanguage(firstLanguage);
-      setDriverCode(driverTemplates[0].template);
-      setUITemplate(driverTemplates[0].uiTemplate);
-      setAnswer(driverTemplates[0].uiTemplate); // Initialize answer with the template
-    }
-  }, [driverTemplates]);
-
   // Reset validation when form changes
   useEffect(() => {
     setIsValidated(false);
@@ -64,14 +65,42 @@ export const CreateProblem = () => {
     setValidationResult(null);
     setValidationError(null);
     setCreateError(null);
-  }, [problem, driverCode, uiTemplate, answer, selectedLanguage]);
+  }, [problem, drivers]);
 
-  const handleLanguageChange = (newLanguage: Language) => {
-    setSelectedLanguage(newLanguage);
-    const template = driverTemplates.find(x => x.language === newLanguage);
-    setDriverCode(template?.template || '');
-    setUITemplate(template?.uiTemplate || '');
-    setAnswer(template?.uiTemplate || ''); // Update answer when language changes
+  const addLanguageDriver = () => {
+    if (!selectedLanguageToAdd || driverTemplates.length === 0) return;
+
+    // Check if language is already added
+    const usedLanguages = drivers.map(d => d.language);
+    if (usedLanguages.includes(selectedLanguageToAdd)) return;
+
+    // Find the template for the selected language
+    const languageTemplate = driverTemplates.find(t => t.language === selectedLanguageToAdd);
+
+    if (languageTemplate) {
+      const newDriver: CreateProblemDriverRequest = {
+        language: languageTemplate.language,
+        image: `code-executor-${languageTemplate.language.toLowerCase()}`,
+        driverCode: languageTemplate.template,
+        uiTemplate: languageTemplate.uiTemplate,
+        answer: languageTemplate.uiTemplate
+      };
+
+      setDrivers(prev => [...prev, newDriver]);
+      setActiveTab(newDriver.language);
+      setSelectedLanguageToAdd(null); // Reset selection
+    }
+  };
+
+  const removeDriver = (language: Language) => {
+    setDrivers(prev => prev.filter(d => d.language !== language));
+    if (activeTab === language) {
+      setActiveTab('basic');
+    }
+  };
+
+  const updateDriver = (language: Language, updates: Partial<CreateProblemDriverRequest>) => {
+    setDrivers(prev => prev.map(d => (d.language === language ? { ...d, ...updates } : d)));
   };
 
   const handleAddTag = () => {
@@ -110,19 +139,20 @@ export const CreateProblem = () => {
 
   const handleValidate = async () => {
     try {
-      setValidationError(null); // Clear any previous errors
-      // Create a driver for the current language
-      const driver: CreateProblemDriverRequest = {
-        language: selectedLanguage,
-        image: `code-executor-${selectedLanguage.toLowerCase()}`,
-        driverCode,
-        uiTemplate,
-        answer
-      };
+      setValidationError(null);
+
+      // Create drivers from all language drivers
+      const problemDrivers: CreateProblemDriverRequest[] = drivers.map(driver => ({
+        language: driver.language,
+        image: `code-executor-${driver.language.toLowerCase()}`,
+        driverCode: driver.driverCode,
+        uiTemplate: driver.uiTemplate,
+        answer: driver.answer
+      }));
 
       const newProblem: CreateProblemRequest = {
         ...(problem as CreateProblemRequest),
-        drivers: [driver]
+        drivers: problemDrivers
       };
 
       const validationResponse = await validateProblem.mutateAsync(newProblem);
@@ -151,19 +181,20 @@ export const CreateProblem = () => {
 
   const handleSubmit = async () => {
     try {
-      setCreateError(null); // Clear any previous errors
-      // Create a driver for the current language
-      const driver: CreateProblemDriverRequest = {
-        language: selectedLanguage,
-        image: `code-executor-${selectedLanguage.toLowerCase()}`,
-        driverCode,
-        uiTemplate,
-        answer
-      };
+      setCreateError(null);
+
+      // Create drivers from all language drivers
+      const problemDrivers: CreateProblemDriverRequest[] = drivers.map(driver => ({
+        language: driver.language,
+        image: `code-executor-${driver.language.toLowerCase()}`,
+        driverCode: driver.driverCode,
+        uiTemplate: driver.uiTemplate,
+        answer: driver.answer
+      }));
 
       const newProblem: CreateProblemRequest = {
         ...(problem as CreateProblemRequest),
-        drivers: [driver]
+        drivers: problemDrivers
       };
 
       const createdProblem = await createProblem.mutateAsync(newProblem);
@@ -173,8 +204,6 @@ export const CreateProblem = () => {
       setCreateError(err as Error);
     }
   };
-
-  console.log(!problem.name, !problem.description, !driverCode, !answer, !isValidated);
 
   if (isLoading)
     return (
@@ -207,207 +236,287 @@ export const CreateProblem = () => {
         <h2 className="text-3xl font-bold text-white">Create New Problem</h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Problem Details</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <Input
-                label="Name"
-                placeholder="Problem name"
-                value={problem.name}
-                onChange={e => setProblem(prev => ({ ...prev, name: e.target.value }))}
-                variant="bordered"
-                color="primary"
-              />
-
-              <Textarea
-                label="Description"
-                placeholder="Problem description"
-                value={problem.description}
-                onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
-                variant="bordered"
-                color="primary"
-                minRows={4}
-              />
-
-              <Select
-                label="Difficulty"
-                selectedKeys={[problem.difficulty || ProblemDifficulty.Easy]}
-                onSelectionChange={keys => {
-                  const difficulty = Array.from(keys)[0] as ProblemDifficulty;
-                  setProblem(prev => ({ ...prev, difficulty }));
-                }}
-                variant="bordered"
-                color="primary"
-              >
-                <SelectItem key={ProblemDifficulty.VeryEasy}>Very Easy</SelectItem>
-                <SelectItem key={ProblemDifficulty.Easy}>Easy</SelectItem>
-                <SelectItem key={ProblemDifficulty.Medium}>Medium</SelectItem>
-                <SelectItem key={ProblemDifficulty.Hard}>Hard</SelectItem>
-                <SelectItem key={ProblemDifficulty.VeryHard}>Very Hard</SelectItem>
-              </Select>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add tag and press Enter"
-                    value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddTag()}
-                    variant="bordered"
-                    color="primary"
-                    className="flex-1"
-                  />
-                  <Button color="primary" onPress={handleAddTag}>
-                    Add Tag
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {problem.tags?.map(tag => (
-                    <Chip key={tag.name} onClose={() => handleRemoveTag(tag.name)} variant="flat" color="primary">
-                      {tag.name}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add hint and press Enter"
-                    value={hintInput}
-                    onChange={e => setHintInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddHint()}
-                    variant="bordered"
-                    color="secondary"
-                    className="flex-1"
-                  />
-                  <Button color="secondary" onPress={handleAddHint}>
-                    Add Hint
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {problem.hints?.map((hint, index) => (
-                    <Chip key={index} onClose={() => handleRemoveHint(hint)} variant="flat" color="secondary">
-                      {hint}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Test Data</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <Textarea
-                label="Input Array (JSON)"
-                placeholder="[1, 2, 3]"
-                value={problemInput}
-                onChange={e => {
-                  try {
-                    setProblemInput(e.target.value);
-                    const parsed = JSON.parse(e.target.value);
-                    setProblem(prev => ({ ...prev, input: parsed }));
-                  } catch {
-                    // swallow invalid JSON error
-                  }
-                }}
-                variant="bordered"
-                color="primary"
-                minRows={4}
-              />
-
-              <Textarea
-                label="Expected Output Array (JSON)"
-                placeholder="[3, 5, 7]"
-                value={problemExpectedOutput}
-                onChange={e => {
-                  try {
-                    setProblemExpectedOutput(e.target.value);
-                    const parsed = JSON.parse(e.target.value);
-                    setProblem(prev => ({ ...prev, expectedOutput: parsed }));
-                  } catch {
-                    // swallow invalid JSON error
-                  }
-                }}
-                variant="bordered"
-                color="primary"
-                minRows={4}
-              />
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">Code Configuration</h3>
-            </CardHeader>
-            <CardBody>
-              <Select
-                label="Language"
-                selectedKeys={[selectedLanguage]}
-                onSelectionChange={keys => handleLanguageChange(Array.from(keys)[0] as Language)}
-                variant="bordered"
-                color="primary"
-              >
-                {driverTemplates.map(x => (
-                  <SelectItem key={x.language}>{x.language}</SelectItem>
-                ))}
-              </Select>
-            </CardBody>
-          </Card>
-        </div>
-      </div>
-
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">UI Template</h3>
-          </CardHeader>
-          <CardBody className="p-2">
-            <CodeEditor
-              language={selectedLanguage}
-              code={uiTemplate}
-              onChange={value => setUITemplate(value ?? '')}
-              uiTemplate=""
-            />
-          </CardBody>
-        </Card>
+        <Tabs
+          selectedKey={activeTab}
+          onSelectionChange={key => setActiveTab(key as string)}
+          aria-label="Problem creation tabs"
+          color="primary"
+          variant="underlined"
+          classNames={{
+            tabList: 'gap-6 w-full relative rounded-none p-0 border-b border-divider',
+            cursor: 'w-full bg-primary',
+            tab: 'max-w-fit px-0 h-12',
+            tabContent: 'group-data-[selected=true]:text-primary'
+          }}
+        >
+          <Tab key="basic" title="Basic Info">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">Problem Details</h3>
+                  </CardHeader>
+                  <CardBody className="space-y-4">
+                    <Input
+                      label="Name"
+                      placeholder="Problem name"
+                      value={problem.name}
+                      onChange={e => setProblem(prev => ({ ...prev, name: e.target.value }))}
+                      variant="bordered"
+                      color="primary"
+                    />
 
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Driver Code</h3>
-          </CardHeader>
-          <CardBody className="p-2">
-            <CodeEditor
-              language={selectedLanguage}
-              code={driverCode}
-              onChange={value => setDriverCode(value ?? '')}
-              uiTemplate=""
-            />
-          </CardBody>
-        </Card>
+                    <Textarea
+                      label="Description"
+                      placeholder="Problem description"
+                      value={problem.description}
+                      onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
+                      variant="bordered"
+                      color="primary"
+                      minRows={4}
+                    />
 
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Default Solution</h3>
-          </CardHeader>
-          <CardBody className="p-2">
-            <CodeEditor
-              language={selectedLanguage}
-              code={answer}
-              onChange={value => setAnswer(value ?? '')}
-              uiTemplate=""
-            />
-          </CardBody>
-        </Card>
+                    <Select
+                      label="Difficulty"
+                      selectedKeys={[problem.difficulty || ProblemDifficulty.Easy]}
+                      onSelectionChange={keys => {
+                        const difficulty = Array.from(keys)[0] as ProblemDifficulty;
+                        setProblem(prev => ({ ...prev, difficulty }));
+                      }}
+                      variant="bordered"
+                      color="primary"
+                    >
+                      <SelectItem key={ProblemDifficulty.VeryEasy}>Very Easy</SelectItem>
+                      <SelectItem key={ProblemDifficulty.Easy}>Easy</SelectItem>
+                      <SelectItem key={ProblemDifficulty.Medium}>Medium</SelectItem>
+                      <SelectItem key={ProblemDifficulty.Hard}>Hard</SelectItem>
+                      <SelectItem key={ProblemDifficulty.VeryHard}>Very Hard</SelectItem>
+                    </Select>
+
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add tag and press Enter"
+                          value={tagInput}
+                          onChange={e => setTagInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleAddTag()}
+                          variant="bordered"
+                          color="primary"
+                          className="flex-1"
+                        />
+                        <Button color="primary" onPress={handleAddTag}>
+                          Add Tag
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {problem.tags?.map(tag => (
+                          <Chip key={tag.name} onClose={() => handleRemoveTag(tag.name)} variant="flat" color="primary">
+                            {tag.name}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add hint and press Enter"
+                          value={hintInput}
+                          onChange={e => setHintInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleAddHint()}
+                          variant="bordered"
+                          color="secondary"
+                          className="flex-1"
+                        />
+                        <Button color="secondary" onPress={handleAddHint}>
+                          Add Hint
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {problem.hints?.map((hint, index) => (
+                          <Chip key={index} onClose={() => handleRemoveHint(hint)} variant="flat" color="secondary">
+                            {hint}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">Test Data</h3>
+                  </CardHeader>
+                  <CardBody className="space-y-4">
+                    <Textarea
+                      label="Input Array (JSON)"
+                      placeholder="[1, 2, 3]"
+                      value={problemInput}
+                      onChange={e => {
+                        try {
+                          setProblemInput(e.target.value);
+                          const parsed = JSON.parse(e.target.value);
+                          setProblem(prev => ({ ...prev, input: parsed }));
+                        } catch {
+                          // swallow invalid JSON error
+                        }
+                      }}
+                      variant="bordered"
+                      color="primary"
+                      minRows={4}
+                    />
+
+                    <Textarea
+                      label="Expected Output Array (JSON)"
+                      placeholder="[3, 5, 7]"
+                      value={problemExpectedOutput}
+                      onChange={e => {
+                        try {
+                          setProblemExpectedOutput(e.target.value);
+                          const parsed = JSON.parse(e.target.value);
+                          setProblem(prev => ({ ...prev, expectedOutput: parsed }));
+                        } catch {
+                          // swallow invalid JSON error
+                        }
+                      }}
+                      variant="bordered"
+                      color="primary"
+                      minRows={4}
+                    />
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <h3 className="text-xl font-semibold">Language Drivers</h3>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        label="Add Driver"
+                        aria-label="Select language driver"
+                        placeholder="Select language"
+                        selectedKeys={selectedLanguageToAdd ? [selectedLanguageToAdd] : []}
+                        onSelectionChange={keys => {
+                          const language = Array.from(keys)[0] as Language;
+                          setSelectedLanguageToAdd(language);
+                        }}
+                        variant="bordered"
+                        color="primary"
+                        size="sm"
+                        className="min-w-32"
+                      >
+                        {driverTemplates
+                          .filter(template => !drivers.map(d => d.language).includes(template.language))
+                          .map(template => (
+                            <SelectItem key={template.language}>{template.language}</SelectItem>
+                          ))}
+                      </Select>
+                      <Button
+                        color="primary"
+                        variant="flat"
+                        size="sm"
+                        onPress={addLanguageDriver}
+                        startContent={<PlusIcon className="w-4 h-4" />}
+                        isDisabled={!selectedLanguageToAdd || drivers.length >= driverTemplates.length}
+                      >
+                        Add Driver
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardBody>
+                    <div className="space-y-2">
+                      {drivers.length === 0 ? (
+                        <p className="text-default-500 text-sm">
+                          No language drivers added yet. Click "Add Driver" to get started.
+                        </p>
+                      ) : (
+                        drivers.map(driver => (
+                          <div
+                            key={driver.language}
+                            className="flex items-center justify-between p-3 border border-divider rounded-lg"
+                          >
+                            <span className="font-medium">{driver.language}</span>
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                              color="danger"
+                              onPress={() => removeDriver(driver.language)}
+                            >
+                              <XMarkIcon className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+            </div>
+          </Tab>
+
+          {drivers.map(driver => (
+            <Tab key={driver.language} title={driver.language}>
+              <div className="space-y-6 mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold">{driver.language} Driver</h2>
+                  <Button
+                    color="danger"
+                    variant="flat"
+                    size="sm"
+                    onPress={() => removeDriver(driver.language)}
+                    startContent={<XMarkIcon className="w-4 h-4" />}
+                  >
+                    Remove Driver
+                  </Button>
+                </div>
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">UI Template - {driver.language}</h3>
+                  </CardHeader>
+                  <CardBody className="p-2">
+                    <CodeEditor
+                      language={driver.language}
+                      code={driver.uiTemplate}
+                      onChange={value => updateDriver(driver.language, { uiTemplate: value ?? '' })}
+                      uiTemplate=""
+                    />
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">Driver Code - {driver.language}</h3>
+                  </CardHeader>
+                  <CardBody className="p-2">
+                    <CodeEditor
+                      language={driver.language}
+                      code={driver.driverCode}
+                      onChange={value => updateDriver(driver.language, { driverCode: value ?? '' })}
+                      uiTemplate=""
+                    />
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">Default Solution - {driver.language}</h3>
+                  </CardHeader>
+                  <CardBody className="p-2">
+                    <CodeEditor
+                      language={driver.language}
+                      code={driver.answer}
+                      onChange={value => updateDriver(driver.language, { answer: value ?? '' })}
+                      uiTemplate=""
+                    />
+                  </CardBody>
+                </Card>
+              </div>
+            </Tab>
+          ))}
+        </Tabs>
       </div>
 
       {/* API Error Display for Validation */}
@@ -463,7 +572,12 @@ export const CreateProblem = () => {
           color="secondary"
           size="lg"
           onPress={handleValidate}
-          isDisabled={!problem.name || !problem.description || !driverCode || !answer}
+          isDisabled={
+            !problem.name ||
+            !problem.description ||
+            drivers.length === 0 ||
+            drivers.some(d => !d.driverCode || !d.answer)
+          }
           isLoading={validateProblem.isPending}
           variant="bordered"
         >
@@ -474,7 +588,13 @@ export const CreateProblem = () => {
           color="primary"
           size="lg"
           onPress={handleSubmit}
-          isDisabled={!problem.name || !problem.description || !driverCode || !answer || !isValidated}
+          isDisabled={
+            !problem.name ||
+            !problem.description ||
+            drivers.length === 0 ||
+            drivers.some(d => !d.driverCode || !d.answer) ||
+            !isValidated
+          }
           isLoading={createProblem.isPending}
         >
           {createProblem.isPending ? 'Creating...' : 'Create Problem'}

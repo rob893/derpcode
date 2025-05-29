@@ -44,6 +44,18 @@ export const useCreateProblem = () => {
   });
 };
 
+export const useDeleteProblem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (problemId: number) => problemsApi.deleteProblem(problemId),
+    onSuccess: () => {
+      // Invalidate and refetch problems list
+      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+    }
+  });
+};
+
 export const useValidateProblem = () => {
   return useMutation({
     mutationFn: (problem: CreateProblemRequest) => problemsApi.validateProblem(problem)
