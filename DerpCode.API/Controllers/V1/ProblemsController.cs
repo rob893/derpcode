@@ -97,6 +97,73 @@ public class ProblemsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
     }
 
+    [HttpPut("{problemId}", Name = nameof(FullUpdateProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProblemDto>> FullUpdateProblemAsync([FromRoute] int problemId, [FromBody] CreateProblemRequest updateRequest)
+    {
+        if (updateRequest == null)
+        {
+            return this.BadRequest("Problem cannot be null");
+        }
+
+        var existingProblem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
+
+        if (existingProblem == null)
+        {
+            return this.NotFound($"Problem with ID {problemId} not found");
+        }
+
+        var newProblem = updateRequest.ToEntity();
+
+        if (updateRequest.Tags != null && updateRequest.Tags.Count > 0)
+        {
+            var tagNames = updateRequest.Tags.Select(t => t.Name).ToHashSet();
+            var existingTags = await this.tagRepository.SearchAsync(t => tagNames.Contains(t.Name), track: true, this.HttpContext.RequestAborted);
+            newProblem.Tags = [.. existingTags.Union(newProblem.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
+        }
+
+        // Update the existing problem with the new values
+        existingProblem.Name = newProblem.Name;
+        existingProblem.Description = newProblem.Description;
+        existingProblem.Difficulty = newProblem.Difficulty;
+        existingProblem.Tags = newProblem.Tags;
+        existingProblem.Hints = newProblem.Hints;
+        existingProblem.ExpectedOutput = newProblem.ExpectedOutput;
+        existingProblem.Input = newProblem.Input;
+
+        var newProblemDrivers = newProblem.Drivers.Select(d => d.Language).ToHashSet();
+        existingProblem.Drivers.RemoveAll(x => !newProblemDrivers.Contains(x.Language));
+
+        foreach (var driver in newProblem.Drivers)
+        {
+            var existingDriver = existingProblem.Drivers.FirstOrDefault(d => d.Language == driver.Language);
+
+            if (existingDriver != null)
+            {
+                // Update existing driver
+                existingDriver.Answer = driver.Answer;
+                existingDriver.Image = driver.Image;
+                existingDriver.DriverCode = driver.DriverCode;
+                existingDriver.UITemplate = driver.UITemplate;
+            }
+            else
+            {
+                // Add new driver
+                existingProblem.Drivers.Add(driver);
+            }
+        }
+
+        var updated = await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+        if (updated == 0)
+        {
+            return this.InternalServerError("Failed to update problem. Please try again later.");
+        }
+
+        return this.Ok(ProblemDto.FromEntity(existingProblem));
+    }
+
     [HttpDelete("{problemId}", Name = nameof(DeleteProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
