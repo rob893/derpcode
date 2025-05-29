@@ -1,3 +1,9 @@
+# Secrets used:
+# AZURE_VM_USER: to user to ssh into the remote server as
+# AZURE_VM_HOST: the IP/Domain to ssh into
+# AZURE_VM_SSH_KEY: the private key that matches the public key on the remote server
+# AZURE_VM_KNOWN_HOSTS: the known hosts. Run `ssh-keyscan {{ IP/Domain }}` to obtain this
+
 name: Build and Deploy API
 
 on:
@@ -69,7 +75,7 @@ jobs:
           name: derpcode-api-b${{ github.run_number }}
           path: dist
 
-      - name: Install SSH key
+      - name: Install SSH key # note, need to get ip and dynamicly set allowed ip on vm for this action runner and remove it after the job is done
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
