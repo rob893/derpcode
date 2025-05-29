@@ -1,15 +1,12 @@
 using System;
 using System.Text.Json.Serialization;
 using DerpCode.API.Core;
-using DerpCode.API.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 
