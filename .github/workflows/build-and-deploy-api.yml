@@ -1,0 +1,105 @@
+name: Build and Deploy API
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'DerpCode.API/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DerpCode.API
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --no-restore -c Release
+
+      - name: Test project
+        run: dotnet test --no-build --verbosity normal -c Release
+
+      - name: Publish project
+        run: dotnet publish -c Release -o dist --no-build
+
+      - name: Copy service file to dist
+        run: cp ../CI/DerpCode.API.service dist/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: derpcode-api-b${{ github.run_number }}
+          path: DerpCode.API/dist
+          retention-days: 30
+
+  deploy:
+    name: Deploy to Azure VM
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: derpcode-api-b${{ github.run_number }}
+          path: dist
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.AZURE_VM_SSH_KEY }}
+
+      - name: Add SSH host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.AZURE_VM_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Clean VM deployment directory
+        run: ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "rm -rf /var/www/html/APIs/DerpCode.API/*"
+
+      - name: Copy application files to VM
+        run: scp -r ./dist/* ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:/var/www/html/APIs/DerpCode.API
+
+      - name: Copy service file to VM
+        run: scp ./dist/DerpCode.API.service ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:/tmp/DerpCode.API.service
+
+      - name: Install service file and restart service
+        run: |
+          ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "
+            sudo mv /tmp/DerpCode.API.service /etc/systemd/system/DerpCode.API.service &&
+            sudo systemctl stop DerpCode.API.service &&
+            sudo systemctl enable DerpCode.API.service &&
+            sudo systemctl start DerpCode.API.service &&
+            sudo systemctl daemon-reload
+          "
+
+      - name: Verify deployment
+        run: |
+          ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "
+            sudo systemctl status DerpCode.API.service --no-pager
+          "
