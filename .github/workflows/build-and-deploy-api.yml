@@ -13,6 +13,7 @@ on:
       - 'DerpCode.API/**'
 
 permissions:
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -75,6 +76,35 @@ jobs:
           name: derpcode-api-b${{ github.run_number }}
           path: dist
 
+      - name: Log in to Azure using OIDC
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Get runner public IP
+        id: ip
+        run: |
+          echo "ip=$(curl -s https://api.ipify.org)" >> "$GITHUB_OUTPUT"
+
+      - name: Allow IP on NSG
+        run: |
+          az network nsg rule create \
+            --resource-group rherber-rg-ue-d \
+            --nsg-name rherber-vm-ue-d-nsg \
+            --name AllowGitHubRunner \
+            --priority 100 \
+            --direction Inbound \
+            --access Allow \
+            --protocol Tcp \
+            --source-address-prefixes ${{ steps.ip.outputs.ip }} \
+            --source-port-ranges '*' \
+            --destination-address-prefixes '*' \
+            --destination-port-ranges 22 \
+            --description "Temporary access for GitHub runner"
+
       - name: Install SSH key # note, need to get ip and dynamicly set allowed ip on vm for this action runner and remove it after the job is done
         uses: shimataro/ssh-key-action@v2
         with:
@@ -106,3 +136,11 @@ jobs:
           ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "
             sudo systemctl status DerpCode.API.service --no-pager
           "
+
+      - name: Remove NSG rule
+        if: always()
+        run: |
+          az network nsg rule delete \
+            --resource-group rherber-rg-ue-d \
+            --nsg-name rherber-vm-ue-d-nsg \
+            --name AllowGitHubRunner
