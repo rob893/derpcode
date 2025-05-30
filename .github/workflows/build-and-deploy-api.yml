@@ -104,7 +104,10 @@ jobs:
             --destination-port-ranges 22 \
             --description "Temporary access for GitHub runner"
 
-      - name: Install SSH key # note, need to get ip and dynamicly set allowed ip on vm for this action runner and remove it after the job is done
+      - name: Wait for NSG rule to propagate
+        run: sleep 10
+
+      - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
