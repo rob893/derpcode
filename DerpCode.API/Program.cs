@@ -54,6 +54,7 @@ public static class Program
             .AddHealthCheckServices()
             .AddIdentityServices()
             .AddScoped<ICorrelationIdService, CorrelationIdService>()
+            .AddSingleton<IFileSystemService, FileSystemService>()
             .AddAuthenticationServices(builder.Configuration)
             .AddDatabaseServices(builder.Configuration)
             .AddRepositoryServices()

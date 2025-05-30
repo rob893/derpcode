@@ -76,6 +76,11 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
         var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(condition, cancellationToken);
 
+        if (item != null)
+        {
+            this.PostProcess(item);
+        }
+
         return item;
     }
 
@@ -92,6 +97,11 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
         var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
 
+        if (item != null)
+        {
+            this.PostProcess(item);
+        }
+
         return item;
     }
 
@@ -104,10 +114,15 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
         var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
 
+        if (item != null)
+        {
+            this.PostProcess(item);
+        }
+
         return item;
     }
 
-    public virtual Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
+    public virtual async Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
@@ -118,10 +133,17 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
         query = this.AddIncludes(query);
 
-        return query.Where(condition).ToListAsync(cancellationToken);
+        var list = await query.Where(condition).ToListAsync(cancellationToken);
+
+        foreach (var item in list)
+        {
+            this.PostProcess(item);
+        }
+
+        return list;
     }
 
-    public virtual Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true, CancellationToken cancellationToken = default)
+    public virtual async Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
@@ -133,12 +155,19 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
         query = this.AddIncludes(query);
         query = this.AddWhereClauses(query, searchParams);
 
-        return query.ToCursorPaginatedListAsync(
+        var list = await query.ToCursorPaginatedListAsync(
             item => item.Id,
             this.ConvertIdToBase64,
             this.ConvertBase64ToIdType,
             searchParams,
             cancellationToken);
+
+        foreach (var item in list)
+        {
+            this.PostProcess(item);
+        }
+
+        return list;
     }
 
     protected virtual IQueryable<TEntity> AddWhereClauses(IQueryable<TEntity> query, TSearchParams searchParams)
@@ -147,6 +176,8 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
     }
 
     protected virtual void BeforeRemove(TEntity entity) { }
+
+    protected virtual void PostProcess(TEntity entity) { }
 
     protected virtual IQueryable<TEntity> AddIncludes(IQueryable<TEntity> query)
     {

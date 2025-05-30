@@ -20,6 +20,7 @@ public static class DockerServiceCollectionExtensions
         });
 
         services.AddScoped<ICodeExecutionService, CodeExecutionService>();
+        services.AddScoped<IFileSystemService, FileSystemService>();
 
         return services;
     }

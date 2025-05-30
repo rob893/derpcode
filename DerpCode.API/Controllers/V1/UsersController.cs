@@ -39,7 +39,7 @@ public sealed class UsersController : ServiceControllerBase
     }
 
     [HttpGet("{id}", Name = nameof(GetUserAsync))]
-    public async Task<ActionResult<UserDto>> GetUserAsync(int id)
+    public async Task<ActionResult<UserDto>> GetUserAsync([FromRoute] int id)
     {
         var user = await this.userRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
 
@@ -54,7 +54,7 @@ public sealed class UsersController : ServiceControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteUserAsync(int id)
+    public async Task<ActionResult> DeleteUserAsync([FromRoute] int id)
     {
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
 
@@ -80,16 +80,11 @@ public sealed class UsersController : ServiceControllerBase
     }
 
     [HttpPatch("{id}")]
-    public async Task<ActionResult<UserDto>> UpdateUserAsync(int id, [FromBody] JsonPatchDocument<UpdateUserRequest> dtoPatchDoc)
+    public async Task<ActionResult<UserDto>> UpdateUserAsync([FromRoute] int id, [FromBody] JsonPatchDocument<UpdateUserRequest> dtoPatchDoc)
     {
         if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
         {
             return this.BadRequest("A JSON patch document with at least 1 operation is required.");
-        }
-
-        if (!dtoPatchDoc.IsValid(out var errors))
-        {
-            return this.BadRequest(errors);
         }
 
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
@@ -111,7 +106,10 @@ public sealed class UsersController : ServiceControllerBase
 
         var patchDoc = dtoPatchDoc.MapPatchDocument<UpdateUserRequest, User>();
 
-        patchDoc.ApplyTo(user);
+        if (!patchDoc.TryApply(user, out var error))
+        {
+            return this.BadRequest($"Invalid JSON patch document: {error}");
+        }
 
         await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
@@ -131,7 +129,7 @@ public sealed class UsersController : ServiceControllerBase
 
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [HttpPost("{id}/roles")]
-    public async Task<ActionResult<UserDto>> AddRolesAsync(int id, [FromBody] EditRoleRequest roleEditDto)
+    public async Task<ActionResult<UserDto>> AddRolesAsync([FromRoute] int id, [FromBody] EditRoleRequest roleEditDto)
     {
         if (roleEditDto == null || roleEditDto.RoleNames == null || roleEditDto.RoleNames.Count == 0)
         {
@@ -179,7 +177,7 @@ public sealed class UsersController : ServiceControllerBase
 
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [HttpDelete("{id}/roles")]
-    public async Task<ActionResult<UserDto>> RemoveRolesAsync(int id, [FromBody] EditRoleRequest roleEditDto)
+    public async Task<ActionResult<UserDto>> RemoveRolesAsync([FromRoute] int id, [FromBody] EditRoleRequest roleEditDto)
     {
         if (roleEditDto == null || roleEditDto.RoleNames == null || roleEditDto.RoleNames.Count == 0)
         {

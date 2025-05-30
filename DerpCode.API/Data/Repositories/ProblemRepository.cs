@@ -14,4 +14,15 @@ public sealed class ProblemRepository(DataContext context) : Repository<Problem,
             .Include(problem => problem.Tags)
             .Include(problem => problem.Drivers);
     }
+
+    protected override void PostProcess(Problem entity)
+    {
+        if (entity == null)
+        {
+            return;
+        }
+
+        entity.Tags?.Sort((a, b) => a.Id.CompareTo(b.Id));
+        entity.Drivers?.Sort((a, b) => a.Id.CompareTo(b.Id));
+    }
 }

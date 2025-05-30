@@ -7,6 +7,7 @@ using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models;
 using DerpCode.API.Models.Dtos;
+using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses;
@@ -14,6 +15,8 @@ using DerpCode.API.Models.Responses.Pagination;
 using DerpCode.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -95,6 +98,42 @@ public class ProblemsController : ServiceControllerBase
         await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
+    }
+
+    [HttpPatch("{problemId}", Name = nameof(UpdateProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
+    {
+        if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
+        {
+            return this.BadRequest("A JSON patch document with at least 1 operation is required.");
+        }
+
+        var problem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
+
+        if (problem == null)
+        {
+            return this.NotFound($"No problem with Id {problemId} found.");
+        }
+
+        var patchDoc = dtoPatchDoc.MapPatchDocument<CreateProblemRequest, Problem>();
+
+        if (!patchDoc.TryApply(problem, out var error))
+        {
+            return this.BadRequest($"Invalid JSON patch document: {error}");
+        }
+
+        var updated = await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+        if (updated == 0)
+        {
+            return this.InternalServerError("Failed to update problem. Please try again later.");
+        }
+
+        var problemToReturn = ProblemDto.FromEntity(problem);
+
+        return this.Ok(problemToReturn);
     }
 
     [HttpPut("{problemId}", Name = nameof(FullUpdateProblemAsync))]

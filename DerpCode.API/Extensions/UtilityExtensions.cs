@@ -1,30 +1,30 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using DerpCode.API.Constants;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace DerpCode.API.Extensions;
 
 public static class UtilityExtensions
 {
-    public static bool IsValid<T>(this JsonPatchDocument<T> patchDoc, [NotNullWhen(false)] out List<string>? errors)
+    public static bool TryApply<T>(this JsonPatchDocument<T> patchDoc, T target, out string error)
         where T : class, new()
     {
         ArgumentNullException.ThrowIfNull(patchDoc);
 
-        errors = null;
+        error = string.Empty;
 
         try
         {
-            patchDoc.ApplyTo(new T());
+            patchDoc.ApplyTo(target);
             return true;
         }
-        catch (Exception error)
+        catch (JsonPatchException ex)
         {
-            errors = [error.Message];
+            error = ex.Message;
 
             return false;
         }
