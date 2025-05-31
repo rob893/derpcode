@@ -37,4 +37,18 @@ public sealed record CreateProblemDriverRequest
             Answer = this.Answer
         };
     }
+
+    public static CreateProblemDriverRequest FromEntity(ProblemDriver driver)
+    {
+        ArgumentNullException.ThrowIfNull(driver);
+
+        return new CreateProblemDriverRequest
+        {
+            Language = driver.Language,
+            UITemplate = driver.UITemplate,
+            Image = driver.Image,
+            DriverCode = driver.DriverCode,
+            Answer = driver.Answer
+        };
+    }
 }

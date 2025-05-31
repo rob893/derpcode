@@ -108,3 +108,25 @@ export interface CreateProblemDriverValidationResponse {
   image: string;
   submissionResult: SubmissionResult;
 }
+
+export interface AdminProblemDto {
+  id: number;
+  name: string;
+  expectedOutput: any[];
+  input: any[];
+  tags: TagDto[];
+  description: string;
+  difficulty: ProblemDifficulty;
+  drivers: AdminProblemDriverDto[];
+  hints: string[];
+}
+
+export interface AdminProblemDriverDto {
+  id: number;
+  problemId: number;
+  language: Language;
+  uiTemplate: string;
+  image: string;
+  driverCode: string;
+  answer: string;
+}

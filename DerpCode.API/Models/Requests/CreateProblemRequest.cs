@@ -52,4 +52,21 @@ public sealed record CreateProblemRequest
             Drivers = [.. this.Drivers.Select(driver => driver.ToEntity())]
         };
     }
+
+    public static CreateProblemRequest FromEntity(Problem problem)
+    {
+        ArgumentNullException.ThrowIfNull(problem);
+
+        return new CreateProblemRequest
+        {
+            Name = problem.Name,
+            Description = problem.Description,
+            Difficulty = problem.Difficulty,
+            ExpectedOutput = [.. problem.ExpectedOutput],
+            Input = [.. problem.Input],
+            Hints = [.. problem.Hints],
+            Tags = [.. problem.Tags.Select(CreateTagRequest.FromEntity)],
+            Drivers = [.. problem.Drivers.Select(CreateProblemDriverRequest.FromEntity)]
+        };
+    }
 }

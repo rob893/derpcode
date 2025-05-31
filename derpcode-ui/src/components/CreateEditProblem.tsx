@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import {
   type CreateProblemDriverRequest,
   type CreateProblemRequest,
@@ -9,7 +9,13 @@ import {
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useDriverTemplates, useCreateProblem, useValidateProblem } from '../hooks/api';
+import {
+  useDriverTemplates,
+  useCreateProblem,
+  useValidateProblem,
+  useAdminProblem,
+  useUpdateProblem
+} from '../hooks/api';
 import {
   Button,
   Card,
@@ -26,11 +32,24 @@ import {
 } from '@heroui/react';
 import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-export const CreateProblem = () => {
+interface CreateEditProblemProps {
+  mode: 'create' | 'edit';
+}
+
+export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
   const navigate = useNavigate();
-  const { data: driverTemplates = [], isLoading, error } = useDriverTemplates();
+  const { id } = useParams<{ id: string }>();
+  const { data: driverTemplates = [], isLoading: templatesLoading, error: templatesError } = useDriverTemplates();
   const createProblem = useCreateProblem();
+  const updateProblem = useUpdateProblem();
   const validateProblem = useValidateProblem();
+
+  // For edit mode, fetch the existing problem
+  const problemId = mode === 'edit' && id ? parseInt(id, 10) : 0;
+  const { data: existingProblem, isLoading: problemLoading, error: problemError } = useAdminProblem(problemId);
+
+  const isLoading = templatesLoading || (mode === 'edit' && problemLoading);
+  const error = templatesError || (mode === 'edit' && problemError);
 
   const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
     name: '',
@@ -50,6 +69,36 @@ export const CreateProblem = () => {
   const [problemInput, setProblemInput] = useState('');
   const [problemExpectedOutput, setProblemExpectedOutput] = useState('');
   const [selectedLanguageToAdd, setSelectedLanguageToAdd] = useState<Language | null>(null);
+
+  // Initialize form with existing data in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && existingProblem) {
+      setProblem({
+        name: existingProblem.name,
+        description: existingProblem.description,
+        difficulty: existingProblem.difficulty,
+        tags: existingProblem.tags,
+        input: existingProblem.input,
+        expectedOutput: existingProblem.expectedOutput,
+        hints: existingProblem.hints,
+        drivers: []
+      });
+
+      // Convert AdminProblemDriverDto to CreateProblemDriverRequest
+      const editDrivers: CreateProblemDriverRequest[] = existingProblem.drivers.map(driver => ({
+        language: driver.language,
+        image: driver.image,
+        driverCode: driver.driverCode,
+        uiTemplate: driver.uiTemplate,
+        answer: driver.answer
+      }));
+      setDrivers(editDrivers);
+
+      // Set input/output display values
+      setProblemInput(JSON.stringify(existingProblem.input, null, 2));
+      setProblemExpectedOutput(JSON.stringify(existingProblem.expectedOutput, null, 2));
+    }
+  }, [mode, existingProblem]);
 
   // Validation state
   const [isValidated, setIsValidated] = useState(false);
@@ -192,15 +241,21 @@ export const CreateProblem = () => {
         answer: driver.answer
       }));
 
-      const newProblem: CreateProblemRequest = {
+      const problemData: CreateProblemRequest = {
         ...(problem as CreateProblemRequest),
         drivers: problemDrivers
       };
 
-      const createdProblem = await createProblem.mutateAsync(newProblem);
-      navigate(`/problems/${createdProblem.id}`);
+      if (mode === 'create') {
+        const createdProblem = await createProblem.mutateAsync(problemData);
+        navigate(`/problems/${createdProblem.id}`);
+      } else {
+        // Edit mode
+        await updateProblem.mutateAsync({ problemId: problemId, problem: problemData });
+        navigate(`/problems/${problemId}`);
+      }
     } catch (err) {
-      console.error('Failed to create problem:', err);
+      console.error(`Failed to ${mode} problem:`, err);
       setCreateError(err as Error);
     }
   };
@@ -233,7 +288,7 @@ export const CreateProblem = () => {
           onPress={() => navigate('/')}
           startContent={<ArrowLeftIcon className="w-5 h-5" />}
         />
-        <h2 className="text-3xl font-bold text-white">Create New Problem</h2>
+        <h2 className="text-3xl font-bold text-white">{mode === 'create' ? 'Create New Problem' : 'Edit Problem'}</h2>
       </div>
 
       <div className="space-y-6">
@@ -524,8 +579,14 @@ export const CreateProblem = () => {
         <ApiErrorDisplay error={validationError} title="Validation Request Failed" showDetails={true} />
       )}
 
-      {/* API Error Display for Creation */}
-      {createError && <ApiErrorDisplay error={createError} title="Problem Creation Failed" showDetails={true} />}
+      {/* API Error Display for Creation/Update */}
+      {createError && (
+        <ApiErrorDisplay
+          error={createError}
+          title={`Problem ${mode === 'create' ? 'Creation' : 'Update'} Failed`}
+          showDetails={true}
+        />
+      )}
 
       {/* Validation Error Display */}
       {validationErrors.length > 0 && (
@@ -595,9 +656,15 @@ export const CreateProblem = () => {
             drivers.some(d => !d.driverCode || !d.answer) ||
             !isValidated
           }
-          isLoading={createProblem.isPending}
+          isLoading={createProblem.isPending || updateProblem.isPending}
         >
-          {createProblem.isPending ? 'Creating...' : 'Create Problem'}
+          {createProblem.isPending || updateProblem.isPending
+            ? mode === 'create'
+              ? 'Creating...'
+              : 'Updating...'
+            : mode === 'create'
+              ? 'Create Problem'
+              : 'Update Problem'}
         </Button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import type { LoginRequest, RegisterRequest } from '../types/auth';
 export const queryKeys = {
   problems: ['problems'] as const,
   problem: (id: number) => ['problems', id] as const,
+  adminProblem: (id: number) => ['problems', 'admin', id] as const,
   driverTemplates: ['driverTemplates'] as const
 } as const;
 
@@ -29,6 +30,15 @@ export const useProblem = (id: number) => {
   });
 };
 
+export const useAdminProblem = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.adminProblem(id),
+    queryFn: () => problemsApi.getAdminProblem(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
+};
+
 export const useCreateProblem = () => {
   const queryClient = useQueryClient();
 
@@ -40,6 +50,23 @@ export const useCreateProblem = () => {
 
       // Optionally, add the new problem to the cache
       queryClient.setQueryData(queryKeys.problem(newProblem.id), newProblem);
+    }
+  });
+};
+
+export const useUpdateProblem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ problemId, problem }: { problemId: number; problem: CreateProblemRequest }) =>
+      problemsApi.updateProblem(problemId, problem),
+    onSuccess: updatedProblem => {
+      // Invalidate and refetch problems list
+      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+
+      // Update the specific problem caches
+      queryClient.setQueryData(queryKeys.problem(updatedProblem.id), updatedProblem);
+      queryClient.setQueryData(queryKeys.adminProblem(updatedProblem.id), updatedProblem);
     }
   });
 };

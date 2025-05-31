@@ -5,7 +5,8 @@ import {
   type CreateProblemRequest,
   type CreateProblemValidationResponse,
   type SubmissionResult,
-  type Language
+  type Language,
+  type AdminProblemDto
 } from '../types/models';
 import apiClient from './axiosConfig';
 
@@ -20,6 +21,11 @@ export const problemsApi = {
     return response.data;
   },
 
+  getAdminProblem: async (id: number): Promise<AdminProblemDto> => {
+    const response = await apiClient.get<AdminProblemDto>(`/api/v1/problems/admin/${id}`);
+    return response.data;
+  },
+
   validateProblem: async (problem: CreateProblemRequest): Promise<CreateProblemValidationResponse> => {
     const response = await apiClient.post<CreateProblemValidationResponse>('/api/v1/problems/validate', problem);
     return response.data;
@@ -27,6 +33,11 @@ export const problemsApi = {
 
   createProblem: async (problem: CreateProblemRequest): Promise<Problem> => {
     const response = await apiClient.post<Problem>('/api/v1/problems', problem);
+    return response.data;
+  },
+
+  updateProblem: async (problemId: number, problem: CreateProblemRequest): Promise<AdminProblemDto> => {
+    const response = await apiClient.put<AdminProblemDto>(`/api/v1/problems/${problemId}`, problem);
     return response.data;
   },
 

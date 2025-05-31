@@ -16,7 +16,7 @@ import {
   ModalFooter,
   useDisclosure
 } from '@heroui/react';
-import { FunnelIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { FunnelIcon, ArrowPathIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblems, useDeleteProblem } from '../hooks/api';
@@ -390,17 +390,38 @@ export const ProblemList = () => {
                       {getDifficultyLabel(problem.difficulty)}
                     </Chip>
                     {isAdmin && (
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        color="danger"
-                        variant="light"
-                        aria-label={`Delete ${problem.name}`}
-                        onPress={() => handleDeleteClick({ id: problem.id, name: problem.name })}
-                        className="opacity-70 hover:opacity-100"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </Button>
+                      <div onClick={e => e.stopPropagation()} className="flex items-center gap-1">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Edit ${problem.name}`}
+                          onClick={() => navigate(`/problems/${problem.id}/edit`)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/problems/${problem.id}/edit`);
+                            }
+                          }}
+                          className="p-2 rounded-md opacity-70 hover:opacity-100 hover:bg-primary/10 text-primary cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </div>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Delete ${problem.name}`}
+                          onClick={() => handleDeleteClick({ id: problem.id, name: problem.name })}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleDeleteClick({ id: problem.id, name: problem.name });
+                            }
+                          }}
+                          className="p-2 rounded-md opacity-70 hover:opacity-100 hover:bg-danger/10 text-danger cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-danger/50"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>

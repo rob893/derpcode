@@ -75,10 +75,26 @@ public class ProblemsController : ServiceControllerBase
         return this.Ok(ProblemDto.FromEntity(problem));
     }
 
+    [HttpGet("admin/{id}", Name = nameof(GetAdminProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AdminProblemDto>> GetAdminProblemAsync([FromRoute] int id)
+    {
+        var problem = await this.problemRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
+
+        if (problem == null)
+        {
+            return this.NotFound($"Problem with ID {id} not found");
+        }
+
+        return this.Ok(AdminProblemDto.FromEntity(problem));
+    }
+
     [HttpPost(Name = nameof(CreateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ProblemDto>> CreateProblemAsync([FromBody] CreateProblemRequest problem)
+    public async Task<ActionResult<AdminProblemDto>> CreateProblemAsync([FromBody] CreateProblemRequest problem)
     {
         if (problem == null)
         {
@@ -97,15 +113,14 @@ public class ProblemsController : ServiceControllerBase
         this.problemRepository.Add(newProblem);
         await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
-        return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem));
+        return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, AdminProblemDto.FromEntity(newProblem));
     }
 
     [HttpPatch("{problemId}", Name = nameof(UpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
+    public async Task<ActionResult<AdminProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
     {
-        // need to map real entity to create request to validate patch doc (namely for arrary indexes)
         if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
         {
             return this.BadRequest("A JSON patch document with at least 1 operation is required.");
@@ -116,6 +131,13 @@ public class ProblemsController : ServiceControllerBase
         if (problem == null)
         {
             return this.NotFound($"No problem with Id {problemId} found.");
+        }
+
+        var validationCheck = CreateProblemRequest.FromEntity(problem);
+
+        if (!dtoPatchDoc.TryApply(validationCheck, out var validationError))
+        {
+            return this.BadRequest($"Invalid JSON patch document: {validationError}");
         }
 
         var patchDoc = dtoPatchDoc.MapPatchDocument<CreateProblemRequest, Problem>();
@@ -132,7 +154,7 @@ public class ProblemsController : ServiceControllerBase
             return this.InternalServerError("Failed to update problem. Please try again later.");
         }
 
-        var problemToReturn = ProblemDto.FromEntity(problem);
+        var problemToReturn = AdminProblemDto.FromEntity(problem);
 
         return this.Ok(problemToReturn);
     }
@@ -140,7 +162,7 @@ public class ProblemsController : ServiceControllerBase
     [HttpPut("{problemId}", Name = nameof(FullUpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProblemDto>> FullUpdateProblemAsync([FromRoute] int problemId, [FromBody] CreateProblemRequest updateRequest)
+    public async Task<ActionResult<AdminProblemDto>> FullUpdateProblemAsync([FromRoute] int problemId, [FromBody] CreateProblemRequest updateRequest)
     {
         if (updateRequest == null)
         {
@@ -201,7 +223,7 @@ public class ProblemsController : ServiceControllerBase
             return this.InternalServerError("Failed to update problem. Please try again later.");
         }
 
-        return this.Ok(ProblemDto.FromEntity(existingProblem));
+        return this.Ok(AdminProblemDto.FromEntity(existingProblem));
     }
 
     [HttpDelete("{problemId}", Name = nameof(DeleteProblemAsync))]

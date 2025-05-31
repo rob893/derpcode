@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using DerpCode.API.Models.Entities;
 
@@ -15,6 +16,16 @@ public sealed record CreateTagRequest
         return new Tag
         {
             Name = this.Name
+        };
+    }
+
+    public static CreateTagRequest FromEntity(Tag tag)
+    {
+        ArgumentNullException.ThrowIfNull(tag);
+
+        return new CreateTagRequest
+        {
+            Name = tag.Name
         };
     }
 }

@@ -19,7 +19,7 @@ import {
   useDisclosure,
   Switch
 } from '@heroui/react';
-import { ArrowLeftIcon, EyeIcon, EyeSlashIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, EyeIcon, EyeSlashIcon, Cog6ToothIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
@@ -28,6 +28,7 @@ import { useProblem, useSubmitSolution } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../utils/localStorageUtils';
+import { hasAdminRole } from '../utils/auth';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
@@ -178,9 +179,22 @@ export const ProblemView = () => {
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start w-full">
                 <h2 className="text-2xl font-bold text-foreground">{problem.name}</h2>
-                <Chip color={getDifficultyColor(problem.difficulty)} variant="flat" size="md" className="font-medium">
-                  {getDifficultyLabel(problem.difficulty)}
-                </Chip>
+                <div className="flex items-center gap-2">
+                  {hasAdminRole(user) && (
+                    <Button
+                      variant="ghost"
+                      color="primary"
+                      size="sm"
+                      startContent={<PencilIcon className="h-4 w-4" />}
+                      onPress={() => navigate(`/problems/${problem.id}/edit`)}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  <Chip color={getDifficultyColor(problem.difficulty)} variant="flat" size="md" className="font-medium">
+                    {getDifficultyLabel(problem.difficulty)}
+                  </Chip>
+                </div>
               </div>
             </CardHeader>
             <CardBody className="pt-0">

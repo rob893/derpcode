@@ -5,7 +5,7 @@ import { AdminRoute } from './components/AdminRoute';
 import { AppLayout } from './layouts/AppLayout';
 import { ProblemList } from './components/ProblemList';
 import { ProblemView } from './components/ProblemView';
-import { CreateProblem } from './components/CreateProblem';
+import { CreateEditProblem } from './components/CreateEditProblem';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -46,7 +46,20 @@ function App() {
               <ProtectedRoute>
                 <AdminRoute>
                   <AppLayout>
-                    <CreateProblem />
+                    <CreateEditProblem mode="create" />
+                  </AppLayout>
+                </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/problems/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AppLayout>
+                    <CreateEditProblem mode="edit" />
                   </AppLayout>
                 </AdminRoute>
               </ProtectedRoute>
