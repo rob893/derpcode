@@ -105,6 +105,7 @@ public class ProblemsController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
     {
+        // need to map real entity to create request to validate patch doc (namely for arrary indexes)
         if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
         {
             return this.BadRequest("A JSON patch document with at least 1 operation is required.");
