@@ -138,24 +138,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = getAccessToken();
 
     if (!token) {
-      try {
-        await authApi.refreshToken();
+      // Don't attempt refresh token during OAuth flows or on auth-related pages
+      const currentPath = window.location.hash.replace('#', '');
+      const isAuthFlow =
+        currentPath.includes('/auth/') || currentPath.includes('/login') || currentPath.includes('/register');
 
-        const newToken = getAccessToken();
+      if (!isAuthFlow) {
+        try {
+          await authApi.refreshToken();
 
-        if (newToken) {
-          const user = decodeJwtToken(newToken);
+          const newToken = getAccessToken();
 
-          if (user) {
-            dispatch({ type: 'SET_USER', payload: user });
-          } else {
-            dispatch({ type: 'SET_AUTH_STATE', payload: { user: null, isAuthenticated: true } });
+          if (newToken) {
+            const user = decodeJwtToken(newToken);
+
+            if (user) {
+              dispatch({ type: 'SET_USER', payload: user });
+            } else {
+              dispatch({ type: 'SET_AUTH_STATE', payload: { user: null, isAuthenticated: true } });
+            }
           }
-        }
 
-        return;
-      } catch {
-        console.log('No valid refresh token available');
+          return;
+        } catch {
+          console.log('No valid refresh token available');
+        }
       }
 
       dispatch({ type: 'CLEAR_USER' });

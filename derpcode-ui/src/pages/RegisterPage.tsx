@@ -200,7 +200,7 @@ export function RegisterPage() {
 
           <div className="space-y-4">
             <div className="text-center">
-              <p className="text-sm text-default-500 mb-4">or you can sign in with</p>
+              <p className="text-sm text-default-500 mb-4">or you can sign up with</p>
             </div>
             <Button
               onPress={handleGitHubLogin}
