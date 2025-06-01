@@ -6,8 +6,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { HeroUIProvider } from '@heroui/react';
 import App from './App.tsx';
 import './index.css';
-import { GitHubCallbackPage } from './pages/GitHubCallbackPage.tsx';
-import { AuthProvider } from './contexts/AuthContext.tsx';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -29,30 +27,15 @@ const queryClient = new QueryClient({
   }
 });
 
-if (window.location.pathname.includes('auth/github/callback')) {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <HeroUIProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <GitHubCallbackPage />
-          </AuthProvider>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <HeroUIProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <App />
           <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      </HeroUIProvider>
-    </React.StrictMode>
-  );
-} else {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <HeroUIProvider>
-        <QueryClientProvider client={queryClient}>
-          <Router>
-            <App />
-            <ReactQueryDevtools initialIsOpen={false} />
-          </Router>
-        </QueryClientProvider>
-      </HeroUIProvider>
-    </React.StrictMode>
-  );
-}
+        </Router>
+      </QueryClientProvider>
+    </HeroUIProvider>
+  </React.StrictMode>
+);

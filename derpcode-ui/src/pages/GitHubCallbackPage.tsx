@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router';
 import { Card, CardBody, CardHeader, Button, Spinner, Chip } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
@@ -9,6 +10,7 @@ export function GitHubCallbackPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState<'processing' | 'exchanging' | 'authenticating' | 'success' | 'error'>('processing');
   const { loginWithGitHub } = useAuth();
+  const navigate = useNavigate();
   const hasProcessed = useRef(false);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export function GitHubCallbackPage() {
         setStep('success');
         await new Promise(resolve => setTimeout(resolve, 800)); // Show success state
 
-        window.location.href = window.location.origin + '/#/';
+        navigate('/', { replace: true });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'GitHub login failed');
         setStep('error');
@@ -58,7 +60,7 @@ export function GitHubCallbackPage() {
     };
 
     processCallback();
-  }, [loginWithGitHub]);
+  }, [loginWithGitHub, navigate]);
 
   const getStepInfo = () => {
     switch (step) {
@@ -171,7 +173,7 @@ export function GitHubCallbackPage() {
               size="lg"
               variant="solid"
               className="w-full font-semibold"
-              onPress={() => (window.location.href = window.location.origin + '/#/login')}
+              onPress={() => navigate('/login', { replace: true })}
             >
               Return to Login
             </Button>

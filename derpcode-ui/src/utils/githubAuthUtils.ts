@@ -3,6 +3,7 @@
  */
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+const API_BASE_URL = import.meta.env.VITE_DERPCODE_API_BASE_URL;
 const GITHUB_OAUTH_SCOPE = 'read:user user:email';
 
 /**
@@ -41,7 +42,7 @@ export function redirectToGitHubOAuth(): void {
 
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
-    redirect_uri: `${window.location.origin}/auth/github/callback`,
+    redirect_uri: `${API_BASE_URL}/api/v1/auth/github/callback`,
     scope: GITHUB_OAUTH_SCOPE,
     state
   });
@@ -51,11 +52,21 @@ export function redirectToGitHubOAuth(): void {
 
 /**
  * Handles GitHub OAuth callback and extracts the authorization code from the current URL
- * This works with hash-based routing by parsing the window.location.search
+ * This works with hash-based routing by parsing the fragment parameters after the hash
  * @returns Object containing code and any error, or null if invalid
  */
 export function handleGitHubCallbackFromUrl(): { code?: string; error?: string; errorDescription?: string } | null {
-  const searchParams = new URLSearchParams(window.location.search);
+  // Parse the fragment part after the hash (e.g., #/auth/github/callback?code=xyz&state=abc)
+  const hash = window.location.hash;
+
+  // Extract the query string part from the hash fragment
+  const queryStringIndex = hash.indexOf('?');
+  if (queryStringIndex === -1) {
+    return null;
+  }
+
+  const queryString = hash.substring(queryStringIndex + 1);
+  const searchParams = new URLSearchParams(queryString);
   return handleGitHubCallback(searchParams);
 }
 

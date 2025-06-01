@@ -381,6 +381,25 @@ public sealed class AuthController : ServiceControllerBase
         }
     }
 
+    [HttpGet("github/callback", Name = nameof(GitHubCallback))]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    public IActionResult GitHubCallback([FromQuery] string code, [FromQuery] string state)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return this.Redirect($"{this.authSettings.UIBaseUrl}#/auth/github/callback?error=missing_code");
+        }
+
+        var redirectUrl = $"{this.authSettings.UIBaseUrl}#/auth/github/callback?code={Uri.EscapeDataString(code)}";
+
+        if (!string.IsNullOrWhiteSpace(state))
+        {
+            redirectUrl += $"&state={Uri.EscapeDataString(state)}";
+        }
+
+        return this.Redirect(redirectUrl);
+    }
+
     /// <summary>
     /// Logs the user out by revoking all refresh tokens and clearing the refresh token cookie.
     /// </summary>

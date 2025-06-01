@@ -49,4 +49,6 @@ public sealed record AuthenticationSettings
     public Uri ConfirmEmailCallbackUrl { get; init; } = default!;
 
     public string? CookieDomain { get; init; }
+
+    public Uri UIBaseUrl { get; init; } = default!;
 }
