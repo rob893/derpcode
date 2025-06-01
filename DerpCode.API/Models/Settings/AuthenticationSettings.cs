@@ -34,6 +34,16 @@ public sealed record AuthenticationSettings
     /// </summary>
     public List<string> GoogleOAuthAudiences { get; init; } = [];
 
+    /// <summary>
+    /// GitHub OAuth Client ID for validating GitHub access tokens
+    /// </summary>
+    public string GitHubOAuthClientId { get; init; } = default!;
+
+    /// <summary>
+    /// GitHub OAuth Client Secret for validating GitHub access tokens
+    /// </summary>
+    public string GitHubOAuthClientSecret { get; init; } = default!;
+
     public Uri ForgotPasswordCallbackUrl { get; init; } = default!;
 
     public Uri ConfirmEmailCallbackUrl { get; init; } = default!;

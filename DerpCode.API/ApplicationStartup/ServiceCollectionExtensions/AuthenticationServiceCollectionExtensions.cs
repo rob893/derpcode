@@ -28,6 +28,7 @@ public static class AuthenticationServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(config);
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IGitHubOAuthService, GitHubOAuthService>();
 
         services.Configure<AuthenticationSettings>(config.GetSection(ConfigurationKeys.Authentication));
 

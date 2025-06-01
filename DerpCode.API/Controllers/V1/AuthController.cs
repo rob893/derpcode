@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Data.Repositories;
@@ -10,6 +12,7 @@ using DerpCode.API.Models.Requests.Auth;
 using DerpCode.API.Models.Responses.Auth;
 using DerpCode.API.Models.Settings;
 using DerpCode.API.Services;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,17 +32,21 @@ public sealed class AuthController : ServiceControllerBase
 
     private readonly IJwtTokenService jwtTokenService;
 
+    private readonly IGitHubOAuthService gitHubOAuthService;
+
     private readonly AuthenticationSettings authSettings;
 
     public AuthController(
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
+        IGitHubOAuthService gitHubOAuthService,
         IOptions<AuthenticationSettings> authSettings,
         ICorrelationIdService correlationIdService)
             : base(correlationIdService)
     {
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.jwtTokenService = jwtTokenService ?? throw new ArgumentNullException(nameof(jwtTokenService));
+        this.gitHubOAuthService = gitHubOAuthService ?? throw new ArgumentNullException(nameof(gitHubOAuthService));
         this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
     }
 
@@ -91,6 +98,83 @@ public sealed class AuthController : ServiceControllerBase
     }
 
     /// <summary>
+    /// Registers a new user using a google login and links their account to their google account.
+    /// </summary>
+    /// <param name="registerUserRequest">The register request object.</param>
+    /// <returns>The user object and tokens.</returns>
+    /// <response code="201">If the user was registered.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [HttpPost("register/google", Name = nameof(RegisterWithGoogleAccountAsync))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<LoginResponse>> RegisterWithGoogleAccountAsync([FromBody] RegisterUserUsingGoolgleRequest registerUserRequest)
+    {
+        try
+        {
+            if (registerUserRequest == null)
+            {
+                return this.BadRequest();
+            }
+
+            var validatedToken = await GoogleJsonWebSignature.ValidateAsync(
+                registerUserRequest.IdToken,
+                new GoogleJsonWebSignature.ValidationSettings { Audience = this.authSettings.GoogleOAuthAudiences });
+
+            var user = new User
+            {
+                UserName = registerUserRequest.UserName,
+                Email = validatedToken.Email,
+                EmailConfirmed = validatedToken.EmailVerified,
+                LinkedAccounts =
+                [
+                    new LinkedAccount
+                    {
+                        Id = validatedToken.Subject,
+                        LinkedAccountType = LinkedAccountType.Google
+                    }
+                ]
+            };
+
+            var createResult = await this.userRepository.CreateUserWithoutPasswordAsync(user, this.HttpContext.RequestAborted);
+
+            if (!createResult.Succeeded)
+            {
+                return this.BadRequest([.. createResult.Errors.Select(e => e.Description)]);
+            }
+
+            // if (!validatedToken.EmailVerified)
+            // {
+            //     await this.SendConfirmEmailLink(user);
+            // }
+
+            var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, registerUserRequest.DeviceId);
+            var userToReturn = UserDto.FromEntity(user);
+
+            return this.CreatedAtRoute(
+                nameof(UsersController.GetUserAsync),
+                new
+                {
+                    controller = GetControllerName<UsersController>(),
+                    id = user.Id
+                },
+                new LoginResponse
+                {
+                    Token = token,
+                    User = userToReturn
+                });
+        }
+        catch (InvalidJwtException)
+        {
+            return this.Unauthorized("Invaid Id Token.");
+        }
+        catch
+        {
+            return this.InternalServerError("Unable to register using Google account.");
+        }
+    }
+
+    /// <summary>
     /// Logs the user in.
     /// </summary>
     /// <param name="loginRequest">The login request object.</param>
@@ -133,6 +217,136 @@ public sealed class AuthController : ServiceControllerBase
                 Token = token,
                 User = userToReturn
             });
+    }
+
+    /// <summary>
+    /// Logs the user in using Google callback credentials.
+    /// </summary>
+    /// <param name="loginRequest">The login request object.</param>
+    /// <returns>The user object and tokens.</returns>
+    /// <response code="200">If the user was logged in.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="401">If provided login information is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [HttpPost("login/google", Name = nameof(LoginGoogleAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<LoginResponse>> LoginGoogleAsync([FromBody] GoogleLoginRequest loginRequest)
+    {
+        try
+        {
+            if (loginRequest == null)
+            {
+                return this.BadRequest();
+            }
+
+            var validatedToken = await GoogleJsonWebSignature.ValidateAsync(loginRequest.IdToken, new GoogleJsonWebSignature.ValidationSettings { Audience = this.authSettings.GoogleOAuthAudiences });
+
+            var user = await this.userRepository.GetByLinkedAccountAsync(validatedToken.Subject, LinkedAccountType.Google, [user => user.RefreshTokens], this.HttpContext.RequestAborted);
+
+            if (user == null)
+            {
+                return this.NotFound("No account found for this Google account.");
+            }
+
+            var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, loginRequest.DeviceId);
+
+            var userToReturn = UserDto.FromEntity(user);
+
+            return this.Ok(
+                new LoginResponse
+                {
+                    Token = token,
+                    User = userToReturn
+                });
+        }
+        catch (InvalidJwtException)
+        {
+            return this.Unauthorized("Invaid Id Token");
+        }
+        catch
+        {
+            return this.InternalServerError("Unable to login with Google.");
+        }
+    }
+
+    /// <summary>
+    /// Logs the user in using GitHub OAuth credentials.
+    /// </summary>
+    /// <param name="loginRequest">The login request object.</param>
+    /// <returns>The user object and tokens.</returns>
+    /// <response code="200">If the user was logged in.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="401">If provided login information is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [HttpPost("login/github", Name = nameof(LoginGitHubAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<LoginResponse>> LoginGitHubAsync([FromBody] GitHubLoginRequest loginRequest)
+    {
+        try
+        {
+            if (loginRequest == null)
+            {
+                return this.BadRequest("Request body cannot be null.");
+            }
+
+            var githubToken = await this.gitHubOAuthService.ExchangeCodeForGithubAccessTokenAsync(loginRequest.Code, this.HttpContext.RequestAborted);
+
+            if (string.IsNullOrWhiteSpace(githubToken))
+            {
+                return this.Unauthorized("Invalid GitHub code.");
+            }
+
+            var gitHubUserInfo = await this.gitHubOAuthService.GetGitHubUser(githubToken, this.HttpContext.RequestAborted);
+
+            var user = await this.userRepository.GetByLinkedAccountAsync(gitHubUserInfo.Id.ToString(CultureInfo.InvariantCulture), LinkedAccountType.GitHub, [user => user.RefreshTokens], this.HttpContext.RequestAborted);
+
+            if (user == null)
+            {
+                var newUser = new User
+                {
+                    UserName = gitHubUserInfo.Login,
+                    Email = gitHubUserInfo.Email,
+                    EmailConfirmed = !string.IsNullOrEmpty(gitHubUserInfo.Email),
+                    LinkedAccounts =
+                    [
+                        new LinkedAccount
+                        {
+                            Id = gitHubUserInfo.Id.ToString(CultureInfo.InvariantCulture),
+                            LinkedAccountType = LinkedAccountType.GitHub
+                        }
+                    ]
+                };
+
+                var createResult = await this.userRepository.CreateUserWithoutPasswordAsync(newUser, this.HttpContext.RequestAborted);
+
+                if (!createResult.Succeeded)
+                {
+                    return this.BadRequest([.. createResult.Errors.Select(e => e.Description)]);
+                }
+
+                user = newUser;
+            }
+
+            var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, loginRequest.DeviceId);
+            var userToReturn = UserDto.FromEntity(user);
+
+            return this.Ok(
+                new LoginResponse
+                {
+                    Token = token,
+                    User = userToReturn
+                });
+        }
+        catch (HttpRequestException)
+        {
+            return this.Unauthorized("Unable to validate GitHub token.");
+        }
+        catch
+        {
+            return this.InternalServerError("Unable to login with GitHub.");
+        }
     }
 
     /// <summary>

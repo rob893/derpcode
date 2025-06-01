@@ -1,0 +1,10 @@
+namespace DerpCode.API.Models;
+
+public sealed record GitHubUser
+{
+    public long Id { get; init; }
+
+    public string Login { get; init; } = string.Empty;
+
+    public string? Email { get; init; }
+}
