@@ -5,6 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Attach to Chrome",
+      "port": 9222,
+      "request": "attach",
+      "type": "chrome",
+      "webRoot": "${workspaceFolder}/derpcode-ui"
+    },
+    {
+      "name": "Launch Chrome and Debug",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/derpcode-ui"
+    },
+    {
       "name": ".NET Core Launch (web)",
       "type": "coreclr",
       "request": "launch",

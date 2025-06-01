@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using DerpCode.API.Models;
+using DerpCode.API.Models.GitHub;
 using DerpCode.API.Models.Settings;
 using Microsoft.Extensions.Options;
 
@@ -17,6 +18,13 @@ namespace DerpCode.API.Services;
 /// </summary>
 public sealed class GitHubOAuthService : IGitHubOAuthService
 {
+    private const string AppName = "DerpCode";
+
+    private readonly JsonSerializerOptions jsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IHttpClientFactory httpClientFactory;
 
     private readonly AuthenticationSettings authSettings;
@@ -56,10 +64,28 @@ public sealed class GitHubOAuthService : IGitHubOAuthService
     {
         using var client = this.httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("DerpCode");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd(AppName);
 
         var response = await client.GetStringAsync(new Uri("https://api.github.com/user"), cancellationToken);
-        return JsonSerializer.Deserialize<GitHubUser>(response)
+        return JsonSerializer.Deserialize<GitHubUser>(response, this.jsonSerializerOptions)
             ?? throw new InvalidOperationException("Failed to deserialize GitHub user information.");
+    }
+
+    public async Task<List<GitHubEmail>> GetGitHubEmailsAsync(string accessToken, CancellationToken cancellationToken)
+    {
+        using var client = this.httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd(AppName);
+
+        var response = await client.GetAsync(new Uri("https://api.github.com/user/emails"), cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"GitHub email request failed with status code {response.StatusCode}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        return JsonSerializer.Deserialize<List<GitHubEmail>>(content, this.jsonSerializerOptions)
+            ?? throw new InvalidOperationException("Failed to deserialize GitHub email response.");
     }
 }

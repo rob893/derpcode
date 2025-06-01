@@ -85,12 +85,27 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
 
     public Task<User?> GetByUsernameAsync(string username, Expression<Func<User, object>>[] includes, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(username);
+
         IQueryable<User> query = this.Context.Users;
 
         query = this.AddIncludes(query);
         query = includes.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
 
         return query.OrderBy(e => e.Id).FirstOrDefaultAsync(user => user.UserName == username, cancellationToken);
+    }
+
+    public Task<User?> GetByEmailAsync(string email, Expression<Func<User, object>>[] includes, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        var normalizedEmail = email.ToUpperInvariant();
+
+        IQueryable<User> query = this.Context.Users;
+
+        query = this.AddIncludes(query);
+        query = includes.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+
+        return query.OrderBy(e => e.Id).FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail, cancellationToken);
     }
 
     public async Task<bool> CheckPasswordAsync(User user, string password, CancellationToken cancellationToken = default)

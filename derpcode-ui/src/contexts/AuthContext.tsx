@@ -1,10 +1,11 @@
-import { createContext, useReducer, useEffect, type ReactNode } from 'react';
+import { createContext, useReducer, useEffect, useCallback, type ReactNode, useMemo } from 'react';
 import { authApi, getAccessToken, clearAccessToken } from '../services/auth';
 import { decodeJwtToken } from '../utils/auth';
 import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/auth';
 
 interface AuthContextType extends AuthState {
   login: (credentials: Omit<LoginRequest, 'deviceId'>) => Promise<void>;
+  loginWithGitHub: (code: string) => Promise<void>;
   register: (userData: Omit<RegisterRequest, 'deviceId'>) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -49,7 +50,7 @@ export { AuthContext };
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  const login = async (credentials: Omit<LoginRequest, 'deviceId'>) => {
+  const login = useCallback(async (credentials: Omit<LoginRequest, 'deviceId'>) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.login(credentials);
@@ -71,9 +72,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'CLEAR_USER' });
       throw error;
     }
-  };
+  }, []);
 
-  const register = async (userData: Omit<RegisterRequest, 'deviceId'>) => {
+  const loginWithGitHub = useCallback(async (code: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const response = await authApi.loginWithGitHub(code);
+
+      const token = getAccessToken();
+
+      if (token) {
+        const userFromToken = decodeJwtToken(token);
+
+        if (userFromToken) {
+          dispatch({ type: 'SET_USER', payload: userFromToken });
+        } else {
+          dispatch({ type: 'SET_USER', payload: response.user });
+        }
+      } else {
+        dispatch({ type: 'SET_USER', payload: response.user });
+      }
+    } catch (error) {
+      dispatch({ type: 'CLEAR_USER' });
+      throw error;
+    }
+  }, []);
+
+  const register = useCallback(async (userData: Omit<RegisterRequest, 'deviceId'>) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.register(userData);
@@ -95,9 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'CLEAR_USER' });
       throw error;
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       await authApi.logout();
@@ -107,9 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearAccessToken();
       dispatch({ type: 'CLEAR_USER' });
     }
-  };
+  }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const token = getAccessToken();
 
     if (!token) {
@@ -145,19 +170,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Token is invalid or expired
       dispatch({ type: 'CLEAR_USER' });
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
-  const value: AuthContextType = {
-    ...state,
-    login,
-    register,
-    logout,
-    checkAuth
-  };
+  const value: AuthContextType = useMemo(
+    () => ({
+      ...state,
+      login,
+      loginWithGitHub,
+      register,
+      logout,
+      checkAuth
+    }),
+    [state, login, loginWithGitHub, register, logout, checkAuth]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -45,6 +45,17 @@ export const authApi = {
     return response.data;
   },
 
+  async loginWithGitHub(code: string): Promise<LoginResponse> {
+    const deviceId = getDeviceId();
+    const response = await apiClient.post<LoginResponse>('/api/v1/auth/login/github', {
+      code,
+      deviceId
+    });
+
+    setAccessToken(response.data.token);
+    return response.data;
+  },
+
   register: async (userData: Omit<RegisterRequest, 'deviceId'>): Promise<LoginResponse> => {
     const deviceId = getDeviceId();
     const response = await apiClient.post<LoginResponse>('/api/v1/auth/register', {

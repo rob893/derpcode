@@ -300,16 +300,47 @@ public sealed class AuthController : ServiceControllerBase
 
             var gitHubUserInfo = await this.gitHubOAuthService.GetGitHubUser(githubToken, this.HttpContext.RequestAborted);
 
+            if (gitHubUserInfo == null || string.IsNullOrWhiteSpace(gitHubUserInfo.Login))
+            {
+                return this.Unauthorized("Unable to retrieve GitHub user information.");
+            }
+
             var user = await this.userRepository.GetByLinkedAccountAsync(gitHubUserInfo.Id.ToString(CultureInfo.InvariantCulture), LinkedAccountType.GitHub, [user => user.RefreshTokens], this.HttpContext.RequestAborted);
 
             if (user == null)
             {
-                var newUser = new User
+                var gitHubEmail = string.IsNullOrWhiteSpace(gitHubUserInfo.Email)
+                    ? (await this.gitHubOAuthService.GetGitHubEmailsAsync(githubToken, this.HttpContext.RequestAborted)).FirstOrDefault(e => e.Primary && e.Verified)?.Email
+                    : gitHubUserInfo.Email;
+
+                if (!string.IsNullOrWhiteSpace(gitHubEmail))
                 {
-                    UserName = gitHubUserInfo.Login,
-                    Email = gitHubUserInfo.Email,
-                    EmailConfirmed = !string.IsNullOrEmpty(gitHubUserInfo.Email),
-                    LinkedAccounts =
+                    user = await this.userRepository.GetByEmailAsync(gitHubEmail, [user => user.RefreshTokens], this.HttpContext.RequestAborted);
+                }
+
+                if (user != null)
+                {
+                    user.LinkedAccounts.Add(new LinkedAccount
+                    {
+                        Id = gitHubUserInfo.Id.ToString(CultureInfo.InvariantCulture),
+                        LinkedAccountType = LinkedAccountType.GitHub
+                    });
+
+                    var updated = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+                    if (updated == 0)
+                    {
+                        return this.InternalServerError("Unable to link GitHub account to existing user.");
+                    }
+                }
+                else
+                {
+                    var newUser = new User
+                    {
+                        UserName = gitHubUserInfo.Login,
+                        Email = gitHubEmail,
+                        EmailConfirmed = !string.IsNullOrEmpty(gitHubEmail),
+                        LinkedAccounts =
                     [
                         new LinkedAccount
                         {
@@ -317,16 +348,17 @@ public sealed class AuthController : ServiceControllerBase
                             LinkedAccountType = LinkedAccountType.GitHub
                         }
                     ]
-                };
+                    };
 
-                var createResult = await this.userRepository.CreateUserWithoutPasswordAsync(newUser, this.HttpContext.RequestAborted);
+                    var createResult = await this.userRepository.CreateUserWithoutPasswordAsync(newUser, this.HttpContext.RequestAborted);
 
-                if (!createResult.Succeeded)
-                {
-                    return this.BadRequest([.. createResult.Errors.Select(e => e.Description)]);
+                    if (!createResult.Succeeded)
+                    {
+                        return this.BadRequest([.. createResult.Errors.Select(e => e.Description)]);
+                    }
+
+                    user = newUser;
                 }
-
-                user = newUser;
             }
 
             var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, loginRequest.DeviceId);

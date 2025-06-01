@@ -24,6 +24,8 @@ public interface IUserRepository : IRepository<User, CursorPaginationQueryParame
 
     Task<User?> GetByUsernameAsync(string username, Expression<Func<User, object>>[] includes, CancellationToken cancellationToken = default);
 
+    Task<User?> GetByEmailAsync(string email, Expression<Func<User, object>>[] includes, CancellationToken cancellationToken = default);
+
     Task<bool> CheckPasswordAsync(User user, string password, CancellationToken cancellationToken = default);
 
     Task<CursorPaginatedList<Role, int>> GetRolesAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken = default);

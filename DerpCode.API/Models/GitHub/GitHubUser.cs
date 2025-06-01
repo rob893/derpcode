@@ -1,4 +1,4 @@
-namespace DerpCode.API.Models;
+namespace DerpCode.API.Models.GitHub;
 
 public sealed record GitHubUser
 {

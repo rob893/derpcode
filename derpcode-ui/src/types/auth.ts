@@ -19,6 +19,11 @@ export interface RegisterRequest {
   deviceId: string;
 }
 
+export interface GitHubLoginRequest {
+  code: string;
+  deviceId: string;
+}
+
 export interface LoginResponse {
   token: string;
   user: User;
