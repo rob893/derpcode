@@ -117,7 +117,7 @@ export function GitHubCallbackPage() {
         <CardHeader className="flex flex-col items-center pb-6 pt-8">
           {/* DerpCode Logo/Title */}
           <div className="flex items-center gap-3 mb-6">
-            <img src="/favicon.svg" alt="DerpCode Logo" className="w-10 h-10" />
+            <img src="/favicon.ico" alt="DerpCode Logo" className="w-10 h-10" />
             <h1 className="text-3xl font-bold text-primary">DerpCode</h1>
           </div>
 

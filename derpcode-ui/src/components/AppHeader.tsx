@@ -42,7 +42,7 @@ export function AppHeader() {
           className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate('/problems')}
         >
-          <img src="/favicon.svg" alt="DerpCode Logo" className="w-8 h-8" />
+          <img src="/favicon.ico" alt="DerpCode Logo" className="w-8 h-8" />
           <h1 className="text-3xl font-bold text-primary">DerpCode</h1>
         </div>
       </NavbarBrand>
