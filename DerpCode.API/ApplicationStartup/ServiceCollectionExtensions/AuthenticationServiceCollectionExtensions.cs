@@ -29,6 +29,7 @@ public static class AuthenticationServiceCollectionExtensions
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IGitHubOAuthService, GitHubOAuthService>();
+        services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
 
         services.Configure<AuthenticationSettings>(config.GetSection(ConfigurationKeys.Authentication));
 

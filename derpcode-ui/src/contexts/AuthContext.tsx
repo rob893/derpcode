@@ -6,6 +6,7 @@ import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/au
 interface AuthContextType extends AuthState {
   login: (credentials: Omit<LoginRequest, 'deviceId'>) => Promise<void>;
   loginWithGitHub: (code: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   register: (userData: Omit<RegisterRequest, 'deviceId'>) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -78,6 +79,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await authApi.loginWithGitHub(code);
+
+      const token = getAccessToken();
+
+      if (token) {
+        const userFromToken = decodeJwtToken(token);
+
+        if (userFromToken) {
+          dispatch({ type: 'SET_USER', payload: userFromToken });
+        } else {
+          dispatch({ type: 'SET_USER', payload: response.user });
+        }
+      } else {
+        dispatch({ type: 'SET_USER', payload: response.user });
+      }
+    } catch (error) {
+      dispatch({ type: 'CLEAR_USER' });
+      throw error;
+    }
+  }, []);
+
+  const loginWithGoogle = useCallback(async (code: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const response = await authApi.loginWithGoogle(code);
 
       const token = getAccessToken();
 
@@ -188,11 +213,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...state,
       login,
       loginWithGitHub,
+      loginWithGoogle,
       register,
       logout,
       checkAuth
     }),
-    [state, login, loginWithGitHub, register, logout, checkAuth]
+    [state, login, loginWithGitHub, loginWithGoogle, register, logout, checkAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -9,7 +9,7 @@ import { CreateEditProblem } from './components/CreateEditProblem';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { GitHubCallbackPage } from './pages/GitHubCallbackPage';
+import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 import './App.css';
 
 function App() {
@@ -21,7 +21,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/auth/github/callback" element={<GitHubCallbackPage />} />
+          <Route path="/auth/github/callback" element={<OAuthCallbackPage provider="github" />} />
+          <Route path="/auth/google/callback" element={<OAuthCallbackPage provider="google" />} />
 
           {/* Public problem routes */}
           <Route

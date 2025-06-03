@@ -19,7 +19,7 @@ export interface RegisterRequest {
   deviceId: string;
 }
 
-export interface GitHubLoginRequest {
+export interface OAuthLoginRequest {
   code: string;
   deviceId: string;
 }

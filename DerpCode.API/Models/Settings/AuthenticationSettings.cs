@@ -35,6 +35,21 @@ public sealed record AuthenticationSettings
     public List<string> GoogleOAuthAudiences { get; init; } = [];
 
     /// <summary>
+    /// Google OAuth Client ID for exchanging authorization codes
+    /// </summary>
+    public string GoogleOAuthClientId { get; init; } = default!;
+
+    /// <summary>
+    /// Google OAuth Client Secret for exchanging authorization codes
+    /// </summary>
+    public string GoogleOAuthClientSecret { get; init; } = default!;
+
+    /// <summary>
+    /// Google OAuth redirect URI for exchanging authorization codes. Should be the api callback url.
+    /// </summary>
+    public Uri GoogleOAuthRedirectUri { get; init; } = default!;
+
+    /// <summary>
     /// GitHub OAuth Client ID for validating GitHub access tokens
     /// </summary>
     public string GitHubOAuthClientId { get; init; } = default!;

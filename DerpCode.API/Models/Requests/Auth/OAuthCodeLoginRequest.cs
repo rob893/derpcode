@@ -3,12 +3,12 @@ using System.ComponentModel.DataAnnotations;
 namespace DerpCode.API.Models.Requests.Auth;
 
 /// <summary>
-/// Request model for GitHub OAuth login
+/// Request model for OAuth login
 /// </summary>
-public sealed record GitHubLoginRequest
+public sealed record OAuthCodeLoginRequest
 {
     /// <summary>
-    /// GitHub code to exchange for an access token
+    /// Code to exchange for an access token
     /// </summary>
     [Required]
     public string Code { get; init; } = default!;
