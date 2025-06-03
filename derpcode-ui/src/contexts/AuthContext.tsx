@@ -6,7 +6,7 @@ import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/au
 interface AuthContextType extends AuthState {
   login: (credentials: Omit<LoginRequest, 'deviceId'>) => Promise<void>;
   loginWithGitHub: (code: string) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithGoogle: (code: string) => Promise<void>;
   register: (userData: Omit<RegisterRequest, 'deviceId'>) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;

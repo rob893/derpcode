@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, CardBody, CardHeader, Button, Spinner, Chip } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
-import { handleGitHubCallbackFromUrl } from '../utils/githubAuthUtils';
-import { handleGoogleCallbackFromUrl } from '../utils/googleAuthUtils';
-
-type OAuthProvider = 'github' | 'google';
+import { handleOAuthCallbackFromUrl, type OAuthProvider } from '../utils/oauthUtils';
 
 interface ProviderConfig {
   name: string;
@@ -73,9 +70,9 @@ export function OAuthCallbackPage({ provider }: { provider: OAuthProvider }) {
         let result: { code?: string; error?: string; errorDescription?: string } | null = null;
 
         if (currentProvider === 'github') {
-          result = handleGitHubCallbackFromUrl();
+          result = handleOAuthCallbackFromUrl('github');
         } else if (currentProvider === 'google') {
-          result = handleGoogleCallbackFromUrl();
+          result = handleOAuthCallbackFromUrl('google');
         } else {
           setError(`Unsupported OAuth provider: ${provider}`);
           setStep('error');

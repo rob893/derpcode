@@ -3,8 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router';
 import { Card, CardBody, CardHeader, Input, Button, Divider } from '@heroui/react';
 import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
 import { useAuth } from '../hooks/useAuth';
-import { redirectToGitHubOAuth } from '../utils/githubAuthUtils';
-import { redirectToGoogleOAuth } from '../utils/googleAuthUtils';
+import { redirectToGitHubOAuth, redirectToGoogleOAuth } from '../utils/oauthUtils';
 
 export function LoginPage() {
   const [username, setUsername] = useState('');
@@ -105,7 +104,7 @@ export function LoginPage() {
 
           <div className="space-y-4">
             <div className="text-center">
-              <p className="text-sm text-default-500 mb-4">or you can sign in with</p>
+              <p className="text-sm text-default-500 mb-4">or you can</p>
             </div>
             <Button
               onPress={handleGoogleLogin}
