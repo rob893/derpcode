@@ -113,7 +113,15 @@ export function LandingPage() {
 
       <footer className="border-t border-content3 bg-content1">
         <div className="container mx-auto px-6 py-8 text-center">
-          <p className="text-foreground/60">&copy; 2025 DerpCode. Start your coding journey today!</p>
+          <p className="text-foreground/60 mb-4">&copy; 2025 DerpCode. Start your coding journey today!</p>
+          <div className="flex justify-center space-x-6 text-sm">
+            <button
+              onClick={() => navigate('/privacy')}
+              className="text-foreground/60 hover:text-primary transition-colors"
+            >
+              Privacy Policy
+            </button>
+          </div>
         </div>
       </footer>
     </div>
