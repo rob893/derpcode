@@ -11,6 +11,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { AccountPage } from './pages/AccountPage';
 import './App.css';
 
 function App() {
@@ -67,6 +68,17 @@ function App() {
                     <CreateEditProblem mode="edit" />
                   </AppLayout>
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AccountPage />
+                </AppLayout>
               </ProtectedRoute>
             }
           />

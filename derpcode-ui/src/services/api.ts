@@ -45,6 +45,11 @@ export const problemsApi = {
     await apiClient.delete(`/api/v1/problems/${problemId}`);
   },
 
+  cloneProblem: async (problemId: number): Promise<AdminProblemDto> => {
+    const response = await apiClient.post<AdminProblemDto>(`/api/v1/problems/${problemId}/clone`);
+    return response.data;
+  },
+
   submitSolution: async (
     problemId: number,
     userId: number,

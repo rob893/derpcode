@@ -83,6 +83,9 @@ export function AppHeader() {
                   />
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Profile Actions" variant="flat">
+                  <DropdownItem key="account" onPress={() => navigate('/account')}>
+                    Account
+                  </DropdownItem>
                   <DropdownItem key="logout" color="danger" onPress={handleLogout} className="text-danger">
                     Sign Out
                   </DropdownItem>

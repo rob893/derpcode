@@ -116,6 +116,23 @@ public class ProblemsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, AdminProblemDto.FromEntity(newProblem));
     }
 
+    [HttpPost("{problemId}/clone", Name = nameof(CloneProblemAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<AdminProblemDto>> CloneProblemAsync([FromRoute] int problemId)
+    {
+        var existingProblem = await this.problemRepository.GetByIdAsync(problemId, track: false, this.HttpContext.RequestAborted);
+
+        if (existingProblem == null)
+        {
+            return this.NotFound($"Problem with ID {problemId} not found");
+        }
+
+        var problem = CreateProblemRequest.FromEntity(existingProblem) with { Name = $"{existingProblem.Name} (Clone)" };
+
+        return await CreateProblemAsync(problem);
+    }
+
     [HttpPatch("{problemId}", Name = nameof(UpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]

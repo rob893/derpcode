@@ -1,34 +1,14 @@
 import { useNavigate } from 'react-router';
 import { useState, useMemo } from 'react';
-import {
-  Card,
-  CardBody,
-  Chip,
-  Button,
-  Spinner,
-  Divider,
-  Select,
-  SelectItem,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure
-} from '@heroui/react';
-import { FunnelIcon, ArrowPathIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem } from '@heroui/react';
+import { FunnelIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblems, useDeleteProblem } from '../hooks/api';
-import { useAuth } from '../hooks/useAuth';
-import { hasAdminRole } from '../utils/auth';
+import { useProblems } from '../hooks/api';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { data: problems = [], isLoading, error } = useProblems();
-  const deleteProblem = useDeleteProblem();
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   // Filter state
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
@@ -37,12 +17,6 @@ export const ProblemList = () => {
   const [sortBy, setSortBy] = useState<'difficulty-asc' | 'difficulty-desc' | 'name-asc' | 'name-desc'>(
     'difficulty-asc'
   );
-
-  // Delete confirmation state
-  const [problemToDelete, setProblemToDelete] = useState<{ id: number; name: string } | null>(null);
-
-  // Check if user is admin
-  const isAdmin = hasAdminRole(user);
 
   // Get all unique tags from problems
   const allTags = useMemo(() => {
@@ -113,30 +87,6 @@ export const ProblemList = () => {
       const randomProblem = filteredProblems[randomIndex];
       navigate(`/problems/${randomProblem.id}`);
     }
-  };
-
-  // Handle delete problem
-  const handleDeleteClick = (problem: { id: number; name: string }) => {
-    setProblemToDelete(problem);
-    onOpen();
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!problemToDelete) return;
-
-    try {
-      await deleteProblem.mutateAsync(problemToDelete.id);
-      setProblemToDelete(null);
-      onOpenChange();
-    } catch (error) {
-      console.error('Failed to delete problem:', error);
-      // Error handling could be enhanced with toast notifications
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setProblemToDelete(null);
-    onOpenChange();
   };
 
   if (isLoading) {
@@ -389,40 +339,6 @@ export const ProblemList = () => {
                     >
                       {getDifficultyLabel(problem.difficulty)}
                     </Chip>
-                    {isAdmin && (
-                      <div onClick={e => e.stopPropagation()} className="flex items-center gap-1">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Edit ${problem.name}`}
-                          onClick={() => navigate(`/problems/${problem.id}/edit`)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              navigate(`/problems/${problem.id}/edit`);
-                            }
-                          }}
-                          className="p-2 rounded-md opacity-70 hover:opacity-100 hover:bg-primary/10 text-primary cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </div>
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Delete ${problem.name}`}
-                          onClick={() => handleDeleteClick({ id: problem.id, name: problem.name })}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              handleDeleteClick({ id: problem.id, name: problem.name });
-                            }
-                          }}
-                          className="p-2 rounded-md opacity-70 hover:opacity-100 hover:bg-danger/10 text-danger cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-danger/50"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -440,40 +356,6 @@ export const ProblemList = () => {
           ))
         )}
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
-        <ModalContent>
-          {() => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-danger">Delete Problem</h2>
-              </ModalHeader>
-              <ModalBody>
-                <p className="text-foreground">
-                  Are you sure you want to delete the problem "{problemToDelete?.name}"?
-                </p>
-                <p className="text-warning text-sm mt-2">
-                  This action cannot be undone. All associated data will be permanently removed.
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  color="default"
-                  variant="light"
-                  onPress={handleCancelDelete}
-                  isDisabled={deleteProblem.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button color="danger" onPress={handleConfirmDelete} isLoading={deleteProblem.isPending}>
-                  {deleteProblem.isPending ? 'Deleting...' : 'Delete'}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
     </div>
   );
 };

@@ -11,6 +11,7 @@ using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses.Pagination;
 using DerpCode.API.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,7 +30,14 @@ public sealed class UsersController : ServiceControllerBase
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
 
-    [HttpGet]
+    /// <summary>
+    /// Gets a paginated list of users.
+    /// </summary>
+    /// <param name="searchParams">The cursor pagination parameters for searching users.</param>
+    /// <returns>A paginated response containing user DTOs.</returns>
+    /// <response code="200">Returns the paginated list of users.</response>
+    [HttpGet(Name = nameof(GetUsersAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<UserDto>>> GetUsersAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
         var users = await this.userRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
@@ -38,7 +46,16 @@ public sealed class UsersController : ServiceControllerBase
         return this.Ok(paginatedResponse);
     }
 
+    /// <summary>
+    /// Gets a specific user by their ID.
+    /// </summary>
+    /// <param name="id">The ID of the user to retrieve.</param>
+    /// <returns>The user with the specified ID.</returns>
+    /// <response code="200">Returns the user.</response>
+    /// <response code="404">If the user is not found.</response>
     [HttpGet("{id}", Name = nameof(GetUserAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> GetUserAsync([FromRoute] int id)
     {
         var user = await this.userRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
@@ -53,7 +70,20 @@ public sealed class UsersController : ServiceControllerBase
         return this.Ok(userToReturn);
     }
 
+    /// <summary>
+    /// Deletes a user by their ID.
+    /// </summary>
+    /// <param name="id">The ID of the user to delete.</param>
+    /// <returns>No content on successful deletion.</returns>
+    /// <response code="204">User was successfully deleted.</response>
+    /// <response code="400">If the deletion failed.</response>
+    /// <response code="401">If the user is not authorized to delete this user.</response>
+    /// <response code="404">If the user is not found.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUserAsync([FromRoute] int id)
     {
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
@@ -79,7 +109,68 @@ public sealed class UsersController : ServiceControllerBase
         return this.NoContent();
     }
 
+    /// <summary>
+    /// Deletes a linked account from a user.
+    /// </summary>
+    /// <param name="id">The ID of the user.</param>
+    /// <param name="linkedAccountType">The type of linked account to delete.</param>
+    /// <returns>No content on successful deletion.</returns>
+    /// <response code="204">Linked account was successfully deleted.</response>
+    /// <response code="400">If the deletion failed.</response>
+    /// <response code="401">If the user is not authorized to delete this linked account.</response>
+    /// <response code="404">If the user or linked account is not found.</response>
+    [HttpDelete("{id}/linkedAccounts/{linkedAccountType}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteUserLinkedAccountAsync([FromRoute] int id, [FromRoute] LinkedAccountType linkedAccountType)
+    {
+        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+
+        if (user == null)
+        {
+            return this.NotFound($"No User with Id {id} found.");
+        }
+
+        if (!this.IsUserAuthorizedForResource(user.Id))
+        {
+            return this.Unauthorized("You can only delete your own linked accounts.");
+        }
+
+        var linkedAccount = user.LinkedAccounts.FirstOrDefault(account => account.LinkedAccountType == linkedAccountType);
+
+        if (linkedAccount == null)
+        {
+            return this.NotFound($"No linked account of type {linkedAccountType} found for user with Id {id}.");
+        }
+
+        user.LinkedAccounts.Remove(linkedAccount);
+        var saveResults = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+        if (saveResults == 0)
+        {
+            return this.BadRequest("Failed to delete the linked account.");
+        }
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    /// Updates a user using JSON Patch operations.
+    /// </summary>
+    /// <param name="id">The ID of the user to update.</param>
+    /// <param name="dtoPatchDoc">The JSON patch document containing the operations to apply.</param>
+    /// <returns>The updated user.</returns>
+    /// <response code="200">Returns the updated user.</response>
+    /// <response code="400">If the patch document is invalid or the update failed.</response>
+    /// <response code="401">If the user is not authorized to update this user.</response>
+    /// <response code="404">If the user is not found.</response>
     [HttpPatch("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> UpdateUserAsync([FromRoute] int id, [FromBody] JsonPatchDocument<UpdateUserRequest> dtoPatchDoc)
     {
         if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
@@ -118,7 +209,14 @@ public sealed class UsersController : ServiceControllerBase
         return this.Ok(userToReturn);
     }
 
+    /// <summary>
+    /// Gets a paginated list of roles.
+    /// </summary>
+    /// <param name="searchParams">The cursor pagination parameters for searching roles.</param>
+    /// <returns>A paginated response containing role DTOs.</returns>
+    /// <response code="200">Returns the paginated list of roles.</response>
     [HttpGet("roles")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<RoleDto>>> GetRolesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
         var roles = await this.userRepository.GetRolesAsync(searchParams, this.HttpContext.RequestAborted);
@@ -127,8 +225,20 @@ public sealed class UsersController : ServiceControllerBase
         return this.Ok(paginatedResponse);
     }
 
+    /// <summary>
+    /// Adds roles to a user. Admin access required.
+    /// </summary>
+    /// <param name="id">The ID of the user to add roles to.</param>
+    /// <param name="roleEditDto">The role edit request containing the roles to add.</param>
+    /// <returns>The updated user with the new roles.</returns>
+    /// <response code="200">Returns the user with the added roles.</response>
+    /// <response code="400">If the request is invalid or the role addition failed.</response>
+    /// <response code="404">If the user is not found.</response>
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [HttpPost("{id}/roles")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> AddRolesAsync([FromRoute] int id, [FromBody] EditRoleRequest roleEditDto)
     {
         if (roleEditDto == null || roleEditDto.RoleNames == null || roleEditDto.RoleNames.Count == 0)
@@ -175,8 +285,20 @@ public sealed class UsersController : ServiceControllerBase
         return this.Ok(userToReturn);
     }
 
+    /// <summary>
+    /// Removes roles from a user. Admin access required.
+    /// </summary>
+    /// <param name="id">The ID of the user to remove roles from.</param>
+    /// <param name="roleEditDto">The role edit request containing the roles to remove.</param>
+    /// <returns>The updated user with the removed roles.</returns>
+    /// <response code="200">Returns the user with the roles removed.</response>
+    /// <response code="400">If the request is invalid or the role removal failed.</response>
+    /// <response code="404">If the user is not found.</response>
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [HttpDelete("{id}/roles")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> RemoveRolesAsync([FromRoute] int id, [FromBody] EditRoleRequest roleEditDto)
     {
         if (roleEditDto == null || roleEditDto.RoleNames == null || roleEditDto.RoleNames.Count == 0)

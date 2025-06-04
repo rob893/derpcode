@@ -83,6 +83,22 @@ export const useDeleteProblem = () => {
   });
 };
 
+export const useCloneProblem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (problemId: number) => problemsApi.cloneProblem(problemId),
+    onSuccess: newProblem => {
+      // Invalidate and refetch problems list
+      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+
+      // Add the new problem to the cache
+      queryClient.setQueryData(queryKeys.problem(newProblem.id), newProblem);
+      queryClient.setQueryData(queryKeys.adminProblem(newProblem.id), newProblem);
+    }
+  });
+};
+
 export const useValidateProblem = () => {
   return useMutation({
     mutationFn: (problem: CreateProblemRequest) => problemsApi.validateProblem(problem)

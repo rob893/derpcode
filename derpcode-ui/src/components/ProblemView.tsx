@@ -19,12 +19,20 @@ import {
   useDisclosure,
   Switch
 } from '@heroui/react';
-import { ArrowLeftIcon, EyeIcon, EyeSlashIcon, Cog6ToothIcon, PencilIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  Cog6ToothIcon,
+  PencilIcon,
+  TrashIcon,
+  DocumentDuplicateIcon
+} from '@heroicons/react/24/outline';
 import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblem, useSubmitSolution } from '../hooks/api';
+import { useDeleteProblem, useProblem, useSubmitSolution, useCloneProblem } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../utils/localStorageUtils';
@@ -36,7 +44,10 @@ export const ProblemView = () => {
   const navigate = useNavigate();
   const { data: problem, isLoading, error } = useProblem(Number(id!));
   const submitSolution = useSubmitSolution(problem?.id || 0);
+  const deleteProblem = useDeleteProblem();
+  const cloneProblem = useCloneProblem();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure();
   const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange } = useDisclosure();
 
   const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
@@ -45,6 +56,7 @@ export const ProblemView = () => {
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [showHints, setShowHints] = useState(false);
   const [flamesEnabled, setFlamesEnabled] = useState(true);
+  const [problemToDelete, setProblemToDelete] = useState<{ id: number; name: string } | null>(null);
 
   // Auto-save functionality
   useAutoSave(
@@ -131,6 +143,44 @@ export const ProblemView = () => {
     }
   };
 
+  // Handle delete problem
+  const handleDeleteClick = (problem: { id: number; name: string }) => {
+    setProblemToDelete(problem);
+    onDeleteOpen();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!problemToDelete) return;
+
+    try {
+      await deleteProblem.mutateAsync(problemToDelete.id);
+      setProblemToDelete(null);
+      onDeleteOpenChange();
+      navigate('/problems');
+    } catch (error) {
+      console.error('Failed to delete problem:', error);
+      // Error handling could be enhanced with toast notifications
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setProblemToDelete(null);
+    onDeleteOpenChange();
+  };
+
+  // Handle clone problem
+  const handleCloneProblem = async () => {
+    if (!problem) return;
+
+    try {
+      const clonedProblem = await cloneProblem.mutateAsync(problem.id);
+      navigate(`/problems/${clonedProblem.id}`);
+    } catch (error) {
+      console.error('Failed to clone problem:', error);
+      // Error handling could be enhanced with toast notifications
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -181,15 +231,36 @@ export const ProblemView = () => {
                 <h2 className="text-2xl font-bold text-foreground">{problem.name}</h2>
                 <div className="flex items-center gap-2">
                   {hasAdminRole(user) && (
-                    <Button
-                      variant="ghost"
-                      color="primary"
-                      size="sm"
-                      startContent={<PencilIcon className="h-4 w-4" />}
-                      onPress={() => navigate(`/problems/${problem.id}/edit`)}
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="ghost"
+                        color="primary"
+                        size="sm"
+                        startContent={<PencilIcon className="h-4 w-4" />}
+                        onPress={() => navigate(`/problems/${problem.id}/edit`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        color="secondary"
+                        size="sm"
+                        startContent={<DocumentDuplicateIcon className="h-4 w-4" />}
+                        onPress={handleCloneProblem}
+                        isLoading={cloneProblem.isPending}
+                      >
+                        Clone
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        color="danger"
+                        size="sm"
+                        startContent={<TrashIcon className="h-4 w-4" />}
+                        onPress={() => handleDeleteClick({ id: problem.id, name: problem.name })}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   )}
                   <Chip color={getDifficultyColor(problem.difficulty)} variant="flat" size="md" className="font-medium">
                     {getDifficultyLabel(problem.difficulty)}
@@ -369,6 +440,40 @@ export const ProblemView = () => {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange} placement="center">
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-xl font-bold text-danger">Delete Problem</h2>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-foreground">
+                  Are you sure you want to delete the problem "{problemToDelete?.name}"?
+                </p>
+                <p className="text-warning text-sm mt-2">
+                  This action cannot be undone. All associated data will be permanently removed.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="default"
+                  variant="light"
+                  onPress={handleCancelDelete}
+                  isDisabled={deleteProblem.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleConfirmDelete} isLoading={deleteProblem.isPending}>
+                  {deleteProblem.isPending ? 'Deleting...' : 'Delete'}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       {/* Login Modal */}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
