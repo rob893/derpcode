@@ -29,3 +29,16 @@ export function useDeleteUser() {
     }
   });
 }
+
+export function useDeleteLinkedAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, linkedAccountType }: { userId: number; linkedAccountType: string }) =>
+      userApi.deleteLinkedAccount(userId, linkedAccountType),
+    onSuccess: () => {
+      // Invalidate and refetch user data to update the UI
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    }
+  });
+}

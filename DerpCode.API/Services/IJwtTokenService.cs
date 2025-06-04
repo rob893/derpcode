@@ -14,5 +14,7 @@ public interface IJwtTokenService
 
     Task RevokeAllRefreshTokensForUserAsync(int userId, CancellationToken cancellationToken = default);
 
+    Task RevokeAllRefreshTokensForUserAsync(User user, CancellationToken cancellationToken = default);
+
     Task RevokeRefreshTokenForDeviceAsync(int userId, string deviceId, CancellationToken cancellationToken = default);
 }

@@ -12,17 +12,26 @@ import {
   ModalFooter,
   useDisclosure
 } from '@heroui/react';
-import { useDeleteUser } from '../hooks/useUser';
+import { useDeleteUser, useDeleteLinkedAccount } from '../hooks/useUser';
 import type { UserDto } from '../types/user';
 
 interface AccountSectionProps {
   user: UserDto;
 }
 
+interface LinkedAccountToUnlink {
+  id: string;
+  type: string;
+}
+
 export function AccountSection({ user }: AccountSectionProps) {
   const deleteUserMutation = useDeleteUser();
+  const deleteLinkedAccountMutation = useDeleteLinkedAccount();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isUnlinkOpen, onOpen: onUnlinkOpen, onClose: onUnlinkClose } = useDisclosure();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [linkedAccountToUnlink, setLinkedAccountToUnlink] = useState<LinkedAccountToUnlink | null>(null);
 
   const handleDeleteAccount = async () => {
     try {
@@ -33,6 +42,36 @@ export function AccountSection({ user }: AccountSectionProps) {
       console.error('Failed to delete account:', error);
       setIsDeleting(false);
     }
+  };
+
+  const handleUnlinkAccount = (linkedAccount: { id: string; linkedAccountType: string }) => {
+    setLinkedAccountToUnlink({
+      id: linkedAccount.id,
+      type: linkedAccount.linkedAccountType
+    });
+    onUnlinkOpen();
+  };
+
+  const handleConfirmUnlink = async () => {
+    if (!linkedAccountToUnlink) return;
+
+    try {
+      setIsUnlinking(true);
+      await deleteLinkedAccountMutation.mutateAsync({
+        userId: user.id,
+        linkedAccountType: linkedAccountToUnlink.type
+      });
+      setLinkedAccountToUnlink(null);
+      onUnlinkClose();
+    } catch (error) {
+      console.error('Failed to unlink account:', error);
+      setIsUnlinking(false);
+    }
+  };
+
+  const handleCancelUnlink = () => {
+    setLinkedAccountToUnlink(null);
+    onUnlinkClose();
   };
 
   const formatDate = (dateString: string) => {
@@ -135,9 +174,14 @@ export function AccountSection({ user }: AccountSectionProps) {
                       <p className="text-sm text-default-500">Connected</p>
                     </div>
                   </div>
-                  <Chip color="success" variant="flat" size="sm">
-                    Active
-                  </Chip>
+                  <div className="flex items-center gap-2">
+                    <Chip color="success" variant="flat" size="sm">
+                      Active
+                    </Chip>
+                    <Button color="danger" variant="light" size="sm" onPress={() => handleUnlinkAccount(account)}>
+                      Unlink
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -196,6 +240,36 @@ export function AccountSection({ user }: AccountSectionProps) {
             </Button>
             <Button color="danger" onPress={handleDeleteAccount} isLoading={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete My Account'}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Unlink Account Confirmation Modal */}
+      <Modal isOpen={isUnlinkOpen} onClose={onUnlinkClose} isDismissable={!isUnlinking}>
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-warning">Confirm Account Unlink</h3>
+          </ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                <h4 className="font-semibold text-warning mb-2">⚠️ Are you sure?</h4>
+                <p className="text-sm text-warning-700">
+                  You are about to unlink your {linkedAccountToUnlink?.type} account.
+                </p>
+              </div>
+              <p className="text-foreground">
+                You can link this account again later if needed. This action will not affect your main account.
+              </p>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={handleCancelUnlink} isDisabled={isUnlinking}>
+              Cancel
+            </Button>
+            <Button color="warning" onPress={handleConfirmUnlink} isLoading={isUnlinking}>
+              {isUnlinking ? 'Unlinking...' : 'Unlink Account'}
             </Button>
           </ModalFooter>
         </ModalContent>

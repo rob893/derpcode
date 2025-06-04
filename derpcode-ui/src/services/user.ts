@@ -9,5 +9,9 @@ export const userApi = {
 
   async deleteUser(id: number): Promise<void> {
     await apiClient.delete(`/api/v1/users/${id}`);
+  },
+
+  async deleteLinkedAccount(userId: number, linkedAccountType: string): Promise<void> {
+    await apiClient.delete(`/api/v1/users/${userId}/linkedAccounts/${linkedAccountType}`);
   }
 };

@@ -418,7 +418,14 @@ public sealed class AuthController : ServiceControllerBase
             return this.Unauthorized("You must be logged in to log out.");
         }
 
-        await this.jwtTokenService.RevokeAllRefreshTokensForUserAsync(userId.Value, this.HttpContext.RequestAborted);
+        var user = await this.userRepository.GetByIdAsync(userId.Value, [u => u.RefreshTokens], this.HttpContext.RequestAborted);
+
+        if (user == null)
+        {
+            return this.NotFound("User not found.");
+        }
+
+        await this.jwtTokenService.RevokeAllRefreshTokensForUserAsync(user, this.HttpContext.RequestAborted);
         this.Response.Cookies.Delete(CookieKeys.RefreshToken, new CookieOptions
         {
             HttpOnly = true,

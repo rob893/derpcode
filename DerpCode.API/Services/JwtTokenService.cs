@@ -153,8 +153,12 @@ public sealed class JwtTokenService : IJwtTokenService
     public async Task RevokeAllRefreshTokensForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
         var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
+        await this.RevokeAllRefreshTokensForUserAsync(user, cancellationToken);
+    }
 
-        // Clear all refresh tokens
+    public async Task RevokeAllRefreshTokensForUserAsync(User user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
         user.RefreshTokens.Clear();
         await this.userRepository.SaveChangesAsync(cancellationToken);
     }
