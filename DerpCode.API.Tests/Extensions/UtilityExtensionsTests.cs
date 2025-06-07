@@ -9,7 +9,7 @@ namespace DerpCode.API.Tests.Extensions;
 /// <summary>
 /// Tests for the UtilityExtensions class
 /// </summary>
-public class UtilityExtensionsTests
+public sealed class UtilityExtensionsTests
 {
     #region TryApply Tests
 

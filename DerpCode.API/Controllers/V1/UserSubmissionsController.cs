@@ -13,7 +13,7 @@ namespace DerpCode.API.Controllers.V1;
 [ApiController]
 [Route("api/v{version:apiVersion}/users/{userId}/submissions")]
 [ApiVersion("1.0")]
-public class UserSubmissionsController : ServiceControllerBase
+public sealed class UserSubmissionsController : ServiceControllerBase
 {
     private readonly ILogger<UserSubmissionsController> logger;
 

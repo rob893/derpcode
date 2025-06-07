@@ -2,7 +2,7 @@ using DerpCode.API.Services;
 
 namespace DerpCode.API.Tests.Services;
 
-public class CorrelationIdServiceTests
+public sealed class CorrelationIdServiceTests
 {
     private readonly CorrelationIdService service;
 

@@ -59,10 +59,6 @@ public sealed record AuthenticationSettings
     /// </summary>
     public string GitHubOAuthClientSecret { get; init; } = default!;
 
-    public Uri ForgotPasswordCallbackUrl { get; init; } = default!;
-
-    public Uri ConfirmEmailCallbackUrl { get; init; } = default!;
-
     public string? CookieDomain { get; init; }
 
     public Uri UIBaseUrl { get; init; } = default!;

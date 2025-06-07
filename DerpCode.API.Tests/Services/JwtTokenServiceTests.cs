@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DerpCode.API.Tests.Services;
 
-public class JwtTokenServiceTests : IDisposable
+public sealed class JwtTokenServiceTests
 {
     private readonly Mock<IUserRepository> mockUserRepository;
 
@@ -391,9 +391,4 @@ public class JwtTokenServiceTests : IDisposable
     }
 
     #endregion
-
-    public void Dispose()
-    {
-        // No resources to dispose in this test class
-    }
 }

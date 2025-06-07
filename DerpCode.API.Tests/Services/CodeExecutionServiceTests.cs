@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Tests.Services;
 
-public class CodeExecutionServiceTests : IDisposable
+public sealed class CodeExecutionServiceTests
 {
     private readonly Mock<IDockerClient> mockDockerClient;
 
@@ -560,9 +560,4 @@ public class CodeExecutionServiceTests : IDisposable
     }
 
     #endregion
-
-    public void Dispose()
-    {
-        // No cleanup needed since we're using mocks
-    }
 }

@@ -8,7 +8,7 @@ namespace DerpCode.API.Data.Comparers;
 /// Value comparer for JSON-serialized collections in EF Core
 /// </summary>
 /// <typeparam name="T">The type of the collection</typeparam>
-public class JsonCollectionComparer<T> : ValueComparer<T> where T : class
+public sealed class JsonCollectionComparer<T> : ValueComparer<T> where T : class
 {
     public JsonCollectionComparer(JsonSerializerOptions options)
         : base(

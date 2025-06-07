@@ -15,6 +15,7 @@ using DerpCode.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using static DerpCode.API.Utilities.UtilityFunctions;
@@ -31,26 +32,38 @@ public sealed class AuthController : ServiceControllerBase
 
     private readonly IJwtTokenService jwtTokenService;
 
+    private readonly IEmailService emailService;
+
+    private readonly IEmailTemplateService emailTemplateService;
+
     private readonly IGitHubOAuthService gitHubOAuthService;
 
     private readonly IGoogleOAuthService googleOAuthService;
 
     private readonly AuthenticationSettings authSettings;
 
+    private readonly ILogger<AuthController> logger;
+
     public AuthController(
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
+        IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
         IGitHubOAuthService gitHubOAuthService,
         IGoogleOAuthService googleOAuthService,
         IOptions<AuthenticationSettings> authSettings,
+        ILogger<AuthController> logger,
         ICorrelationIdService correlationIdService)
             : base(correlationIdService)
     {
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.jwtTokenService = jwtTokenService ?? throw new ArgumentNullException(nameof(jwtTokenService));
+        this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        this.emailTemplateService = emailTemplateService ?? throw new ArgumentNullException(nameof(emailTemplateService));
         this.gitHubOAuthService = gitHubOAuthService ?? throw new ArgumentNullException(nameof(gitHubOAuthService));
         this.googleOAuthService = googleOAuthService ?? throw new ArgumentNullException(nameof(googleOAuthService));
         this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -82,7 +95,7 @@ public sealed class AuthController : ServiceControllerBase
 
         var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, registerUserRequest.DeviceId);
 
-        // await this.SendConfirmEmailLink(user);
+        await this.SendConfirmEmailLink(user);
 
         var userToReturn = UserDto.FromEntity(user);
 
@@ -194,6 +207,8 @@ public sealed class AuthController : ServiceControllerBase
                         LinkedAccountType = LinkedAccountType.Google
                     });
 
+                    user.EmailConfirmed = user.EmailConfirmed || validatedToken.EmailVerified;
+
                     var updated = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
                     if (updated == 0)
@@ -227,6 +242,12 @@ public sealed class AuthController : ServiceControllerBase
                     }
 
                     user = newUser;
+
+                    // Optionally send confirmation email if email is not confirmed
+                    if (!newUser.EmailConfirmed && !string.IsNullOrWhiteSpace(newUser.Email))
+                    {
+                        await this.SendConfirmEmailLink(newUser);
+                    }
                 }
             }
 
@@ -306,6 +327,8 @@ public sealed class AuthController : ServiceControllerBase
                         LinkedAccountType = LinkedAccountType.GitHub
                     });
 
+                    user.EmailConfirmed = user.EmailConfirmed || !string.IsNullOrEmpty(gitHubEmail);
+
                     var updated = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
                     if (updated == 0)
@@ -338,6 +361,12 @@ public sealed class AuthController : ServiceControllerBase
                     }
 
                     user = newUser;
+
+                    // Optionally send confirmation email if email is not confirmed
+                    if (!newUser.EmailConfirmed && !string.IsNullOrWhiteSpace(newUser.Email))
+                    {
+                        await this.SendConfirmEmailLink(newUser);
+                    }
                 }
             }
 
@@ -504,23 +533,27 @@ public sealed class AuthController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
     {
+        // always return 204 to prevent user enumeration
         if (request == null)
         {
-            return this.BadRequest();
+            return this.NoContent();
         }
 
         var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
 
-        if (user == null)
+        if (user == null || string.IsNullOrWhiteSpace(user.Email) || !user.EmailConfirmed)
         {
-            return this.BadRequest();
+            this.logger.LogWarning(
+                "Failed to send password reset link for user with email {Email}: User not found or email not confirmed.",
+                request.Email);
+            return this.NoContent();
         }
 
         var token = await this.userRepository.UserManager.GeneratePasswordResetTokenAsync(user);
 
-        var confLink = $"{this.authSettings.ForgotPasswordCallbackUrl}?token={token}&email={user.Email}";
-        // TODO: implement later
-        // await this.emailService.SendEmailAsync(user.Email, "Reset your password", $"Please click {confLink} to reset your password");
+        var confLink = $"{this.authSettings.UIBaseUrl}#/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetPasswordResetTemplateAsync(confLink, this.HttpContext.RequestAborted);
+        await this.emailService.SendEmailToUserAsync(user, "DerpCode Password Reset - Let's Get You Back In! 🔑", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }
@@ -538,23 +571,31 @@ public sealed class AuthController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
     {
+        // always return 204 to prevent user enumeration
         if (request == null)
         {
-            return this.BadRequest();
+            return this.NoContent();
         }
 
         var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
 
-        if (user == null)
+        if (user == null || !user.EmailConfirmed)
         {
-            return this.BadRequest();
+            this.logger.LogWarning(
+                "Failed to reset password for user with email {Email}: User not found or email not confirmed.",
+                request.Email);
+            return this.NoContent();
         }
 
         var result = await this.userRepository.UserManager.ResetPasswordAsync(user, request.Token, request.Password);
 
         if (!result.Succeeded)
         {
-            return this.BadRequest([.. result.Errors.Select(e => e.Description)]);
+            this.logger.LogWarning(
+                "Failed to reset password for user {UserId} ({Email}): {Errors}",
+                user.Id,
+                user.Email,
+                string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
         return this.NoContent();
@@ -585,9 +626,7 @@ public sealed class AuthController : ServiceControllerBase
             return this.BadRequest("Unable to confirm email.");
         }
 
-        var decoded = request.Token.ConvertToStringFromBase64Url();
-
-        var confirmResult = await this.userRepository.UserManager.ConfirmEmailAsync(user, decoded);
+        var confirmResult = await this.userRepository.UserManager.ConfirmEmailAsync(user, request.Token);
 
         if (!confirmResult.Succeeded)
         {
@@ -631,11 +670,17 @@ public sealed class AuthController : ServiceControllerBase
         return token;
     }
 
-    // private async Task SendConfirmEmailLink(User user)
-    // {
-    //     var emailToken = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
-    //     var encoded = emailToken.ConvertToBase64Url();
-    //     var confLink = $"{this.authSettings.ConfirmEmailCallbackUrl}?token={encoded}&email={user.Email}";
-    //     await this.emailService.SendEmailAsync(user.Email, "Confirm your email", $"Please click {confLink} to confirm email");
-    // }
+    private async Task SendConfirmEmailLink(User user)
+    {
+        if (user == null || string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new ArgumentException("User must not be null and must have a valid email.");
+        }
+
+        var emailToken = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
+        var confLink = $"{this.authSettings.UIBaseUrl}#/confirm-email?token={Uri.EscapeDataString(emailToken)}&email={Uri.EscapeDataString(user.Email)}";
+
+        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetEmailConfirmationTemplateAsync(confLink, this.HttpContext.RequestAborted);
+        await this.emailService.SendEmailToUserAsync(user, "Welcome to DerpCode - Confirm Your Email! 🎉", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
+    }
 }

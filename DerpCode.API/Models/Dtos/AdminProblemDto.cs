@@ -5,7 +5,7 @@ using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
 
-public record AdminProblemDto : IIdentifiable<int>
+public sealed record AdminProblemDto : IIdentifiable<int>
 {
     public required int Id { get; init; }
 

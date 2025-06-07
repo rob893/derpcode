@@ -25,7 +25,7 @@ namespace DerpCode.API.Controllers.V1;
 [ApiController]
 [Route("api/v{version:apiVersion}/problems")]
 [ApiVersion("1.0")]
-public class ProblemsController : ServiceControllerBase
+public sealed class ProblemsController : ServiceControllerBase
 {
     private readonly ILogger<ProblemsController> logger;
 

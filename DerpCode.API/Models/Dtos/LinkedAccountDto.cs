@@ -3,7 +3,7 @@ using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
 
-public record LinkedAccountDto : IIdentifiable<string>, IOwnedByUser<int>
+public sealed record LinkedAccountDto : IIdentifiable<string>, IOwnedByUser<int>
 {
     public required string Id { get; init; }
 

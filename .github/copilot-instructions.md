@@ -22,6 +22,7 @@ C# best practices:
 - Don't leave unused usings in files
 - Add a blank line between all class fields, methods, properties, and members
 - Add xml comments to all public members (use inheritdoc for inherited members)
+- Always accept cancel tokens in async methods
 
 Backend unit test best practices:
 

@@ -1,6 +1,6 @@
 namespace DerpCode.API.Models.Settings;
 
-public record SwaggerAuthSettings
+public sealed record SwaggerAuthSettings
 {
     public string Username { get; init; } = default!;
 

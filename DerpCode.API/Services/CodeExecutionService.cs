@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Services;
 
-public class CodeExecutionService : ICodeExecutionService
+public sealed class CodeExecutionService : ICodeExecutionService
 {
     private static readonly JsonSerializerOptions jsonOptions = new()
     {

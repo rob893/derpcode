@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DerpCode.API.Models.Entities;
 
-public class User : IdentityUser<int>, IIdentifiable<int>
+public sealed class User : IdentityUser<int>, IIdentifiable<int>
 {
     public DateTimeOffset Created { get; set; }
 

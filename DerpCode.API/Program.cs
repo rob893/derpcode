@@ -12,7 +12,9 @@ using DerpCode.API.Core;
 using DerpCode.API.Data;
 using DerpCode.API.Extensions;
 using DerpCode.API.Middleware;
+using DerpCode.API.Models.Settings;
 using DerpCode.API.Services;
+using DerpCode.API.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
@@ -55,6 +57,7 @@ public static class Program
             .AddIdentityServices()
             .AddScoped<ICorrelationIdService, CorrelationIdService>()
             .AddSingleton<IFileSystemService, FileSystemService>()
+            .AddEmailServices(builder.Configuration)
             .AddAuthenticationServices(builder.Configuration)
             .AddDatabaseServices(builder.Configuration)
             .AddRepositoryServices()

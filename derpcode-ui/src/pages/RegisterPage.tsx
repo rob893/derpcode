@@ -4,6 +4,11 @@ import { Card, CardBody, CardHeader, Input, Button, Divider } from '@heroui/reac
 import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
 import { useAuth } from '../hooks/useAuth';
 import { redirectToGitHubOAuth, redirectToGoogleOAuth } from '../utils/oauthUtils';
+import {
+  validatePassword,
+  getPasswordRequirementsDescription,
+  type PasswordValidationResult
+} from '../utils/passwordValidation';
 
 export function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -14,34 +19,13 @@ export function RegisterPage() {
   });
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordValidation, setPasswordValidation] = useState({
+  const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult>({
     isValid: false,
-    errors: [] as string[]
+    errors: []
   });
 
   const { register } = useAuth();
   const navigate = useNavigate();
-
-  const validatePassword = (password: string) => {
-    const errors: string[] = [];
-
-    if (password.length < 8) {
-      errors.push('Password must be at least 8 characters long');
-    }
-
-    if (!/\d/.test(password)) {
-      errors.push('Password must contain at least 1 number');
-    }
-
-    if (!/[^a-zA-Z0-9]/.test(password)) {
-      errors.push('Password must contain at least 1 special character');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -158,7 +142,7 @@ export function RegisterPage() {
               autoComplete="new-password"
               variant="bordered"
               color={formData.password && !passwordValidation.isValid ? 'danger' : 'primary'}
-              description="8+ characters, 1+ number, 1+ special character"
+              description={getPasswordRequirementsDescription()}
               errorMessage={
                 formData.password && !passwordValidation.isValid ? passwordValidation.errors.join(', ') : undefined
               }

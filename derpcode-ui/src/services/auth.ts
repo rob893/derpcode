@@ -1,5 +1,13 @@
 import apiClient from './axiosConfig';
-import type { LoginRequest, RegisterRequest, LoginResponse, RefreshTokenResponse } from '../types/auth';
+import type {
+  LoginRequest,
+  RegisterRequest,
+  LoginResponse,
+  RefreshTokenResponse,
+  ConfirmEmailRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest
+} from '../types/auth';
 
 const STORAGE_KEYS = {
   DEVICE_ID: 'device_id'
@@ -96,5 +104,17 @@ export const authApi = {
 
     setAccessToken(response.data.token);
     return response.data;
+  },
+
+  confirmEmail: async (request: ConfirmEmailRequest): Promise<void> => {
+    await apiClient.post('/api/v1/auth/confirmEmail', request);
+  },
+
+  forgotPassword: async (request: ForgotPasswordRequest): Promise<void> => {
+    await apiClient.post('/api/v1/auth/forgotPassword', request);
+  },
+
+  resetPassword: async (request: ResetPasswordRequest): Promise<void> => {
+    await apiClient.post('/api/v1/auth/resetPassword', request);
   }
 };

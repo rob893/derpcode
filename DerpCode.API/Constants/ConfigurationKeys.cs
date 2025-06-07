@@ -10,6 +10,8 @@ public static class ConfigurationKeys
 
     public const string CorsExposedHeaders = "Cors:ExposedHeaders";
 
+    public const string Email = "Email";
+
     public const string Swagger = "Swagger";
 
     public const string MySQL = "MySQL";

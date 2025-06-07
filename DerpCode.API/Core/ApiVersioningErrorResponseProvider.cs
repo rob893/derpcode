@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace DerpCode.API.Core;
 
-public class ApiVersioningErrorResponseProvider : DefaultErrorResponseProvider
+public sealed class ApiVersioningErrorResponseProvider : DefaultErrorResponseProvider
 {
     public override IActionResult CreateResponse(ErrorResponseContext context)
     {

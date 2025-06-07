@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Email - DerpCode</title>
+    <style>
+        /* Reset styles */
+        body,
+        table,
+        td,
+        p,
+        a,
+        li,
+        blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        table,
+        td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* Base styles */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            min-width: 100%;
+            background-color: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        /* Container styles */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #18181b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Header styles */
+        .header {
+            background: linear-gradient(135deg, #22c55e 0%, #a855f7 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .tagline {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            margin: 0;
+        }
+
+        /* Content styles */
+        .content {
+            padding: 40px 30px;
+            background-color: #18181b;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .message {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #e5e5e5;
+            line-height: 1.6;
+        }
+
+        /* Button styles */
+        .button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+        }
+
+        /* Warning box */
+        .warning-box {
+            background-color: #27272a;
+            border-left: 4px solid #a855f7;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+
+        .warning-title {
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 8px;
+        }
+
+        .warning-text {
+            color: #d1d5db;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Footer styles */
+        .footer {
+            background-color: #27272a;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #3f3f46;
+        }
+
+        .footer-text {
+            color: #9ca3af;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+
+        .footer-link {
+            color: #22c55e;
+            text-decoration: none;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                width: calc(100% - 20px) !important;
+            }
+
+            .header,
+            .content,
+            .footer {
+                padding: 20px !important;
+            }
+
+            .logo {
+                font-size: 28px;
+            }
+
+            .greeting {
+                font-size: 20px;
+            }
+
+            .cta-button {
+                padding: 14px 24px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div style="padding: 20px 0;">
+        <div class="email-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">DerpCode</div>
+                <p class="tagline">Level up your coding skills!</p>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <h1 class="greeting">Welcome to DerpCode! 🎉</h1>
+
+                <p class="message">
+                    Hey there, future coding ninja! 👋
+                </p>
+
+                <p class="message">
+                    Thanks for joining our community!
+                </p>
+
+                <p class="message">
+                    To get started and confirm your email address, just click the button below:
+                </p>
+
+                <div class="button-container">
+                    <a href="{CONFIRMATION_LINK}" class="cta-button">Confirm My Email</a>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-title">🔒 Security Note</div>
+                    <p class="warning-text">
+                        If you didn't create a DerpCode account, you can safely ignore this email.
+                        The confirmation link will expire in 24 hours for your security.
+                    </p>
+                </div>
+
+                <p class="message" style="margin-top: 30px;">
+                    Ready to show those algorithms who's boss? Let's get coding! 💪
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p class="footer-text">
+                    This email was sent because you created an account on
+                    <a href="#" class="footer-link">DerpCode</a>
+                </p>
+                <p class="footer-text">
+                    Having trouble with the button? Copy and paste this link into your browser:<br>
+                    <a href="{CONFIRMATION_LINK}" class="footer-link">{CONFIRMATION_LINK}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

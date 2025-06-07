@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace DerpCode.API.Models.Settings;
 
-public record SwaggerSettings
+public sealed record SwaggerSettings
 {
     public SwaggerAuthSettings AuthSettings { get; init; } = default!;
 

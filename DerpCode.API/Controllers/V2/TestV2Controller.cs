@@ -8,7 +8,7 @@ namespace DerpCode.API.Controllers.V2;
 [ApiController]
 [ApiVersion("2")]
 [Route("api/v{version:apiVersion}/test")]
-public class TestV2Controller : ServiceControllerBase
+public sealed class TestV2Controller : ServiceControllerBase
 {
     private readonly ILogger<TestV2Controller> logger;
 

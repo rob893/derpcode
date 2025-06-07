@@ -10,8 +10,11 @@ import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
+import { ConfirmEmailPage } from './pages/ConfirmEmailPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { AccountPage } from './pages/AccountPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import './App.css';
 
 function App() {
@@ -23,9 +26,12 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/auth/github/callback" element={<OAuthCallbackPage provider="github" />} />
           <Route path="/auth/google/callback" element={<OAuthCallbackPage provider="google" />} />
+          <Route path="/confirm-email" element={<ConfirmEmailPage />} />
 
           {/* Public problem routes */}
           <Route

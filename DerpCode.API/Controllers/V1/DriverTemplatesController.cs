@@ -15,7 +15,7 @@ namespace DerpCode.API.Controllers.V1;
 [ApiController]
 [Route("api/v{version:apiVersion}/driverTemplates")]
 [ApiVersion("1.0")]
-public class DriverTemplatesController : ServiceControllerBase
+public sealed class DriverTemplatesController : ServiceControllerBase
 {
     private readonly IDriverTemplateRepository driverTemplateRepository;
 

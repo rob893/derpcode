@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DerpCode.API.Services;
 
-public class FileSystemService : IFileSystemService
+public sealed class FileSystemService : IFileSystemService
 {
     public string GetTempPath()
     {

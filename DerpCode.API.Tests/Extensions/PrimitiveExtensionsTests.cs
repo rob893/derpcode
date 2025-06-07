@@ -5,7 +5,7 @@ namespace DerpCode.API.Tests.Extensions;
 /// <summary>
 /// Tests for the PrimitiveExtensions class
 /// </summary>
-public class PrimitiveExtensionsTests
+public sealed class PrimitiveExtensionsTests
 {
     #region ConvertToInt32FromBase64Url Tests
 

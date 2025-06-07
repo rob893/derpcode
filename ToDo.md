@@ -1,0 +1,6 @@
+- Bicep templates for vm, acs, and associated roles
+- xp system with unlocks (themes, titles, editor animations, etc)
+- save user submissions
+- programs (guided learnings based on subject)
+- update password from account page
+- resend email verify email (and show email verified status) from account page
