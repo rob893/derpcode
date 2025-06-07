@@ -29,3 +29,7 @@ Backend unit test best practices:
 - Use xunit for unit tests.
 - Use Moq for mocking dependencies.
 - Use dotnet test for testing
+
+TypeScript Best Practices:
+
+- always prefer func(): Type {} over func: Type => {} (prefer method syntax over arrow/function signature syntax)

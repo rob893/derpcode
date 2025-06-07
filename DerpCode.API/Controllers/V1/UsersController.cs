@@ -9,11 +9,14 @@ using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses.Pagination;
+using DerpCode.API.Models.Settings;
 using DerpCode.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DerpCode.API.Controllers.V1;
 
@@ -24,10 +27,28 @@ public sealed class UsersController : ServiceControllerBase
 {
     private readonly IUserRepository userRepository;
 
-    public UsersController(IUserRepository userRepository, ICorrelationIdService correlationIdService)
+    private readonly AuthenticationSettings authSettings;
+
+    private readonly IEmailService emailService;
+
+    private readonly IEmailTemplateService emailTemplateService;
+
+    private readonly ILogger<UsersController> logger;
+
+    public UsersController(
+        IUserRepository userRepository,
+        IOptions<AuthenticationSettings> authSettings,
+        IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
+        ILogger<UsersController> logger,
+        ICorrelationIdService correlationIdService)
         : base(correlationIdService)
     {
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
+        this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        this.emailTemplateService = emailTemplateService ?? throw new ArgumentNullException(nameof(emailTemplateService));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -339,5 +360,124 @@ public sealed class UsersController : ServiceControllerBase
         var userToReturn = UserDto.FromEntity(user);
 
         return this.Ok(userToReturn);
+    }
+
+    /// <summary>
+    /// Sends a link to reset password if a user forgot.
+    /// </summary>
+    /// <param name="request">The forgot password request.</param>
+    /// <returns>No content.</returns>
+    /// <response code="204">If the password reset link was sent.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
+    [HttpPost("forgotPassword", Name = nameof(ForgotPasswordAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
+    {
+        // always return 204 to prevent user enumeration
+        if (request == null)
+        {
+            return this.NoContent();
+        }
+
+        var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
+
+        if (user == null || string.IsNullOrWhiteSpace(user.Email) || !user.EmailConfirmed)
+        {
+            this.logger.LogWarning(
+                "Failed to send password reset link for user with email {Email}: User not found or email not confirmed.",
+                request.Email);
+            return this.NoContent();
+        }
+
+        var token = await this.userRepository.UserManager.GeneratePasswordResetTokenAsync(user);
+
+        var confLink = $"{this.authSettings.UIBaseUrl}#/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetPasswordResetTemplateAsync(confLink, this.HttpContext.RequestAborted);
+        await this.emailService.SendEmailToUserAsync(user, "DerpCode Password Reset - Let's Get You Back In! 🔑", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    /// Resets a user's password.
+    /// </summary>
+    /// <param name="request">The reset password request.</param>
+    /// <returns>No content.</returns>
+    /// <response code="204">If the password was reset.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
+    [HttpPost("resetPassword", Name = nameof(ResetPasswordAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
+    {
+        // always return 204 to prevent user enumeration
+        if (request == null)
+        {
+            return this.NoContent();
+        }
+
+        var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
+
+        if (user == null || !user.EmailConfirmed)
+        {
+            this.logger.LogWarning(
+                "Failed to reset password for user with email {Email}: User not found or email not confirmed.",
+                request.Email);
+            return this.NoContent();
+        }
+
+        var result = await this.userRepository.UserManager.ResetPasswordAsync(user, request.Token, request.Password);
+
+        if (!result.Succeeded)
+        {
+            this.logger.LogWarning(
+                "Failed to reset password for user {UserId} ({Email}): {Errors}",
+                user.Id,
+                user.Email,
+                string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    /// Confirms a user's email.
+    /// </summary>
+    /// <param name="request">The confirm email request.</param>
+    /// <returns>No content.</returns>
+    /// <response code="204">If the email was confirmed.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
+    [HttpPost("confirmEmail", Name = nameof(ConfirmEmailAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> ConfirmEmailAsync([FromBody] ConfirmEmailRequest request)
+    {
+        if (request == null)
+        {
+            return this.BadRequest();
+        }
+
+        var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
+
+        if (user == null)
+        {
+            return this.BadRequest("Unable to confirm email.");
+        }
+
+        var confirmResult = await this.userRepository.UserManager.ConfirmEmailAsync(user, request.Token);
+
+        if (!confirmResult.Succeeded)
+        {
+            return this.BadRequest([.. confirmResult.Errors.Select(e => e.Description)]);
+        }
+
+        return this.NoContent();
     }
 }

@@ -13,3 +13,18 @@ export interface UserDto {
   roles: string[];
   linkedAccounts: LinkedAccount[];
 }
+
+export interface ConfirmEmailRequest {
+  email: string;
+  token: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  token: string;
+  password: string;
+}

@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams, Link } from 'react-router';
 import { Card, CardBody, CardHeader, Input, Button, Chip } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
-import { authApi } from '../services/auth';
 import {
   validatePassword,
   getPasswordRequirementsDescription,
   type PasswordValidationResult
 } from '../utils/passwordValidation';
+import { userApi } from '../services/user';
 
 export function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -65,7 +65,7 @@ export function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      await authApi.resetPassword({
+      await userApi.resetPassword({
         email,
         token,
         password

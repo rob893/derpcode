@@ -1,13 +1,5 @@
 import apiClient from './axiosConfig';
-import type {
-  LoginRequest,
-  RegisterRequest,
-  LoginResponse,
-  RefreshTokenResponse,
-  ConfirmEmailRequest,
-  ForgotPasswordRequest,
-  ResetPasswordRequest
-} from '../types/auth';
+import type { LoginRequest, RegisterRequest, LoginResponse, RefreshTokenResponse } from '../types/auth';
 
 const STORAGE_KEYS = {
   DEVICE_ID: 'device_id'
@@ -75,7 +67,7 @@ export const authApi = {
     return response.data;
   },
 
-  register: async (userData: Omit<RegisterRequest, 'deviceId'>): Promise<LoginResponse> => {
+  async register(userData: Omit<RegisterRequest, 'deviceId'>): Promise<LoginResponse> {
     const deviceId = getDeviceId();
     const response = await apiClient.post<LoginResponse>('/api/v1/auth/register', {
       ...userData,
@@ -86,7 +78,7 @@ export const authApi = {
     return response.data;
   },
 
-  logout: async (): Promise<void> => {
+  async logout(): Promise<void> {
     try {
       await apiClient.post('/api/v1/auth/logout');
     } catch {
@@ -96,7 +88,7 @@ export const authApi = {
     }
   },
 
-  refreshToken: async (): Promise<RefreshTokenResponse> => {
+  async refreshToken(): Promise<RefreshTokenResponse> {
     const deviceId = getDeviceId();
     const response = await apiClient.post<RefreshTokenResponse>('/api/v1/auth/refreshToken', {
       deviceId
@@ -104,17 +96,5 @@ export const authApi = {
 
     setAccessToken(response.data.token);
     return response.data;
-  },
-
-  confirmEmail: async (request: ConfirmEmailRequest): Promise<void> => {
-    await apiClient.post('/api/v1/auth/confirmEmail', request);
-  },
-
-  forgotPassword: async (request: ForgotPasswordRequest): Promise<void> => {
-    await apiClient.post('/api/v1/auth/forgotPassword', request);
-  },
-
-  resetPassword: async (request: ResetPasswordRequest): Promise<void> => {
-    await apiClient.post('/api/v1/auth/resetPassword', request);
   }
 };

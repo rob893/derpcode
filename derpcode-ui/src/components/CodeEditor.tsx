@@ -6,7 +6,7 @@ interface CodeEditorProps {
   language: Language;
   code: string;
   uiTemplate: string;
-  onChange: (value: string | undefined) => void;
+  onChange(value: string | undefined): void;
   flamesEnabled?: boolean;
 }
 

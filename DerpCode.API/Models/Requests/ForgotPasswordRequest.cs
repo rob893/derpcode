@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DerpCode.API.Models.Requests.Auth;
+namespace DerpCode.API.Models.Requests;
 
 public sealed record ForgotPasswordRequest
 {

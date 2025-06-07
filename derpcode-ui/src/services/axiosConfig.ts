@@ -46,8 +46,8 @@ apiClient.interceptors.request.use(
 // Flag to prevent multiple refresh token requests
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (error?: any) => void;
+  resolve(value?: any): void;
+  reject(error?: any): void;
 }> = [];
 
 const processQueue = (error: any, token: string | null = null) => {

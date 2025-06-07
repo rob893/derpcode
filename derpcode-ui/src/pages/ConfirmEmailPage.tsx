@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Card, CardBody, CardHeader, Button, Spinner } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
-import { authApi } from '../services/auth';
 import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
+import { userApi } from '../services/user';
 
 export function ConfirmEmailPage() {
   const [searchParams] = useSearchParams();
@@ -27,7 +27,7 @@ export function ConfirmEmailPage() {
       hasConfirmed.current = true;
 
       try {
-        await authApi.confirmEmail({ email, token });
+        await userApi.confirmEmail({ email, token });
         setStatus('success');
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to confirm email. Please try again.'));

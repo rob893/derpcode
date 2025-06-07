@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { Card, CardBody, CardHeader, Input, Button, Chip } from '@heroui/react';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { ApiErrorDisplay } from '../components/ApiErrorDisplay';
-import { authApi } from '../services/auth';
+import { userApi } from '../services/user';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +18,7 @@ export function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      await authApi.forgotPassword({ email });
+      await userApi.forgotPassword({ email });
       setIsSubmitted(true);
     } catch {
       // According to security best practices, we should always show success

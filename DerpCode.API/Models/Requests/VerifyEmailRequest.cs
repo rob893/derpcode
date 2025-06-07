@@ -1,12 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DerpCode.API.Models.Requests.Auth;
+namespace DerpCode.API.Models.Requests;
 
-public sealed record ResetPasswordRequest
+public sealed record ConfirmEmailRequest
 {
-    [Required]
-    public string Password { get; init; } = default!;
-
     [Required]
     [EmailAddress]
     public string Email { get; init; } = default!;
