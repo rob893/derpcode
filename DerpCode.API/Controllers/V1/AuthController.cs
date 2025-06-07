@@ -24,7 +24,6 @@ namespace DerpCode.API.Controllers.V1;
 
 [Route("api/v{version:apiVersion}/auth")]
 [ApiVersion("1")]
-[AllowAnonymous]
 [ApiController]
 public sealed class AuthController : ServiceControllerBase
 {
@@ -75,6 +74,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("register", Name = nameof(RegisterAsync))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<LoginResponse>> RegisterAsync([FromBody] RegisterUserRequest registerUserRequest)
@@ -123,6 +123,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="401">If provided login information is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("login", Name = nameof(LoginAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<LoginResponse>> LoginAsync([FromBody] LoginRequest loginRequest)
@@ -168,6 +169,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="401">If provided login information is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("login/google", Name = nameof(LoginGoogleAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<LoginResponse>> LoginGoogleAsync([FromBody] OAuthCodeLoginRequest loginRequest)
@@ -281,6 +283,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="401">If provided login information is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("login/github", Name = nameof(LoginGitHubAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<LoginResponse>> LoginGitHubAsync([FromBody] OAuthCodeLoginRequest loginRequest)
@@ -390,6 +393,7 @@ public sealed class AuthController : ServiceControllerBase
         }
     }
 
+    [AllowAnonymous]
     [HttpGet("github/callback", Name = nameof(GitHubCallback))]
     [ProducesResponseType(StatusCodes.Status302Found)]
     public IActionResult GitHubCallback([FromQuery] string code, [FromQuery] string state)
@@ -409,6 +413,7 @@ public sealed class AuthController : ServiceControllerBase
         return this.Redirect(redirectUrl);
     }
 
+    [AllowAnonymous]
     [HttpGet("google/callback", Name = nameof(GoogleCallback))]
     [ProducesResponseType(StatusCodes.Status302Found)]
     public IActionResult GoogleCallback([FromQuery] string code, [FromQuery] string state)
@@ -437,7 +442,6 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="401">If provided login information is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
-    [Authorize]
     [HttpPost("logout", Name = nameof(LogoutAsync))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> LogoutAsync()
@@ -477,6 +481,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="401">If provided token pair was invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("refreshToken", Name = nameof(RefreshTokenAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest refreshTokenRequest)
@@ -529,6 +534,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("forgotPassword", Name = nameof(ForgotPasswordAsync))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
@@ -567,6 +573,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("resetPassword", Name = nameof(ResetPasswordAsync))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
@@ -610,6 +617,7 @@ public sealed class AuthController : ServiceControllerBase
     /// <response code="400">If the request is invalid.</response>
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
+    [AllowAnonymous]
     [HttpPost("confirmEmail", Name = nameof(ConfirmEmailAsync))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ConfirmEmailAsync([FromBody] ConfirmEmailRequest request)

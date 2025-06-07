@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using DerpCode.API.Models;
 using DerpCode.API.Models.GitHub;
 using DerpCode.API.Models.Settings;
 using Microsoft.Extensions.Options;
