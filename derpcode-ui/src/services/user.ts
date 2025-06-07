@@ -1,5 +1,11 @@
 import apiClient from './axiosConfig';
-import type { ConfirmEmailRequest, ForgotPasswordRequest, ResetPasswordRequest, UserDto } from '../types/user';
+import type {
+  ConfirmEmailRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  UpdatePasswordRequest,
+  UserDto
+} from '../types/user';
 
 export const userApi = {
   async getUserById(id: number): Promise<UserDto> {
@@ -16,7 +22,7 @@ export const userApi = {
   },
 
   async confirmEmail(request: ConfirmEmailRequest): Promise<void> {
-    await apiClient.post('/api/v1/users/confirmEmail', request);
+    await apiClient.post('/api/v1/users/emailConfirmations', request);
   },
 
   async forgotPassword(request: ForgotPasswordRequest): Promise<void> {
@@ -25,5 +31,13 @@ export const userApi = {
 
   async resetPassword(request: ResetPasswordRequest): Promise<void> {
     await apiClient.post('/api/v1/users/resetPassword', request);
+  },
+
+  async updatePassword(userId: number, request: UpdatePasswordRequest): Promise<void> {
+    await apiClient.put(`/api/v1/users/${userId}/password`, request);
+  },
+
+  async resendEmailConfirmation(userId: number): Promise<void> {
+    await apiClient.post(`/api/v1/users/${userId}/emailConfirmations`);
   }
 };

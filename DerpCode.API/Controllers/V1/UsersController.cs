@@ -58,6 +58,7 @@ public sealed class UsersController : ServiceControllerBase
     /// <returns>A paginated response containing user DTOs.</returns>
     /// <response code="200">Returns the paginated list of users.</response>
     [HttpGet(Name = nameof(GetUsersAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<UserDto>>> GetUsersAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
@@ -84,6 +85,11 @@ public sealed class UsersController : ServiceControllerBase
         if (user == null)
         {
             return this.NotFound($"User with id {id} does not exist.");
+        }
+
+        if (!this.IsUserAuthorizedForResource(user.Id))
+        {
+            return this.Forbidden("You can only see your own user information.");
         }
 
         var userToReturn = UserDto.FromEntity(user);
@@ -116,7 +122,7 @@ public sealed class UsersController : ServiceControllerBase
 
         if (!this.IsUserAuthorizedForResource(user.Id))
         {
-            return this.Unauthorized("You can only delete your own user.");
+            return this.Forbidden("You can only delete your own user.");
         }
 
         this.userRepository.Remove(user);
@@ -156,7 +162,7 @@ public sealed class UsersController : ServiceControllerBase
 
         if (!this.IsUserAuthorizedForResource(user.Id))
         {
-            return this.Unauthorized("You can only delete your own linked accounts.");
+            return this.Forbidden("You can only delete your own linked accounts.");
         }
 
         var linkedAccount = user.LinkedAccounts.FirstOrDefault(account => account.LinkedAccountType == linkedAccountType);
@@ -206,14 +212,9 @@ public sealed class UsersController : ServiceControllerBase
             return this.NotFound($"No user with Id {id} found.");
         }
 
-        if (!this.User.TryGetUserId(out var userId))
+        if (!this.IsUserAuthorizedForResource(user.Id))
         {
-            return this.Unauthorized("You cannot do this.");
-        }
-
-        if (!this.User.IsAdmin() && userId != user.Id)
-        {
-            return this.Unauthorized("You cannot do this.");
+            return this.Forbidden("You can only update your own information.");
         }
 
         var patchDoc = dtoPatchDoc.MapPatchDocument<UpdateUserRequest, User>();
@@ -237,6 +238,7 @@ public sealed class UsersController : ServiceControllerBase
     /// <returns>A paginated response containing role DTOs.</returns>
     /// <response code="200">Returns the paginated list of roles.</response>
     [HttpGet("roles")]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<RoleDto>>> GetRolesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
@@ -255,8 +257,8 @@ public sealed class UsersController : ServiceControllerBase
     /// <response code="200">Returns the user with the added roles.</response>
     /// <response code="400">If the request is invalid or the role addition failed.</response>
     /// <response code="404">If the user is not found.</response>
-    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [HttpPost("{id}/roles")]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -315,8 +317,8 @@ public sealed class UsersController : ServiceControllerBase
     /// <response code="200">Returns the user with the roles removed.</response>
     /// <response code="400">If the request is invalid or the role removal failed.</response>
     /// <response code="404">If the user is not found.</response>
-    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [HttpDelete("{id}/roles")]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -360,6 +362,93 @@ public sealed class UsersController : ServiceControllerBase
         var userToReturn = UserDto.FromEntity(user);
 
         return this.Ok(userToReturn);
+    }
+
+    /// <summary>
+    /// Updates a user's password.
+    /// </summary>
+    /// <param name="id">The ID of the user whose password is being updated.</param>
+    /// <param name="request">The update password request.</param>
+    /// <returns>No content.</returns>
+    /// <response code="204">If the password was updated.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="403">If the user is not authorized to update this password.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [HttpPut("{id}/password", Name = nameof(UpdatePasswordAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> UpdatePasswordAsync([FromRoute] int id, [FromBody] UpdatePasswordRequest request)
+    {
+        if (request == null)
+        {
+            return this.BadRequest();
+        }
+
+        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+
+        if (user == null)
+        {
+            return this.NotFound($"No user with Id {id} found.");
+        }
+
+        if (!this.IsUserAuthorizedForResource(user.Id))
+        {
+            return this.Forbidden("You can only update your own password.");
+        }
+
+        var result = await this.userRepository.UserManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return this.BadRequest([.. result.Errors.Select(e => e.Description)]);
+        }
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    /// Resends the email confirmation for the user's email.
+    /// </summary>
+    /// <param name="id">The ID of the user.</param>
+    /// <returns>No content.</returns>
+    /// <response code="204">If the email was sent.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="403">If the user is not authorized to resend the email.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [HttpPost("{id}/emailConfirmations", Name = nameof(SendEmailConfirmationAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> SendEmailConfirmationAsync([FromRoute] int id)
+    {
+        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+
+        if (user == null)
+        {
+            return this.NotFound($"No user with Id {id} found.");
+        }
+
+        if (!this.IsUserAuthorizedForResource(user.Id))
+        {
+            return this.Forbidden("You can only resend confirmation email for your own account.");
+        }
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            return this.BadRequest("User does not have an email address set.");
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return this.BadRequest("User's email is already confirmed.");
+        }
+
+        var token = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
+
+        var confLink = $"{this.authSettings.UIBaseUrl}#/confirm-email?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetEmailConfirmationTemplateAsync(confLink, this.HttpContext.RequestAborted);
+        await this.emailService.SendEmailToUserAsync(user, "DerpCode Email Confirmation - Verify Your Account! 📧", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
+
+        return this.NoContent();
     }
 
     /// <summary>
@@ -455,7 +544,7 @@ public sealed class UsersController : ServiceControllerBase
     /// <response code="500">If an unexpected server error occured.</response>
     /// <response code="504">If the server took too long to respond.</response>
     [AllowAnonymous]
-    [HttpPost("confirmEmail", Name = nameof(ConfirmEmailAsync))]
+    [HttpPost("emailConfirmations", Name = nameof(ConfirmEmailAsync))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ConfirmEmailAsync([FromBody] ConfirmEmailRequest request)
     {

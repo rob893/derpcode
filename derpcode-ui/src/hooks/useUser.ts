@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { userApi } from '../services/user';
 import { useAuth } from './useAuth';
+import type { UpdatePasswordRequest } from '../types/user';
 
 export function useUser(userId?: number) {
   return useQuery({
@@ -40,5 +41,12 @@ export function useDeleteLinkedAccount() {
       // Invalidate and refetch user data to update the UI
       queryClient.invalidateQueries({ queryKey: ['user'] });
     }
+  });
+}
+
+export function useUpdatePassword() {
+  return useMutation({
+    mutationFn: ({ userId, request }: { userId: number; request: UpdatePasswordRequest }) =>
+      userApi.updatePassword(userId, request)
   });
 }

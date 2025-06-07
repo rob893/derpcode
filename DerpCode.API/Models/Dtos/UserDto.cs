@@ -12,6 +12,8 @@ public sealed record UserDto : IIdentifiable<int>
 
     public required string Email { get; init; }
 
+    public required bool EmailConfirmed { get; init; }
+
     public required DateTimeOffset Created { get; init; }
 
     public required List<string> Roles { get; init; }
@@ -27,6 +29,7 @@ public sealed record UserDto : IIdentifiable<int>
             Id = user.Id,
             UserName = user.UserName ?? string.Empty,
             Email = user.Email ?? string.Empty,
+            EmailConfirmed = user.EmailConfirmed,
             Created = user.Created,
             Roles = [.. user.UserRoles.Select(x => x.Role).Select(role => role.Name)],
             LinkedAccounts = [.. user.LinkedAccounts.Select(LinkedAccountDto.FromEntity)]

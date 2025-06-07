@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardBody,
@@ -10,10 +10,20 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure
+  useDisclosure,
+  Input
 } from '@heroui/react';
-import { useDeleteUser, useDeleteLinkedAccount } from '../hooks/useUser';
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router';
+import { useDeleteUser, useDeleteLinkedAccount, useUpdatePassword } from '../hooks/useUser';
+import {
+  validatePassword,
+  getPasswordRequirementsDescription,
+  type PasswordValidationResult
+} from '../utils/passwordValidation';
 import type { UserDto } from '../types/user';
+import { ApiErrorDisplay } from './ApiErrorDisplay';
+import { userApi } from '../services/user';
 
 interface AccountSectionProps {
   user: UserDto;
@@ -27,19 +37,50 @@ interface LinkedAccountToUnlink {
 export function AccountSection({ user }: AccountSectionProps) {
   const deleteUserMutation = useDeleteUser();
   const deleteLinkedAccountMutation = useDeleteLinkedAccount();
+  const updatePasswordMutation = useUpdatePassword();
+  const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isUnlinkOpen, onOpen: onUnlinkOpen, onClose: onUnlinkClose } = useDisclosure();
+  const { isOpen: isPasswordOpen, onOpen: onPasswordOpen, onClose: onPasswordClose } = useDisclosure();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [linkedAccountToUnlink, setLinkedAccountToUnlink] = useState<LinkedAccountToUnlink | null>(null);
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState<Error | null>(null);
+  const [deleteError, setDeleteError] = useState<Error | null>(null);
+  const [unlinkError, setUnlinkError] = useState<Error | null>(null);
+  const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult>({
+    isValid: false,
+    errors: []
+  });
+  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
+  const [confirmationResent, setConfirmationResent] = useState(false);
+  const [confirmationError, setConfirmationError] = useState<Error | null>(null);
+
+  // Validate password when it changes
+  useEffect(() => {
+    if (passwordForm.newPassword) {
+      const validation = validatePassword(passwordForm.newPassword);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation({ isValid: false, errors: [] });
+    }
+  }, [passwordForm.newPassword]);
 
   const handleDeleteAccount = async () => {
     try {
       setIsDeleting(true);
+      setDeleteError(null);
       await deleteUserMutation.mutateAsync(user.id);
       onClose();
     } catch (error) {
       console.error('Failed to delete account:', error);
+      setDeleteError(error as Error);
       setIsDeleting(false);
     }
   };
@@ -57,6 +98,7 @@ export function AccountSection({ user }: AccountSectionProps) {
 
     try {
       setIsUnlinking(true);
+      setUnlinkError(null);
       await deleteLinkedAccountMutation.mutateAsync({
         userId: user.id,
         linkedAccountType: linkedAccountToUnlink.type
@@ -65,6 +107,7 @@ export function AccountSection({ user }: AccountSectionProps) {
       onUnlinkClose();
     } catch (error) {
       console.error('Failed to unlink account:', error);
+      setUnlinkError(error as Error);
       setIsUnlinking(false);
     }
   };
@@ -72,6 +115,84 @@ export function AccountSection({ user }: AccountSectionProps) {
   const handleCancelUnlink = () => {
     setLinkedAccountToUnlink(null);
     onUnlinkClose();
+  };
+
+  const handleUpdatePassword = async () => {
+    setPasswordError(null);
+
+    // Validate form
+    const errors: string[] = [];
+    if (!passwordForm.oldPassword) {
+      errors.push('Current password is required');
+    }
+    if (!passwordForm.newPassword) {
+      errors.push('New password is required');
+    } else {
+      // Use the password validation utility
+      const passwordValidationResult = validatePassword(passwordForm.newPassword);
+      if (!passwordValidationResult.isValid) {
+        errors.push(...passwordValidationResult.errors);
+      }
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.push('New passwords do not match');
+    }
+
+    if (errors.length > 0) {
+      setPasswordError(new Error(errors.join('. ')));
+      return;
+    }
+
+    try {
+      setIsUpdatingPassword(true);
+      await updatePasswordMutation.mutateAsync({
+        userId: user.id,
+        request: {
+          oldPassword: passwordForm.oldPassword,
+          newPassword: passwordForm.newPassword
+        }
+      });
+
+      // Reset form and close modal on success
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      onPasswordClose();
+    } catch (error: any) {
+      setPasswordError(error as Error);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const handlePasswordCancel = () => {
+    setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordError(null);
+    onPasswordClose();
+  };
+
+  const isPasswordFormValid = () => {
+    const hasOldPassword = passwordForm.oldPassword.trim().length > 0;
+    const hasNewPassword = passwordForm.newPassword.trim().length > 0;
+    const hasConfirmPassword = passwordForm.confirmPassword.trim().length > 0;
+    const isNewPasswordValid = passwordValidation.isValid;
+    const passwordsMatch = passwordForm.newPassword === passwordForm.confirmPassword;
+
+    return hasOldPassword && hasNewPassword && hasConfirmPassword && isNewPasswordValid && passwordsMatch;
+  };
+
+  const handleResendConfirmation = async () => {
+    try {
+      setIsResendingConfirmation(true);
+      setConfirmationError(null);
+      await userApi.resendEmailConfirmation(user.id);
+      setConfirmationResent(true);
+      // Clear the success message after 5 seconds
+      setTimeout(() => setConfirmationResent(false), 5000);
+    } catch (error) {
+      console.error('Failed to resend confirmation email:', error);
+      setConfirmationError(error as Error);
+    } finally {
+      setIsResendingConfirmation(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -137,6 +258,40 @@ export function AccountSection({ user }: AccountSectionProps) {
           <h2 className="text-lg font-semibold">User Information</h2>
         </CardHeader>
         <CardBody className="space-y-4">
+          {/* Email confirmation warning - only show if email is not verified */}
+          {!user.emailConfirmed && (
+            <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 flex items-start gap-3">
+              <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-warning-800 font-medium text-sm">Email not verified</p>
+                <p className="text-warning-700 text-sm mt-1">
+                  You won't be able to recover your account without a verified email address.
+                </p>
+                <div className="flex items-center gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    color="warning"
+                    variant="flat"
+                    onPress={handleResendConfirmation}
+                    isLoading={isResendingConfirmation}
+                  >
+                    Resend Confirmation Email
+                  </Button>
+                  {confirmationResent && (
+                    <Chip size="sm" color="success" variant="flat">
+                      Email sent!
+                    </Chip>
+                  )}
+                </div>
+                {confirmationError && (
+                  <div className="mt-2">
+                    <ApiErrorDisplay error={confirmationError} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-default-600">Username</label>
@@ -144,7 +299,20 @@ export function AccountSection({ user }: AccountSectionProps) {
             </div>
             <div>
               <label className="text-sm font-medium text-default-600">Email</label>
-              <p className="text-foreground">{user.email}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-foreground">{user.email}</p>
+                {user.emailConfirmed ? (
+                  <div className="flex items-center gap-1">
+                    <CheckCircleIcon className="w-4 h-4 text-success-600" />
+                    <span className="text-success-600 text-xs font-medium">Verified</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <ExclamationTriangleIcon className="w-4 h-4 text-warning-600" />
+                    <span className="text-warning-600 text-xs font-medium">Not verified</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-sm font-medium text-default-600">Member Since</label>
@@ -191,6 +359,38 @@ export function AccountSection({ user }: AccountSectionProps) {
         </CardBody>
       </Card>
 
+      {/* Password Update */}
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Password</h2>
+        </CardHeader>
+        <CardBody>
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-medium text-foreground">Update Password</h3>
+              <p className="text-sm text-default-500 mt-1">Change your account password to keep your account secure.</p>
+            </div>
+            <div className="flex flex-col gap-2 ml-4">
+              <Button color="primary" variant="bordered" onPress={onPasswordOpen}>
+                Change Password
+              </Button>
+            </div>
+          </div>
+          <br />
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-medium text-foreground">Reset Password</h3>
+              <p className="text-sm text-default-500 mt-1">Forgot your password? No problem!</p>
+            </div>
+            <div className="flex flex-col gap-2 ml-4">
+              <Button color="secondary" variant="bordered" onPress={() => navigate('/forgot-password')}>
+                Reset Password
+              </Button>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
       {/* Danger Zone */}
       <Card>
         <CardHeader>
@@ -219,6 +419,9 @@ export function AccountSection({ user }: AccountSectionProps) {
           </ModalHeader>
           <ModalBody>
             <div className="space-y-4">
+              {deleteError && (
+                <ApiErrorDisplay error={deleteError} title="Account Deletion Failed" showDetails={true} />
+              )}
               <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
                 <h4 className="font-semibold text-danger mb-2">⚠️ This action is permanent</h4>
                 <p className="text-sm text-danger-700">Deleting your account will permanently remove:</p>
@@ -253,6 +456,7 @@ export function AccountSection({ user }: AccountSectionProps) {
           </ModalHeader>
           <ModalBody>
             <div className="space-y-4">
+              {unlinkError && <ApiErrorDisplay error={unlinkError} title="Account Unlink Failed" showDetails={true} />}
               <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
                 <h4 className="font-semibold text-warning mb-2">⚠️ Are you sure?</h4>
                 <p className="text-sm text-warning-700">
@@ -270,6 +474,83 @@ export function AccountSection({ user }: AccountSectionProps) {
             </Button>
             <Button color="warning" onPress={handleConfirmUnlink} isLoading={isUnlinking}>
               {isUnlinking ? 'Unlinking...' : 'Unlink Account'}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Password Update Modal */}
+      <Modal isOpen={isPasswordOpen} onClose={onPasswordClose} isDismissable={!isUpdatingPassword}>
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-foreground">Change Password</h3>
+          </ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              {passwordError && (
+                <ApiErrorDisplay error={passwordError} title="Password Update Failed" showDetails={true} />
+              )}
+
+              <Input
+                label="Current Password"
+                type="password"
+                value={passwordForm.oldPassword}
+                onChange={e => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
+                isRequired
+                isDisabled={isUpdatingPassword}
+              />
+
+              <Input
+                label="New Password"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={e => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                isRequired
+                isDisabled={isUpdatingPassword}
+                color={passwordForm.newPassword && !passwordValidation.isValid ? 'danger' : 'primary'}
+                description={getPasswordRequirementsDescription()}
+                errorMessage={
+                  passwordForm.newPassword && !passwordValidation.isValid
+                    ? passwordValidation.errors.join(', ')
+                    : undefined
+                }
+                isInvalid={passwordForm.newPassword.length > 0 && !passwordValidation.isValid}
+              />
+
+              <Input
+                label="Confirm New Password"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={e => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                isRequired
+                isDisabled={isUpdatingPassword}
+                color={
+                  passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword
+                    ? 'danger'
+                    : 'primary'
+                }
+                errorMessage={
+                  passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword
+                    ? 'Passwords do not match'
+                    : undefined
+                }
+                isInvalid={
+                  passwordForm.confirmPassword.length > 0 && passwordForm.newPassword !== passwordForm.confirmPassword
+                }
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={handlePasswordCancel} isDisabled={isUpdatingPassword}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleUpdatePassword}
+              isLoading={isUpdatingPassword}
+              isDisabled={isUpdatingPassword || !isPasswordFormValid()}
+            >
+              {isUpdatingPassword ? 'Updating...' : 'Update Password'}
             </Button>
           </ModalFooter>
         </ModalContent>

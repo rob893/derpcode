@@ -9,6 +9,7 @@ export interface UserDto {
   id: number;
   userName: string;
   email: string;
+  emailConfirmed: boolean;
   created: string;
   roles: string[];
   linkedAccounts: LinkedAccount[];
@@ -27,4 +28,9 @@ export interface ResetPasswordRequest {
   email: string;
   token: string;
   password: string;
+}
+
+export interface UpdatePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
 }
