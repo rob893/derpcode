@@ -32,8 +32,6 @@ public sealed class AuthController : ServiceControllerBase
 
     private readonly IEmailService emailService;
 
-    private readonly IEmailTemplateService emailTemplateService;
-
     private readonly IGitHubOAuthService gitHubOAuthService;
 
     private readonly IGoogleOAuthService googleOAuthService;
@@ -44,7 +42,6 @@ public sealed class AuthController : ServiceControllerBase
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
         IEmailService emailService,
-        IEmailTemplateService emailTemplateService,
         IGitHubOAuthService gitHubOAuthService,
         IGoogleOAuthService googleOAuthService,
         IOptions<AuthenticationSettings> authSettings,
@@ -54,7 +51,6 @@ public sealed class AuthController : ServiceControllerBase
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.jwtTokenService = jwtTokenService ?? throw new ArgumentNullException(nameof(jwtTokenService));
         this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-        this.emailTemplateService = emailTemplateService ?? throw new ArgumentNullException(nameof(emailTemplateService));
         this.gitHubOAuthService = gitHubOAuthService ?? throw new ArgumentNullException(nameof(gitHubOAuthService));
         this.googleOAuthService = googleOAuthService ?? throw new ArgumentNullException(nameof(googleOAuthService));
         this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
@@ -565,9 +561,6 @@ public sealed class AuthController : ServiceControllerBase
         }
 
         var emailToken = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
-        var confLink = $"{this.authSettings.UIBaseUrl}#/confirm-email?token={Uri.EscapeDataString(emailToken)}&email={Uri.EscapeDataString(user.Email)}";
-
-        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetEmailConfirmationTemplateAsync(confLink, this.HttpContext.RequestAborted);
-        await this.emailService.SendEmailToUserAsync(user, "Welcome to DerpCode - Confirm Your Email! 🎉", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
+        await this.emailService.SendEmailConfirmationToUserAsync(user, emailToken, this.HttpContext.RequestAborted);
     }
 }

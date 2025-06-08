@@ -16,22 +16,33 @@ public sealed class AcsEmailServiceTests
 {
     private readonly Mock<IOptions<EmailSettings>> mockEmailOptions;
 
+    private readonly Mock<IOptions<AuthenticationSettings>> mockAuthOptions;
+
     private readonly Mock<IAcsEmailClientFactory> mockEmailClientFactory;
 
     private readonly Mock<ILogger<AcsEmailService>> mockLogger;
 
+    private readonly Mock<IEmailTemplateService> mockEmailTemplateService;
+
     private readonly Mock<EmailClient> mockEmailClient;
 
     private readonly EmailSettings emailSettings;
+
+    private readonly AuthenticationSettings authSettings = new AuthenticationSettings
+    {
+        UIBaseUrl = new Uri("https://test.derpcode.dev/")
+    };
 
     private readonly AcsEmailService acsEmailService;
 
     public AcsEmailServiceTests()
     {
         this.mockEmailOptions = new Mock<IOptions<EmailSettings>>();
+        this.mockAuthOptions = new Mock<IOptions<AuthenticationSettings>>();
         this.mockEmailClientFactory = new Mock<IAcsEmailClientFactory>();
         this.mockLogger = new Mock<ILogger<AcsEmailService>>();
         this.mockEmailClient = new Mock<EmailClient>();
+        this.mockEmailTemplateService = new Mock<IEmailTemplateService>();
 
         this.emailSettings = new EmailSettings
         {
@@ -40,9 +51,15 @@ public sealed class AcsEmailServiceTests
         };
 
         this.mockEmailOptions.Setup(x => x.Value).Returns(this.emailSettings);
+        this.mockAuthOptions.Setup(x => x.Value).Returns(this.authSettings);
         this.mockEmailClientFactory.Setup(x => x.CreateClient(It.IsAny<Azure.Core.TokenCredential>())).Returns(this.mockEmailClient.Object);
 
-        this.acsEmailService = new AcsEmailService(this.mockEmailOptions.Object, this.mockEmailClientFactory.Object, this.mockLogger.Object);
+        this.acsEmailService = new AcsEmailService(
+            this.mockEmailOptions.Object,
+            this.mockEmailClientFactory.Object,
+            this.mockEmailTemplateService.Object,
+            this.mockAuthOptions.Object,
+            this.mockLogger.Object);
     }
 
     #region Constructor Tests
@@ -52,7 +69,7 @@ public sealed class AcsEmailServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new AcsEmailService(null!, this.mockEmailClientFactory.Object, this.mockLogger.Object));
+            new AcsEmailService(null!, this.mockEmailClientFactory.Object, this.mockEmailTemplateService.Object, this.mockAuthOptions.Object, this.mockLogger.Object));
 
         Assert.Equal("emailSettings", exception.ParamName);
     }
@@ -62,7 +79,7 @@ public sealed class AcsEmailServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new AcsEmailService(this.mockEmailOptions.Object, null!, this.mockLogger.Object));
+            new AcsEmailService(this.mockEmailOptions.Object, null!, this.mockEmailTemplateService.Object, this.mockAuthOptions.Object, this.mockLogger.Object));
 
         Assert.Equal("emailClientFactory", exception.ParamName);
     }
@@ -72,7 +89,7 @@ public sealed class AcsEmailServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new AcsEmailService(this.mockEmailOptions.Object, this.mockEmailClientFactory.Object, null!));
+            new AcsEmailService(this.mockEmailOptions.Object, this.mockEmailClientFactory.Object, this.mockEmailTemplateService.Object, this.mockAuthOptions.Object, null!));
 
         Assert.Equal("logger", exception.ParamName);
     }
@@ -86,7 +103,7 @@ public sealed class AcsEmailServiceTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new AcsEmailService(mockOptions.Object, this.mockEmailClientFactory.Object, this.mockLogger.Object));
+            new AcsEmailService(mockOptions.Object, this.mockEmailClientFactory.Object, this.mockEmailTemplateService.Object, this.mockAuthOptions.Object, this.mockLogger.Object));
 
         Assert.Equal("emailSettings", exception.ParamName);
     }
@@ -95,7 +112,7 @@ public sealed class AcsEmailServiceTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Act
-        var service = new AcsEmailService(this.mockEmailOptions.Object, this.mockEmailClientFactory.Object, this.mockLogger.Object);
+        var service = new AcsEmailService(this.mockEmailOptions.Object, this.mockEmailClientFactory.Object, this.mockEmailTemplateService.Object, this.mockAuthOptions.Object, this.mockLogger.Object);
 
         // Assert
         Assert.NotNull(service);

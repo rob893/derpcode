@@ -15,7 +15,7 @@ import {
 } from '@heroui/react';
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router';
-import { useDeleteUser, useDeleteLinkedAccount, useUpdatePassword } from '../hooks/useUser';
+import { useDeleteUser, useDeleteLinkedAccount, useUpdatePassword, useUpdateUsername } from '../hooks/useUser';
 import {
   validatePassword,
   getPasswordRequirementsDescription,
@@ -38,20 +38,28 @@ export function AccountSection({ user }: AccountSectionProps) {
   const deleteUserMutation = useDeleteUser();
   const deleteLinkedAccountMutation = useDeleteLinkedAccount();
   const updatePasswordMutation = useUpdatePassword();
+  const updateUsernameMutation = useUpdateUsername();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isUnlinkOpen, onOpen: onUnlinkOpen, onClose: onUnlinkClose } = useDisclosure();
   const { isOpen: isPasswordOpen, onOpen: onPasswordOpen, onClose: onPasswordClose } = useDisclosure();
+  const { isOpen: isUsernameOpen, onOpen: onUsernameOpen, onClose: onUsernameClose } = useDisclosure();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
   const [linkedAccountToUnlink, setLinkedAccountToUnlink] = useState<LinkedAccountToUnlink | null>(null);
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+  const [usernameForm, setUsernameForm] = useState({
+    password: '',
+    newUsername: ''
+  });
   const [passwordError, setPasswordError] = useState<Error | null>(null);
+  const [usernameError, setUsernameError] = useState<Error | null>(null);
   const [deleteError, setDeleteError] = useState<Error | null>(null);
   const [unlinkError, setUnlinkError] = useState<Error | null>(null);
   const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult>({
@@ -167,6 +175,53 @@ export function AccountSection({ user }: AccountSectionProps) {
     setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     setPasswordError(null);
     onPasswordClose();
+  };
+
+  const handleUpdateUsername = async () => {
+    setUsernameError(null);
+
+    // Validate form
+    const errors: string[] = [];
+    if (!usernameForm.password) {
+      errors.push('Current password is required');
+    }
+    if (!usernameForm.newUsername) {
+      errors.push('New username is required');
+    } else if (usernameForm.newUsername.trim().length < 3) {
+      errors.push('Username must be at least 3 characters long');
+    } else if (usernameForm.newUsername === user.userName) {
+      errors.push('New username must be different from current username');
+    }
+
+    if (errors.length > 0) {
+      setUsernameError(new Error(errors.join('. ')));
+      return;
+    }
+
+    try {
+      setIsUpdatingUsername(true);
+      await updateUsernameMutation.mutateAsync({
+        userId: user.id,
+        request: {
+          password: usernameForm.password,
+          newUsername: usernameForm.newUsername.trim()
+        }
+      });
+
+      // Reset form and close modal on success
+      setUsernameForm({ password: '', newUsername: '' });
+      onUsernameClose();
+    } catch (error: any) {
+      setUsernameError(error as Error);
+    } finally {
+      setIsUpdatingUsername(false);
+    }
+  };
+
+  const handleUsernameCancel = () => {
+    setUsernameForm({ password: '', newUsername: '' });
+    setUsernameError(null);
+    onUsernameClose();
   };
 
   const isPasswordFormValid = () => {
@@ -295,7 +350,12 @@ export function AccountSection({ user }: AccountSectionProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-default-600">Username</label>
-              <p className="text-foreground">{user.userName}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-foreground">{user.userName}</p>
+                <Button color="primary" variant="light" size="sm" onPress={onUsernameOpen}>
+                  Change
+                </Button>
+              </div>
             </div>
             <div>
               <label className="text-sm font-medium text-default-600">Email</label>
@@ -380,10 +440,24 @@ export function AccountSection({ user }: AccountSectionProps) {
           <div className="flex items-start justify-between">
             <div>
               <h3 className="font-medium text-foreground">Reset Password</h3>
-              <p className="text-sm text-default-500 mt-1">Forgot your password? No problem!</p>
+              {!user.emailConfirmed ? (
+                <div className="mt-2 p-2 bg-warning-50 border border-warning-200 rounded-md">
+                  <div className="flex items-start gap-2">
+                    <ExclamationTriangleIcon className="w-4 h-4 text-warning-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-warning-700 text-xs">Email verification required to reset password</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-default-500 mt-1">Forgot your password? No problem!</p>
+              )}
             </div>
             <div className="flex flex-col gap-2 ml-4">
-              <Button color="secondary" variant="bordered" onPress={() => navigate('/forgot-password')}>
+              <Button
+                color="secondary"
+                variant="bordered"
+                onPress={() => navigate('/forgot-password')}
+                isDisabled={!user.emailConfirmed}
+              >
                 Reset Password
               </Button>
             </div>
@@ -545,6 +619,83 @@ export function AccountSection({ user }: AccountSectionProps) {
               isDisabled={isUpdatingPassword || !isPasswordFormValid()}
             >
               {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Username Update Modal */}
+      <Modal isOpen={isUsernameOpen} onClose={onUsernameClose} isDismissable={!isUpdatingUsername}>
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-foreground">Change Username</h3>
+          </ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              {usernameError && (
+                <ApiErrorDisplay error={usernameError} title="Username Update Failed" showDetails={true} />
+              )}
+
+              <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                <h4 className="font-semibold text-warning mb-2">⚠️ Important</h4>
+                <p className="text-sm text-warning-700">
+                  Changing your username will affect how you appear in any existing links to your profile.
+                </p>
+                <br />
+                <p className="text-sm text-warning-700">
+                  Forgot your password or never set one? Reset your password first!
+                </p>
+              </div>
+
+              <Input
+                label="Current Password"
+                type="password"
+                value={usernameForm.password}
+                onChange={e => setUsernameForm(prev => ({ ...prev, password: e.target.value }))}
+                isRequired
+                isDisabled={isUpdatingUsername}
+                description="Enter your current password to confirm this change"
+              />
+
+              <Input
+                label="New Username"
+                type="text"
+                value={usernameForm.newUsername}
+                onChange={e => setUsernameForm(prev => ({ ...prev, newUsername: e.target.value }))}
+                isRequired
+                isDisabled={isUpdatingUsername}
+                description="Username must be at least 3 characters long"
+                errorMessage={
+                  usernameForm.newUsername && usernameForm.newUsername.trim().length < 3
+                    ? 'Username must be at least 3 characters long'
+                    : usernameForm.newUsername === user.userName
+                      ? 'New username must be different from current username'
+                      : undefined
+                }
+                isInvalid={
+                  (usernameForm.newUsername.length > 0 && usernameForm.newUsername.trim().length < 3) ||
+                  usernameForm.newUsername === user.userName
+                }
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={handleUsernameCancel} isDisabled={isUpdatingUsername}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleUpdateUsername}
+              isLoading={isUpdatingUsername}
+              isDisabled={
+                isUpdatingUsername ||
+                !usernameForm.password ||
+                !usernameForm.newUsername ||
+                usernameForm.newUsername.trim().length < 3 ||
+                usernameForm.newUsername === user.userName
+              }
+            >
+              {isUpdatingUsername ? 'Updating...' : 'Update Username'}
             </Button>
           </ModalFooter>
         </ModalContent>

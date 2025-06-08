@@ -9,14 +9,11 @@ using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses.Pagination;
-using DerpCode.API.Models.Settings;
 using DerpCode.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace DerpCode.API.Controllers.V1;
 
@@ -27,27 +24,19 @@ public sealed class UsersController : ServiceControllerBase
 {
     private readonly IUserRepository userRepository;
 
-    private readonly AuthenticationSettings authSettings;
-
     private readonly IEmailService emailService;
-
-    private readonly IEmailTemplateService emailTemplateService;
 
     private readonly ILogger<UsersController> logger;
 
     public UsersController(
         IUserRepository userRepository,
-        IOptions<AuthenticationSettings> authSettings,
         IEmailService emailService,
-        IEmailTemplateService emailTemplateService,
         ILogger<UsersController> logger,
         ICorrelationIdService correlationIdService)
         : base(correlationIdService)
     {
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-        this.authSettings = authSettings?.Value ?? throw new ArgumentNullException(nameof(authSettings));
         this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-        this.emailTemplateService = emailTemplateService ?? throw new ArgumentNullException(nameof(emailTemplateService));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -184,54 +173,6 @@ public sealed class UsersController : ServiceControllerBase
     }
 
     /// <summary>
-    /// Updates a user using JSON Patch operations.
-    /// </summary>
-    /// <param name="id">The ID of the user to update.</param>
-    /// <param name="dtoPatchDoc">The JSON patch document containing the operations to apply.</param>
-    /// <returns>The updated user.</returns>
-    /// <response code="200">Returns the updated user.</response>
-    /// <response code="400">If the patch document is invalid or the update failed.</response>
-    /// <response code="401">If the user is not authorized to update this user.</response>
-    /// <response code="404">If the user is not found.</response>
-    [HttpPatch("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserDto>> UpdateUserAsync([FromRoute] int id, [FromBody] JsonPatchDocument<UpdateUserRequest> dtoPatchDoc)
-    {
-        if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
-        {
-            return this.BadRequest("A JSON patch document with at least 1 operation is required.");
-        }
-
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
-
-        if (user == null)
-        {
-            return this.NotFound($"No user with Id {id} found.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only update your own information.");
-        }
-
-        var patchDoc = dtoPatchDoc.MapPatchDocument<UpdateUserRequest, User>();
-
-        if (!patchDoc.TryApply(user, out var error))
-        {
-            return this.BadRequest($"Invalid JSON patch document: {error}");
-        }
-
-        await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-        var userToReturn = UserDto.FromEntity(user);
-
-        return this.Ok(userToReturn);
-    }
-
-    /// <summary>
     /// Gets a paginated list of roles.
     /// </summary>
     /// <param name="searchParams">The cursor pagination parameters for searching roles.</param>
@@ -365,6 +306,57 @@ public sealed class UsersController : ServiceControllerBase
     }
 
     /// <summary>
+    /// Updates a user's username.
+    /// </summary>
+    /// <param name="id">The ID of the user.</param>
+    /// <param name="request">The update username request.</param>
+    /// <returns>The updated user.</returns>
+    /// <response code="200">If the user was updated.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="403">If the user is not authorized to update this password.</response>
+    /// <response code="500">If an unexpected server error occured.</response>
+    /// <response code="504">If the server took too long to respond.</response>
+    [HttpPut("{id}/username", Name = nameof(UpdateUsernameAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<UserDto>> UpdateUsernameAsync([FromRoute] int id, [FromBody] UpdateUsernameRequest request)
+    {
+        if (request == null)
+        {
+            return this.BadRequest();
+        }
+
+        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+
+        if (user == null)
+        {
+            return this.NotFound($"No user with Id {id} found.");
+        }
+
+        if (!this.IsUserAuthorizedForResource(user.Id))
+        {
+            return this.Forbidden("You can only update your own information.");
+        }
+
+        var pwResult = await this.userRepository.CheckPasswordAsync(user, request.Password, this.HttpContext.RequestAborted);
+
+        if (!pwResult)
+        {
+            return this.Forbidden("Invalid password.");
+        }
+
+        var updateResult = await this.userRepository.UserManager.SetUserNameAsync(user, request.NewUsername);
+
+        if (!updateResult.Succeeded)
+        {
+            return this.BadRequest([.. updateResult.Errors.Select(e => e.Description)]);
+        }
+
+        var userToReturn = UserDto.FromEntity(user);
+
+        return this.Ok(userToReturn);
+    }
+
+    /// <summary>
     /// Updates a user's password.
     /// </summary>
     /// <param name="id">The ID of the user whose password is being updated.</param>
@@ -444,9 +436,7 @@ public sealed class UsersController : ServiceControllerBase
 
         var token = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var confLink = $"{this.authSettings.UIBaseUrl}#/confirm-email?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
-        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetEmailConfirmationTemplateAsync(confLink, this.HttpContext.RequestAborted);
-        await this.emailService.SendEmailToUserAsync(user, "DerpCode Email Confirmation - Verify Your Account! 📧", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
+        await this.emailService.SendEmailConfirmationToUserAsync(user, token, this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }
@@ -483,9 +473,7 @@ public sealed class UsersController : ServiceControllerBase
 
         var token = await this.userRepository.UserManager.GeneratePasswordResetTokenAsync(user);
 
-        var confLink = $"{this.authSettings.UIBaseUrl}#/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
-        var (plainTextMessage, htmlMessage) = await this.emailTemplateService.GetPasswordResetTemplateAsync(confLink, this.HttpContext.RequestAborted);
-        await this.emailService.SendEmailToUserAsync(user, "DerpCode Password Reset - Let's Get You Back In! 🔑", plainTextMessage, htmlMessage, this.HttpContext.RequestAborted);
+        await this.emailService.SendResetPasswordToUserAsync(user, token, this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }

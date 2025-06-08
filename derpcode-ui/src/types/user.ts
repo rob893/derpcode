@@ -34,3 +34,8 @@ export interface UpdatePasswordRequest {
   oldPassword: string;
   newPassword: string;
 }
+
+export interface UpdateUsernameRequest {
+  password: string;
+  newUsername: string;
+}

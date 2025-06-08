@@ -4,6 +4,7 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   UpdatePasswordRequest,
+  UpdateUsernameRequest,
   UserDto
 } from '../types/user';
 
@@ -35,6 +36,11 @@ export const userApi = {
 
   async updatePassword(userId: number, request: UpdatePasswordRequest): Promise<void> {
     await apiClient.put(`/api/v1/users/${userId}/password`, request);
+  },
+
+  async updateUsername(userId: number, request: UpdateUsernameRequest): Promise<UserDto> {
+    const response = await apiClient.put<UserDto>(`/api/v1/users/${userId}/username`, request);
+    return response.data;
   },
 
   async resendEmailConfirmation(userId: number): Promise<void> {
