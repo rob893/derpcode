@@ -507,7 +507,6 @@ export function AccountSection({ user }: AccountSectionProps) {
                 onChange={e => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                 isRequired
                 isDisabled={isUpdatingPassword}
-                color={passwordForm.newPassword && !passwordValidation.isValid ? 'danger' : 'primary'}
                 description={getPasswordRequirementsDescription()}
                 errorMessage={
                   passwordForm.newPassword && !passwordValidation.isValid
@@ -524,11 +523,6 @@ export function AccountSection({ user }: AccountSectionProps) {
                 onChange={e => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                 isRequired
                 isDisabled={isUpdatingPassword}
-                color={
-                  passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword
-                    ? 'danger'
-                    : 'primary'
-                }
                 errorMessage={
                   passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword
                     ? 'Passwords do not match'

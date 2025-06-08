@@ -128,7 +128,8 @@ public sealed class AuthController : ServiceControllerBase
             return this.BadRequest();
         }
 
-        var user = await this.userRepository.GetByUsernameAsync(loginRequest.Username, [user => user.RefreshTokens], this.HttpContext.RequestAborted);
+        var user = await this.userRepository.GetByUsernameAsync(loginRequest.Username, [user => user.RefreshTokens], this.HttpContext.RequestAborted)
+            ?? await this.userRepository.GetByEmailAsync(loginRequest.Username, [user => user.RefreshTokens], this.HttpContext.RequestAborted);
 
         if (user == null)
         {

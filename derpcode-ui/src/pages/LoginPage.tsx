@@ -62,12 +62,12 @@ export function LoginPage() {
             {error && <ApiErrorDisplay error={error} title="Login Failed" showDetails={true} />}
 
             <Input
-              label="Username"
+              label="Username or Email"
               value={username}
               onChange={e => setUsername(e.target.value)}
               isRequired
               isDisabled={isLoading}
-              placeholder="Enter your username"
+              placeholder="Enter your username or email"
               autoComplete="username"
               variant="bordered"
               color="primary"
