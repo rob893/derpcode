@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Entities;
@@ -40,7 +41,7 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
             return created;
         }
 
-        await this.UserManager.AddToRoleAsync(user, "User");
+        await this.UserManager.AddToRoleAsync(user, UserRoleName.User);
 
         return created;
     }
@@ -60,7 +61,7 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
             return created;
         }
 
-        await this.UserManager.AddToRoleAsync(user, "User");
+        await this.UserManager.AddToRoleAsync(user, UserRoleName.User);
 
         return created;
     }

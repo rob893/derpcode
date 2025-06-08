@@ -49,12 +49,14 @@ export const ProblemView = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure();
   const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange } = useDisclosure();
+  const { isOpen: isResetOpen, onOpen: onResetOpen, onOpenChange: onResetOpenChange } = useDisclosure();
 
   const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
   const [code, setCode] = useState('');
   const [result, setResult] = useState<SubmissionResult | null>(null);
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [showHints, setShowHints] = useState(false);
+  const [revealedHints, setRevealedHints] = useState<Set<number>>(new Set());
   const [flamesEnabled, setFlamesEnabled] = useState(true);
   const [problemToDelete, setProblemToDelete] = useState<{ id: number; name: string } | null>(null);
 
@@ -79,6 +81,9 @@ export const ProblemView = () => {
 
       // Use saved code if available, otherwise use the template
       setCode(savedCode || initialDriver.uiTemplate);
+
+      // Reset revealed hints when problem changes
+      setRevealedHints(new Set());
     }
   }, [problem, user?.id]);
 
@@ -178,6 +183,17 @@ export const ProblemView = () => {
     } catch (error) {
       console.error('Failed to clone problem:', error);
       // Error handling could be enhanced with toast notifications
+    }
+  };
+
+  // Handle reset code to template
+  const handleResetCode = () => {
+    if (!problem || !selectedLanguage) return;
+
+    const selectedDriver = problem.drivers.find(d => d.language === selectedLanguage);
+    if (selectedDriver) {
+      setCode(selectedDriver.uiTemplate);
+      onResetOpenChange(); // Close the modal
     }
   };
 
@@ -300,13 +316,18 @@ export const ProblemView = () => {
 
                   {problem.hints && problem.hints.length > 0 && (
                     <div>
-                      <div className="flex justify-between items-center mb-2">
+                      <div className="flex justify-between items-center mb-3">
                         <h3 className="text-lg font-semibold text-foreground">Hints</h3>
                         <Button
                           size="sm"
                           variant="ghost"
                           color="secondary"
-                          onPress={() => setShowHints(!showHints)}
+                          onPress={() => {
+                            setShowHints(!showHints);
+                            if (!showHints) {
+                              setRevealedHints(new Set()); // Reset revealed hints when showing
+                            }
+                          }}
                           startContent={
                             showHints ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />
                           }
@@ -315,12 +336,40 @@ export const ProblemView = () => {
                         </Button>
                       </div>
                       {showHints && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {problem.hints.map((hint, index) => (
-                            <div key={index} className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                              <p className="text-warning-700 dark:text-warning-300">
-                                <strong>Hint {index + 1}:</strong> {hint}
-                              </p>
+                            <div key={index} className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-medium font-semibold text-foreground">Hint {index + 1}</h4>
+                                <Button
+                                  size="sm"
+                                  variant="bordered"
+                                  color="warning"
+                                  onPress={() => {
+                                    const newRevealed = new Set(revealedHints);
+                                    if (revealedHints.has(index)) {
+                                      newRevealed.delete(index);
+                                    } else {
+                                      newRevealed.add(index);
+                                    }
+                                    setRevealedHints(newRevealed);
+                                  }}
+                                  startContent={
+                                    revealedHints.has(index) ? (
+                                      <EyeSlashIcon className="h-4 w-4" />
+                                    ) : (
+                                      <EyeIcon className="h-4 w-4" />
+                                    )
+                                  }
+                                >
+                                  {revealedHints.has(index) ? 'Hide' : 'Show'}
+                                </Button>
+                              </div>
+                              {revealedHints.has(index) && (
+                                <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                                  <p className="text-warning-700 dark:text-warning-300">{hint}</p>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -423,7 +472,17 @@ export const ProblemView = () => {
                   flamesEnabled={flamesEnabled}
                 />
 
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-3">
+                  <Button
+                    color="warning"
+                    variant="bordered"
+                    size="lg"
+                    onPress={onResetOpen}
+                    isDisabled={!selectedLanguage}
+                    className="font-semibold"
+                  >
+                    Reset Code
+                  </Button>
                   <Button
                     color="primary"
                     size="lg"
@@ -545,6 +604,33 @@ export const ProblemView = () => {
               <ModalFooter>
                 <Button color="primary" onPress={onClose}>
                   Done
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Reset Code Confirmation Modal */}
+      <Modal isOpen={isResetOpen} onOpenChange={onResetOpenChange} placement="center">
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-xl font-bold text-danger">Reset Code</h2>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-foreground">
+                  Are you sure you want to reset the code for the problem "{problem.name}"?
+                </p>
+                <p className="text-warning text-sm mt-2">This action will discard your current code.</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onResetOpenChange}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleResetCode}>
+                  Reset Code
                 </Button>
               </ModalFooter>
             </>
