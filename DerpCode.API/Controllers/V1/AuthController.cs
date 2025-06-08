@@ -508,7 +508,7 @@ public sealed class AuthController : ServiceControllerBase
             return this.Unauthorized("Invalid token.");
         }
 
-        var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, refreshTokenRequest.DeviceId);
+        var token = await this.GenerateAndSaveAccessAndRefreshTokensAsync(user, refreshTokenRequest.DeviceId, updateLastLogin: false);
 
         return this.Ok(
             new RefreshTokenResponse
@@ -519,10 +519,15 @@ public sealed class AuthController : ServiceControllerBase
 
 
 
-    private async Task<string> GenerateAndSaveAccessAndRefreshTokensAsync(User user, string deviceId)
+    private async Task<string> GenerateAndSaveAccessAndRefreshTokensAsync(User user, string deviceId, bool updateLastLogin = true)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
+
+        if (updateLastLogin)
+        {
+            user.LastLogin = DateTimeOffset.UtcNow;
+        }
 
         var token = this.jwtTokenService.GenerateJwtTokenForUser(user);
         var refreshToken = await this.jwtTokenService.GenerateAndSaveRefreshTokenForUserAsync(user, deviceId, this.HttpContext.RequestAborted);

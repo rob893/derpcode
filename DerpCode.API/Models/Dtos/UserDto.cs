@@ -20,6 +20,14 @@ public sealed record UserDto : IIdentifiable<int>
 
     public required List<LinkedAccountDto> LinkedAccounts { get; init; }
 
+    public required DateTimeOffset? LastLogin { get; set; }
+
+    public required DateTimeOffset LastPasswordChange { get; set; }
+
+    public required DateTimeOffset LastEmailChange { get; set; }
+
+    public required DateTimeOffset LastUsernameChange { get; set; }
+
     public static UserDto FromEntity(Entities.User user)
     {
         ArgumentNullException.ThrowIfNull(user);
@@ -31,6 +39,10 @@ public sealed record UserDto : IIdentifiable<int>
             Email = user.Email ?? string.Empty,
             EmailConfirmed = user.EmailConfirmed,
             Created = user.Created,
+            LastLogin = user.LastLogin,
+            LastPasswordChange = user.LastPasswordChange,
+            LastEmailChange = user.LastEmailChange,
+            LastUsernameChange = user.LastUsernameChange,
             Roles = [.. user.UserRoles.Select(x => x.Role).Select(role => role.Name)],
             LinkedAccounts = [.. user.LinkedAccounts.Select(LinkedAccountDto.FromEntity)]
         };

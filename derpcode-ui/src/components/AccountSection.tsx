@@ -13,9 +13,10 @@ import {
   useDisclosure,
   Input
 } from '@heroui/react';
-import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ExclamationTriangleIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router';
 import { useDeleteUser, useDeleteLinkedAccount, useUpdatePassword, useUpdateUsername } from '../hooks/useUser';
+import { useAuth } from '../hooks/useAuth';
 import {
   validatePassword,
   getPasswordRequirementsDescription,
@@ -24,6 +25,7 @@ import {
 import type { UserDto } from '../types/user';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { userApi } from '../services/user';
+import { daysSinceDate, isWithinTimeLimit } from '../utils/dateTimeUtils';
 
 interface AccountSectionProps {
   user: UserDto;
@@ -34,7 +36,11 @@ interface LinkedAccountToUnlink {
   type: string;
 }
 
+const DAYS_TO_WAIT_FOR_USERNAME_CHANGE = 30;
+const MINUTES_SINCE_LOGIN_TO_WAIT_FOR_USERNAME_CHANGE = 15;
+
 export function AccountSection({ user }: AccountSectionProps) {
+  const { logout } = useAuth();
   const deleteUserMutation = useDeleteUser();
   const deleteLinkedAccountMutation = useDeleteLinkedAccount();
   const updatePasswordMutation = useUpdatePassword();
@@ -55,7 +61,6 @@ export function AccountSection({ user }: AccountSectionProps) {
     confirmPassword: ''
   });
   const [usernameForm, setUsernameForm] = useState({
-    password: '',
     newUsername: ''
   });
   const [passwordError, setPasswordError] = useState<Error | null>(null);
@@ -182,9 +187,6 @@ export function AccountSection({ user }: AccountSectionProps) {
 
     // Validate form
     const errors: string[] = [];
-    if (!usernameForm.password) {
-      errors.push('Current password is required');
-    }
     if (!usernameForm.newUsername) {
       errors.push('New username is required');
     } else if (usernameForm.newUsername.trim().length < 3) {
@@ -203,13 +205,12 @@ export function AccountSection({ user }: AccountSectionProps) {
       await updateUsernameMutation.mutateAsync({
         userId: user.id,
         request: {
-          password: usernameForm.password,
           newUsername: usernameForm.newUsername.trim()
         }
       });
 
       // Reset form and close modal on success
-      setUsernameForm({ password: '', newUsername: '' });
+      setUsernameForm({ newUsername: '' });
       onUsernameClose();
     } catch (error: any) {
       setUsernameError(error as Error);
@@ -219,7 +220,7 @@ export function AccountSection({ user }: AccountSectionProps) {
   };
 
   const handleUsernameCancel = () => {
-    setUsernameForm({ password: '', newUsername: '' });
+    setUsernameForm({ newUsername: '' });
     setUsernameError(null);
     onUsernameClose();
   };
@@ -350,10 +351,18 @@ export function AccountSection({ user }: AccountSectionProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-default-600">Username</label>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <p className="text-foreground">{user.userName}</p>
-                <Button color="primary" variant="light" size="sm" onPress={onUsernameOpen}>
-                  Change
+                <Button
+                  color="primary"
+                  variant="light"
+                  size="sm"
+                  isIconOnly
+                  onPress={onUsernameOpen}
+                  className="p-1"
+                  aria-label="Change username"
+                >
+                  <PencilIcon className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -636,26 +645,59 @@ export function AccountSection({ user }: AccountSectionProps) {
                 <ApiErrorDisplay error={usernameError} title="Username Update Failed" showDetails={true} />
               )}
 
-              <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
-                <h4 className="font-semibold text-warning mb-2">⚠️ Important</h4>
-                <p className="text-sm text-warning-700">
-                  Changing your username will affect how you appear in any existing links to your profile.
-                </p>
-                <br />
-                <p className="text-sm text-warning-700">
-                  Forgot your password or never set one? Reset your password first!
-                </p>
-              </div>
+              {/* Conditional 30-day restriction warning */}
+              {daysSinceDate(user.lastUsernameChange) < DAYS_TO_WAIT_FOR_USERNAME_CHANGE && (
+                <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
+                  <h4 className="font-semibold text-danger mb-2">🚫 Username Change Restricted</h4>
+                  <p className="text-sm text-danger-700 mb-2">
+                    You changed your username {daysSinceDate(user.lastUsernameChange)} days ago.
+                  </p>
+                  <p className="text-sm text-danger-700">
+                    You must wait {DAYS_TO_WAIT_FOR_USERNAME_CHANGE - daysSinceDate(user.lastUsernameChange)} more days
+                    before changing your username again.
+                  </p>
+                </div>
+              )}
 
-              <Input
-                label="Current Password"
-                type="password"
-                value={usernameForm.password}
-                onChange={e => setUsernameForm(prev => ({ ...prev, password: e.target.value }))}
-                isRequired
-                isDisabled={isUpdatingUsername}
-                description="Enter your current password to confirm this change"
-              />
+              {/* Show general warning if user is eligible to change username */}
+              {daysSinceDate(user.lastUsernameChange) >= DAYS_TO_WAIT_FOR_USERNAME_CHANGE && (
+                <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                  <h4 className="font-semibold text-warning mb-2">⚠️ Important</h4>
+                  <p className="text-sm text-warning-700 mb-2">
+                    Username changes are limited to once every {DAYS_TO_WAIT_FOR_USERNAME_CHANGE} days. Choose wisely!
+                  </p>
+                  <p className="text-sm text-warning-700">
+                    Changing your username will affect how you appear in any existing links to your profile.
+                  </p>
+                </div>
+              )}
+
+              {/* Conditional authentication warning */}
+              {!isWithinTimeLimit(user.lastLogin, MINUTES_SINCE_LOGIN_TO_WAIT_FOR_USERNAME_CHANGE) && (
+                <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                  <h4 className="font-semibold text-warning mb-2">🔐 Security Notice</h4>
+                  <p className="text-sm text-warning-700 mb-2">
+                    For your security, you must have authenticated within the last{' '}
+                    {MINUTES_SINCE_LOGIN_TO_WAIT_FOR_USERNAME_CHANGE} minutes to change your username.
+                  </p>
+                  <p className="text-sm text-warning-700 mb-2">
+                    Please sign out and sign back in again before changing your username.
+                  </p>
+                  <Button
+                    color="primary"
+                    onPress={async () => {
+                      try {
+                        await logout();
+                        navigate('/login');
+                      } catch (error) {
+                        console.error('Logout failed:', error);
+                      }
+                    }}
+                  >
+                    Sign Out
+                  </Button>
+                </div>
+              )}
 
               <Input
                 label="New Username"
@@ -663,7 +705,11 @@ export function AccountSection({ user }: AccountSectionProps) {
                 value={usernameForm.newUsername}
                 onChange={e => setUsernameForm(prev => ({ ...prev, newUsername: e.target.value }))}
                 isRequired
-                isDisabled={isUpdatingUsername}
+                isDisabled={
+                  isUpdatingUsername ||
+                  daysSinceDate(user.lastUsernameChange) < DAYS_TO_WAIT_FOR_USERNAME_CHANGE ||
+                  !isWithinTimeLimit(user.lastLogin, MINUTES_SINCE_LOGIN_TO_WAIT_FOR_USERNAME_CHANGE)
+                }
                 description="Username must be at least 3 characters long"
                 errorMessage={
                   usernameForm.newUsername && usernameForm.newUsername.trim().length < 3
@@ -689,10 +735,11 @@ export function AccountSection({ user }: AccountSectionProps) {
               isLoading={isUpdatingUsername}
               isDisabled={
                 isUpdatingUsername ||
-                !usernameForm.password ||
                 !usernameForm.newUsername ||
                 usernameForm.newUsername.trim().length < 3 ||
-                usernameForm.newUsername === user.userName
+                usernameForm.newUsername === user.userName ||
+                daysSinceDate(user.lastUsernameChange) < DAYS_TO_WAIT_FOR_USERNAME_CHANGE ||
+                !isWithinTimeLimit(user.lastLogin, MINUTES_SINCE_LOGIN_TO_WAIT_FOR_USERNAME_CHANGE)
               }
             >
               {isUpdatingUsername ? 'Updating...' : 'Update Username'}

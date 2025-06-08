@@ -13,6 +13,10 @@ export interface UserDto {
   created: string;
   roles: string[];
   linkedAccounts: LinkedAccount[];
+  lastLogin?: string;
+  lastPasswordChange: string;
+  lastEmailChange: string;
+  lastUsernameChange: string;
 }
 
 export interface ConfirmEmailRequest {
@@ -36,6 +40,5 @@ export interface UpdatePasswordRequest {
 }
 
 export interface UpdateUsernameRequest {
-  password: string;
   newUsername: string;
 }

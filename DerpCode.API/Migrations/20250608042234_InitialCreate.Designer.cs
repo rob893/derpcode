@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250527040222_InitialCreate")]
+    [Migration("20250608042234_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -251,6 +251,18 @@ namespace DerpCode.API.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset>("LastEmailChange")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTimeOffset?>("LastLogin")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTimeOffset>("LastPasswordChange")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTimeOffset>("LastUsernameChange")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");

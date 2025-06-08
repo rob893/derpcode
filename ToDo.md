@@ -2,6 +2,5 @@
 - xp system with unlocks (themes, titles, editor animations, etc)
 - save user submissions
 - programs (guided learnings based on subject)
-- forgot user name email
-- update email?
+- update email (endpoint to send update email link to new email)
 - update username?

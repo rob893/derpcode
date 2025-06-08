@@ -13,4 +13,12 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
     public List<UserRole> UserRoles { get; set; } = [];
 
     public List<LinkedAccount> LinkedAccounts { get; set; } = [];
+
+    public DateTimeOffset? LastLogin { get; set; }
+
+    public DateTimeOffset LastPasswordChange { get; set; }
+
+    public DateTimeOffset LastEmailChange { get; set; }
+
+    public DateTimeOffset LastUsernameChange { get; set; }
 }

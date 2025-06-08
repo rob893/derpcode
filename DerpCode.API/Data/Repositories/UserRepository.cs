@@ -29,7 +29,10 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        user.Created = DateTime.UtcNow;
+        user.Created = DateTimeOffset.UtcNow;
+        user.LastPasswordChange = DateTimeOffset.UtcNow;
+        user.LastEmailChange = DateTimeOffset.UtcNow;
+        user.LastUsernameChange = DateTimeOffset.UtcNow;
         var created = await this.UserManager.CreateAsync(user);
 
         if (!created.Succeeded)
@@ -46,7 +49,10 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        user.Created = DateTime.UtcNow;
+        user.Created = DateTimeOffset.UtcNow;
+        user.LastPasswordChange = DateTimeOffset.UtcNow;
+        user.LastEmailChange = DateTimeOffset.UtcNow;
+        user.LastUsernameChange = DateTimeOffset.UtcNow;
         var created = await this.UserManager.CreateAsync(user, password);
 
         if (!created.Succeeded)

@@ -337,13 +337,22 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only update your own information.");
         }
 
-        var pwResult = await this.userRepository.CheckPasswordAsync(user, request.Password, this.HttpContext.RequestAborted);
-
-        if (!pwResult)
+        if (user.LastLogin is null || user.LastLogin <= DateTimeOffset.UtcNow.AddMinutes(-30))
         {
-            return this.Forbidden("Invalid password.");
+            return this.BadRequest("You must have authenticated within the last 30 minutes to update your username.");
         }
 
+        if (user.LastUsernameChange > DateTimeOffset.UtcNow.AddDays(-30))
+        {
+            return this.BadRequest("You can only change your username once every 30 days.");
+        }
+
+        if (string.Equals(user.UserName, request.NewUsername, StringComparison.OrdinalIgnoreCase))
+        {
+            return this.BadRequest("The new username must be different from the current one.");
+        }
+
+        user.LastUsernameChange = DateTimeOffset.UtcNow;
         var updateResult = await this.userRepository.UserManager.SetUserNameAsync(user, request.NewUsername);
 
         if (!updateResult.Succeeded)
@@ -388,6 +397,7 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only update your own password.");
         }
 
+        user.LastPasswordChange = DateTimeOffset.UtcNow;
         var result = await this.userRepository.UserManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
 
         if (!result.Succeeded)
