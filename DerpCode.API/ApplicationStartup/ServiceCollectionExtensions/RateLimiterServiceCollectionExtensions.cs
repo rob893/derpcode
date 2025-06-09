@@ -29,14 +29,27 @@ public static class RateLimiterServiceCollectionExtensions
             {
                 var path = httpContext.Request.Path.ToString();
 
-                if (path.Contains("/auth/", StringComparison.OrdinalIgnoreCase))
+                if (path.StartsWith("/api/v1/auth/register", StringComparison.OrdinalIgnoreCase))
                 {
                     return RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: httpContext.GetPartitionKey(),
                         factory: partition => new FixedWindowRateLimiterOptions
                         {
                             AutoReplenishment = true,
-                            PermitLimit = 15,
+                            PermitLimit = 10,
+                            QueueLimit = 0,
+                            Window = TimeSpan.FromMinutes(15)
+                        });
+                }
+
+                if (path.StartsWith("/api/v1/auth/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.GetPartitionKey(),
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 25,
                             QueueLimit = 0,
                             Window = TimeSpan.FromSeconds(60)
                         });
