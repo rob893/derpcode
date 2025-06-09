@@ -252,6 +252,9 @@ namespace DerpCode.API.Migrations
                     b.Property<DateTimeOffset>("LastEmailChange")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTimeOffset?>("LastEmailConfirmationSent")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTimeOffset?>("LastLogin")
                         .HasColumnType("datetime(6)");
 

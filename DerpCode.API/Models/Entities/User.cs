@@ -21,4 +21,6 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
     public DateTimeOffset LastEmailChange { get; set; }
 
     public DateTimeOffset LastUsernameChange { get; set; }
+
+    public DateTimeOffset? LastEmailConfirmationSent { get; set; }
 }

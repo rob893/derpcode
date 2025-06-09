@@ -567,5 +567,8 @@ public sealed class AuthController : ServiceControllerBase
 
         var emailToken = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
         await this.emailService.SendEmailConfirmationToUserAsync(user, emailToken, this.HttpContext.RequestAborted);
+
+        user.LastEmailConfirmationSent = DateTimeOffset.UtcNow;
+        await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
     }
 }

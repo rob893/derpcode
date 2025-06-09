@@ -20,13 +20,15 @@ public sealed record UserDto : IIdentifiable<int>
 
     public required List<LinkedAccountDto> LinkedAccounts { get; init; }
 
-    public required DateTimeOffset? LastLogin { get; set; }
+    public required DateTimeOffset? LastLogin { get; init; }
 
-    public required DateTimeOffset LastPasswordChange { get; set; }
+    public required DateTimeOffset LastPasswordChange { get; init; }
 
-    public required DateTimeOffset LastEmailChange { get; set; }
+    public required DateTimeOffset LastEmailChange { get; init; }
 
-    public required DateTimeOffset LastUsernameChange { get; set; }
+    public required DateTimeOffset LastUsernameChange { get; init; }
+
+    public required DateTimeOffset? LastEmailConfirmationSent { get; init; }
 
     public static UserDto FromEntity(Entities.User user)
     {
@@ -43,6 +45,7 @@ public sealed record UserDto : IIdentifiable<int>
             LastPasswordChange = user.LastPasswordChange,
             LastEmailChange = user.LastEmailChange,
             LastUsernameChange = user.LastUsernameChange,
+            LastEmailConfirmationSent = user.LastEmailConfirmationSent,
             Roles = [.. user.UserRoles.Select(x => x.Role).Select(role => role.Name)],
             LinkedAccounts = [.. user.LinkedAccounts.Select(LinkedAccountDto.FromEntity)]
         };

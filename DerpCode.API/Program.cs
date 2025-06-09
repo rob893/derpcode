@@ -53,6 +53,7 @@ public static class Program
         builder.Services.AddControllerServices()
             .AddHealthCheckServices()
             .AddIdentityServices()
+            .AddRateLimiterServices(builder.Configuration)
             .AddScoped<ICorrelationIdService, CorrelationIdService>()
             .AddSingleton<IFileSystemService, FileSystemService>()
             .AddEmailServices(builder.Configuration)
@@ -126,6 +127,7 @@ public static class Program
             .UseAuthentication()
             .UseAuthorization()
             .UseMiddleware<LoggingScopeMiddleware>() // Ensure this is after UseAuthentication and UseAuthorization to capture user information.
+            .UseRateLimiter() // Ensure this is after UseAuthentication and UseAuthorization to apply rate limiting based on user identity.
             .UseAndConfigureSwagger(builder.Configuration)
             .UseAndConfigureEndpoints(builder.Configuration);
 

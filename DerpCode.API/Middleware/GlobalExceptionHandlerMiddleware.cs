@@ -2,10 +2,10 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
-using DerpCode.API.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+
 using static DerpCode.API.Utilities.UtilityFunctions;
 
 namespace DerpCode.API.Middleware;
@@ -34,7 +34,6 @@ public sealed class GlobalExceptionHandlerMiddleware
         {
             var sourceName = GetSourceName();
             var thrownException = error.Error;
-            var correlationId = context.Request.Headers.GetOrGenerateCorrelationId();
             var statusCode = StatusCodes.Status500InternalServerError;
 
             switch (thrownException)

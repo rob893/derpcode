@@ -444,9 +444,17 @@ public sealed class UsersController : ServiceControllerBase
             return this.BadRequest("User's email is already confirmed.");
         }
 
+        if (user.LastEmailConfirmationSent != null && user.LastEmailConfirmationSent.Value > DateTimeOffset.UtcNow.AddHours(-1))
+        {
+            return this.BadRequest("You can only resend the email confirmation link once per hour.");
+        }
+
         var token = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
 
         await this.emailService.SendEmailConfirmationToUserAsync(user, token, this.HttpContext.RequestAborted);
+
+        user.LastEmailConfirmationSent = DateTimeOffset.UtcNow;
+        await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }
@@ -478,6 +486,14 @@ public sealed class UsersController : ServiceControllerBase
             this.logger.LogWarning(
                 "Failed to send password reset link for user with email {Email}: User not found or email not confirmed.",
                 request.Email);
+            return this.NoContent();
+        }
+
+        if (user.LastPasswordChange > DateTimeOffset.UtcNow.AddHours(-1))
+        {
+            this.logger.LogWarning(
+                "Failed to send password reset link for user {UserId}: User has changed their password within the last hour.",
+                user.Id);
             return this.NoContent();
         }
 

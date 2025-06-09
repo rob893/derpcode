@@ -45,6 +45,7 @@ namespace DerpCode.API.Migrations
                     LastPasswordChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastEmailChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastUsernameChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    LastEmailConfirmationSent = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
