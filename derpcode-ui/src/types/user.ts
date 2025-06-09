@@ -17,6 +17,7 @@ export interface UserDto {
   lastPasswordChange: string;
   lastEmailChange: string;
   lastUsernameChange: string;
+  lastEmailConfirmationSent?: string;
 }
 
 export interface ConfirmEmailRequest {

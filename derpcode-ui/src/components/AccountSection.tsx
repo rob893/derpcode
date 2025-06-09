@@ -74,6 +74,7 @@ export function AccountSection({ user }: AccountSectionProps) {
   const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
   const [confirmationResent, setConfirmationResent] = useState(false);
   const [confirmationError, setConfirmationError] = useState<Error | null>(null);
+  const [emailSentAt, setEmailSentAt] = useState<string | undefined>(undefined);
 
   // Validate password when it changes
   useEffect(() => {
@@ -241,6 +242,8 @@ export function AccountSection({ user }: AccountSectionProps) {
       setConfirmationError(null);
       await userApi.resendEmailConfirmation(user.id);
       setConfirmationResent(true);
+      // Set the local timestamp to enable rate limiting
+      setEmailSentAt(new Date().toISOString());
       // Clear the success message after 5 seconds
       setTimeout(() => setConfirmationResent(false), 5000);
     } catch (error) {
@@ -323,22 +326,39 @@ export function AccountSection({ user }: AccountSectionProps) {
                 <p className="text-warning-700 text-sm mt-1">
                   You won't be able to recover your account without a verified email address.
                 </p>
-                <div className="flex items-center gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    color="warning"
-                    variant="flat"
-                    onPress={handleResendConfirmation}
-                    isLoading={isResendingConfirmation}
-                  >
-                    Resend Confirmation Email
-                  </Button>
-                  {confirmationResent && (
-                    <Chip size="sm" color="success" variant="flat">
-                      Email sent!
-                    </Chip>
-                  )}
-                </div>
+                {/* Check if we can resend confirmation email (not sent within last hour) */}
+                {isWithinTimeLimit(user.lastEmailConfirmationSent, 60) || isWithinTimeLimit(emailSentAt, 60) ? (
+                  <div className="mt-3">
+                    <p className="text-warning-600 text-xs mb-2">
+                      ⏰ You can only resend confirmation emails once per hour. Please wait before trying again.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" color="warning" variant="flat" isDisabled={true}>
+                        Resend Confirmation Email
+                      </Button>
+                      <Chip size="sm" color="default" variant="flat">
+                        Sent recently
+                      </Chip>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      color="warning"
+                      variant="flat"
+                      onPress={handleResendConfirmation}
+                      isLoading={isResendingConfirmation}
+                    >
+                      Resend Confirmation Email
+                    </Button>
+                    {confirmationResent && (
+                      <Chip size="sm" color="success" variant="flat">
+                        Email sent!
+                      </Chip>
+                    )}
+                  </div>
+                )}
                 {confirmationError && (
                   <div className="mt-2">
                     <ApiErrorDisplay error={confirmationError} />

@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.RateLimiting;
@@ -58,6 +57,9 @@ public static class RateLimiterServiceCollectionExtensions
             {
                 var key = context.HttpContext.GetPartitionKey();
 
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<HttpContext>>();
+                logger.LogWarning("Rate limit exceeded for partition key: {Key}", key);
+
                 context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.Headers.RetryAfter = "15";
                 context.HttpContext.Response.ContentType = "application/json";
@@ -66,10 +68,6 @@ public static class RateLimiterServiceCollectionExtensions
                 var jsonResponse = JsonSerializer.Serialize(problemDetails, jsonOptions);
 
                 await context.HttpContext.Response.WriteAsync(jsonResponse, cancellationToken);
-
-                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<HttpContext>>();
-
-                logger.LogWarning("Rate limit exceeded for partition key: {Key}", key);
             };
         });
 
