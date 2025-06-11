@@ -23,4 +23,8 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
     public DateTimeOffset LastUsernameChange { get; set; }
 
     public DateTimeOffset? LastEmailConfirmationSent { get; set; }
+
+    public int Experience { get; set; }
+
+    public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
 }

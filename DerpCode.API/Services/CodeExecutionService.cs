@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using DerpCode.API.Models;
 using DerpCode.API.Models.Entities;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -32,7 +31,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
         this.fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
     }
 
-    public async Task<SubmissionResult> RunCodeAsync(string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken)
+    public async Task<ProblemSubmission> RunCodeAsync(int userId, string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(userCode);
         ArgumentNullException.ThrowIfNull(problem);
@@ -45,7 +44,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
         try
         {
             await this.PrepareFilesAsync(tempDir, userCode, driver, problem, cancellationToken).ConfigureAwait(false);
-            return await this.ExecuteInContainerAsync(tempDir, driver.Image, cancellationToken).ConfigureAwait(false);
+            return await this.ExecuteInContainerAsync(userId, userCode, language, problem.Id, tempDir, driver.Image, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -54,14 +53,20 @@ public sealed class CodeExecutionService : ICodeExecutionService
         catch (Exception ex)
         {
             this.logger.LogError(ex, "Error executing code");
-            return new SubmissionResult
+            return new ProblemSubmission
             {
                 Pass = false,
                 ErrorMessage = ex.Message,
                 ExecutionTimeInMs = -1,
                 FailedTestCases = -1,
                 PassedTestCases = -1,
-                TestCaseCount = -1
+                TestCaseCount = -1,
+                Language = language,
+                Code = userCode,
+                CreatedAt = DateTimeOffset.UtcNow,
+                TestCaseResults = [],
+                UserId = userId,
+                ProblemId = problem.Id,
             };
         }
         finally
@@ -89,7 +94,14 @@ public sealed class CodeExecutionService : ICodeExecutionService
         }
     }
 
-    private async Task<SubmissionResult> ExecuteInContainerAsync(string tempDir, string image, CancellationToken cancellationToken)
+    private async Task<ProblemSubmission> ExecuteInContainerAsync(
+        int userId,
+        string userCode,
+        LanguageType language,
+        int problemId,
+        string tempDir,
+        string image,
+        CancellationToken cancellationToken)
     {
         var hostConfig = new HostConfig
         {
@@ -127,33 +139,57 @@ public sealed class CodeExecutionService : ICodeExecutionService
         {
             this.logger.LogError("Error executing code: {Error}", error);
 
-            return new SubmissionResult
+            return new ProblemSubmission
             {
                 Pass = false,
                 ErrorMessage = $"{error}\n{output}",
                 ExecutionTimeInMs = -1,
                 FailedTestCases = -1,
                 PassedTestCases = -1,
-                TestCaseCount = -1
+                TestCaseCount = -1,
+                Language = language,
+                Code = userCode,
+                CreatedAt = DateTimeOffset.UtcNow,
+                TestCaseResults = [],
+                UserId = userId,
+                ProblemId = problemId,
             };
         }
 
         if (!this.fileSystemService.FileExists(resultsPath))
         {
-            return new SubmissionResult
+            return new ProblemSubmission
             {
                 Pass = false,
                 ErrorMessage = "Failed to deserialize results",
                 ExecutionTimeInMs = -1,
                 FailedTestCases = -1,
                 PassedTestCases = -1,
-                TestCaseCount = -1
+                TestCaseCount = -1,
+                Language = language,
+                Code = userCode,
+                CreatedAt = DateTimeOffset.UtcNow,
+                TestCaseResults = [],
+                UserId = userId,
+                ProblemId = problemId,
             };
         }
 
         var results = await this.fileSystemService.ReadAllTextAsync(resultsPath, cancellationToken).ConfigureAwait(false);
-        var submissionResult = JsonSerializer.Deserialize<SubmissionResult>(results, jsonOptions);
+        var submissionResult = JsonSerializer.Deserialize<ProblemSubmission>(results, jsonOptions);
 
-        return submissionResult ?? throw new InvalidOperationException("Failed to deserialize results");
+        if (submissionResult == null)
+        {
+            this.logger.LogError("Failed to deserialize results: {Results}", results);
+            throw new InvalidOperationException("Failed to deserialize results");
+        }
+
+        submissionResult.Language = language;
+        submissionResult.Code = userCode;
+        submissionResult.CreatedAt = DateTimeOffset.UtcNow;
+        submissionResult.UserId = userId;
+        submissionResult.ProblemId = problemId;
+
+        return submissionResult;
     }
 }

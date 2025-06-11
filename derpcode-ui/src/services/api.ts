@@ -50,14 +50,16 @@ export const problemsApi = {
     return response.data;
   },
 
-  async submitSolution(
-    problemId: number,
-    userId: number,
-    userCode: string,
-    language: Language
-  ): Promise<SubmissionResult> {
-    const response = await apiClient.post<SubmissionResult>(`/api/v1/users/${userId}/submissions`, {
-      problemId,
+  async submitSolution(problemId: number, userCode: string, language: Language): Promise<SubmissionResult> {
+    const response = await apiClient.post<SubmissionResult>(`/api/v1/problems/${problemId}/submissions`, {
+      userCode,
+      language
+    });
+    return response.data;
+  },
+
+  async runSolution(problemId: number, userCode: string, language: Language): Promise<SubmissionResult> {
+    const response = await apiClient.post<SubmissionResult>(`/api/v1/problems/${problemId}/run`, {
       userCode,
       language
     });

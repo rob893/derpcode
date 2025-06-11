@@ -27,6 +27,8 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
     public DbSet<Tag> Tags => this.Set<Tag>();
 
+    public DbSet<ProblemSubmission> ProblemSubmissions => this.Set<ProblemSubmission>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -103,6 +105,25 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
                     v => JsonSerializer.Serialize(v, options),
                     v => JsonSerializer.Deserialize<List<string>>(v, options) ?? new List<string>())
                 .Metadata.SetValueComparer(listStringComparer);
+        });
+
+        builder.Entity<ProblemSubmission>(submission =>
+        {
+            submission.Property(s => s.Language).HasConversion<string>();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var listComparer = new JsonCollectionComparer<List<TestCaseResult>>(options);
+
+            submission.Property(s => s.TestCaseResults)
+                .HasColumnType("json")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, options),
+                    v => JsonSerializer.Deserialize<List<TestCaseResult>>(v, options) ?? new List<TestCaseResult>())
+                .Metadata.SetValueComparer(listComparer);
         });
     }
 }

@@ -24,4 +24,6 @@ public sealed class Problem : IIdentifiable<int>
     public List<Tag> Tags { get; set; } = [];
 
     public List<ProblemDriver> Drivers { get; set; } = [];
+
+    public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
 }

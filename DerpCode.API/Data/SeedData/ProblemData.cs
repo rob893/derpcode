@@ -62,6 +62,19 @@ public static class ProblemData
                                 public int FailedTestCases { get; set; }
                                 public string ErrorMessage { get; set; } = string.Empty;
                                 public long ExecutionTimeInMs { get; set; }
+                                public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
+                            }
+
+                            private class TestCaseResult
+                            {
+                                public int TestCaseIndex { get; set; }
+                                public bool Pass { get; set; }
+                                public string? ErrorMessage { get; set; }
+                                public int ExecutionTimeInMs { get; set; }
+                                public object Input { get; set; } = default!;
+                                public object ExpectedOutput { get; set; } = default!;
+                                public object ActualOutput { get; set; } = default!;
+                                public bool IsHidden { get; set; }
                             }
 
                             public static void Main(string[] args)
@@ -119,15 +132,33 @@ public static class ProblemData
                                 int testCaseCount = input.Length / 2;
                                 int passedTestCases = 0;
                                 int failedTestCases = 0;
+                                var testCaseResults = new List<TestCaseResult>();
 
                                 for (int i = 0, j = 0; i < input.Length; i += 2, j++)
                                 {
                                     var a = input[i];
                                     var b = input[i + 1];
+                                    
+                                    var testCaseSw = Stopwatch.StartNew();
                                     var result = Solution.Add(a, b);
+                                    testCaseSw.Stop();
+                                    
                                     int expected = expectedOutput[j];
+                                    bool passed = result == expected;
 
-                                    if (result == expected)
+                                    testCaseResults.Add(new TestCaseResult
+                                    {
+                                        TestCaseIndex = j,
+                                        Pass = passed,
+                                        ErrorMessage = passed ? null : $"Expected {expected} but got {result}",
+                                        ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
+                                        Input = new { a, b },
+                                        ExpectedOutput = expected,
+                                        ActualOutput = result,
+                                        IsHidden = false
+                                    });
+
+                                    if (passed)
                                     {
                                         passedTestCases++;
                                     }
@@ -142,7 +173,8 @@ public static class ProblemData
                                     TestCaseCount = testCaseCount,
                                     PassedTestCases = passedTestCases,
                                     FailedTestCases = failedTestCases,
-                                    Pass = passedTestCases == testCaseCount
+                                    Pass = passedTestCases == testCaseCount,
+                                    TestCaseResults = testCaseResults
                                 };
                             }
                         }
@@ -184,7 +216,8 @@ public static class ProblemData
                                 passedTestCases: 0,
                                 failedTestCases: 0,
                                 errorMessage: '',
-                                executionTimeInMs: 0
+                                executionTimeInMs: 0,
+                                testCaseResults: []
                             };
 
                             try {
@@ -199,6 +232,7 @@ public static class ProblemData
                                 result.testCaseCount = testResults.testCaseCount;
                                 result.passedTestCases = testResults.passedTestCases;
                                 result.failedTestCases = testResults.failedTestCases;
+                                result.testCaseResults = testResults.testCaseResults;
                                 result.executionTimeInMs = Date.now() - start;
 
                             } catch (err) {
@@ -215,14 +249,31 @@ public static class ProblemData
                             const testCaseCount = Math.floor(input.length / 2);
                             let passedTestCases = 0;
                             let failedTestCases = 0;
+                            const testCaseResults = [];
 
                             for (let i = 0, j = 0; i < input.length; i += 2, j++) {
                                 const a = input[i];
                                 const b = input[i + 1];
+                                
+                                const testCaseStart = Date.now();
                                 const result = add(a, b);           // your test function
+                                const testCaseEnd = Date.now();
+                                
                                 const expected = expectedOutput[j];
+                                const passed = result === expected;
 
-                                if (result === expected) {
+                                testCaseResults.push({
+                                    testCaseIndex: j,
+                                    pass: passed,
+                                    errorMessage: passed ? null : `Expected ${expected} but got ${result}`,
+                                    executionTimeInMs: testCaseEnd - testCaseStart,
+                                    input: { a, b },
+                                    expectedOutput: expected,
+                                    actualOutput: result,
+                                    isHidden: false
+                                });
+
+                                if (passed) {
                                     passedTestCases++;
                                 } else {
                                     failedTestCases++;
@@ -233,7 +284,8 @@ public static class ProblemData
                                 testCaseCount,
                                 passedTestCases,
                                 failedTestCases,
-                                pass: passedTestCases === testCaseCount
+                                pass: passedTestCases === testCaseCount,
+                                testCaseResults
                             };
                         }
 
@@ -266,6 +318,18 @@ public static class ProblemData
                           failedTestCases: number;
                           errorMessage: string;
                           executionTimeInMs: number;
+                          testCaseResults: TestCaseResult[];
+                        }
+
+                        interface TestCaseResult {
+                          testCaseIndex: number;
+                          pass: boolean;
+                          errorMessage: string | null;
+                          executionTimeInMs: number;
+                          input: any;
+                          expectedOutput: any;
+                          actualOutput: any;
+                          isHidden: boolean;
                         }
 
                         function main(): void {
@@ -284,7 +348,8 @@ public static class ProblemData
                             passedTestCases: 0,
                             failedTestCases: 0,
                             errorMessage: '',
-                            executionTimeInMs: 0
+                            executionTimeInMs: 0,
+                            testCaseResults: []
                           };
 
                           try {
@@ -299,6 +364,7 @@ public static class ProblemData
                             result.testCaseCount = testResults.testCaseCount;
                             result.passedTestCases = testResults.passedTestCases;
                             result.failedTestCases = testResults.failedTestCases;
+                            result.testCaseResults = testResults.testCaseResults;
                             result.executionTimeInMs = Date.now() - start;
                           } catch (err: any) {
                             console.error('Error reading files:' + err.message);
@@ -314,14 +380,31 @@ public static class ProblemData
                           const testCaseCount = Math.floor(input.length / 2);
                           let passedTestCases = 0;
                           let failedTestCases = 0;
+                          const testCaseResults: TestCaseResult[] = [];
 
                           for (let i = 0, j = 0; i < input.length; i += 2, j++) {
                             const a = input[i];
                             const b = input[i + 1];
+                            
+                            const testCaseStart = Date.now();
                             const result = add(a, b);
+                            const testCaseEnd = Date.now();
+                            
                             const expected = expectedOutput[j];
+                            const passed = result === expected;
 
-                            if (result === expected) {
+                            testCaseResults.push({
+                              testCaseIndex: j,
+                              pass: passed,
+                              errorMessage: passed ? null : `Expected ${expected} but got ${result}`,
+                              executionTimeInMs: testCaseEnd - testCaseStart,
+                              input: { a, b },
+                              expectedOutput: expected,
+                              actualOutput: result,
+                              isHidden: false
+                            });
+
+                            if (passed) {
                               passedTestCases++;
                             } else {
                               failedTestCases++;
@@ -334,7 +417,8 @@ public static class ProblemData
                             failedTestCases,
                             pass: passedTestCases === testCaseCount,
                             errorMessage: '',
-                            executionTimeInMs: 0
+                            executionTimeInMs: 0,
+                            testCaseResults
                           };
                         }
 
@@ -389,6 +473,18 @@ public static class ProblemData
                           failedTestCases: number;
                           errorMessage: string;
                           executionTimeInMs: number;
+                          testCaseResults: TestCaseResult[];
+                        }
+
+                        interface TestCaseResult {
+                          testCaseIndex: number;
+                          pass: boolean;
+                          errorMessage: string | null;
+                          executionTimeInMs: number;
+                          input: any;
+                          expectedOutput: any;
+                          actualOutput: any;
+                          isHidden: boolean;
                         }
 
                         function main(): void {
@@ -407,7 +503,8 @@ public static class ProblemData
                             passedTestCases: 0,
                             failedTestCases: 0,
                             errorMessage: '',
-                            executionTimeInMs: 0
+                            executionTimeInMs: 0,
+                            testCaseResults: []
                           };
 
                           try {
@@ -422,6 +519,7 @@ public static class ProblemData
                             result.testCaseCount = testResults.testCaseCount;
                             result.passedTestCases = testResults.passedTestCases;
                             result.failedTestCases = testResults.failedTestCases;
+                            result.testCaseResults = testResults.testCaseResults;
                             result.executionTimeInMs = Date.now() - start;
                           } catch (err: any) {
                             console.error('Error reading files:' + err.message);
@@ -437,13 +535,30 @@ public static class ProblemData
                           const testCaseCount = input.length;
                           let passedTestCases = 0;
                           let failedTestCases = 0;
+                          const testCaseResults: TestCaseResult[] = [];
 
                           for (let i = 0; i < input.length; i++) {
                             const a = input[i];
+                            
+                            const testCaseStart = Date.now();
                             const result = fizzBuzz(a);
+                            const testCaseEnd = Date.now();
+                            
                             const expected = expectedOutput[i];
+                            const passed = result === expected;
 
-                            if (result === expected) {
+                            testCaseResults.push({
+                              testCaseIndex: i,
+                              pass: passed,
+                              errorMessage: passed ? null : `Expected "${expected}" but got "${result}"`,
+                              executionTimeInMs: testCaseEnd - testCaseStart,
+                              input: a,
+                              expectedOutput: expected,
+                              actualOutput: result,
+                              isHidden: false
+                            });
+
+                            if (passed) {
                               passedTestCases++;
                             } else {
                               failedTestCases++;
@@ -456,7 +571,8 @@ public static class ProblemData
                             failedTestCases,
                             pass: passedTestCases === testCaseCount,
                             errorMessage: '',
-                            executionTimeInMs: 0
+                            executionTimeInMs: 0,
+                            testCaseResults
                           };
                         }
 

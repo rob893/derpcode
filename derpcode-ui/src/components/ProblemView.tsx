@@ -32,7 +32,7 @@ import { Language, ProblemDifficulty } from '../types/models';
 import type { SubmissionResult } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useDeleteProblem, useProblem, useSubmitSolution, useCloneProblem } from '../hooks/api';
+import { useDeleteProblem, useProblem, useSubmitSolution, useRunSolution, useCloneProblem } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../utils/localStorageUtils';
@@ -44,6 +44,7 @@ export const ProblemView = () => {
   const navigate = useNavigate();
   const { data: problem, isLoading, error } = useProblem(Number(id!));
   const submitSolution = useSubmitSolution(problem?.id || 0);
+  const runSolution = useRunSolution(problem?.id || 0);
   const deleteProblem = useDeleteProblem();
   const cloneProblem = useCloneProblem();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -55,6 +56,7 @@ export const ProblemView = () => {
   const [code, setCode] = useState('');
   const [result, setResult] = useState<SubmissionResult | null>(null);
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
+  const [isRunResult, setIsRunResult] = useState(false); // Track if current result is from run or submit
   const [showHints, setShowHints] = useState(false);
   const [revealedHints, setRevealedHints] = useState<Set<number>>(new Set());
   const [flamesEnabled, setFlamesEnabled] = useState(true);
@@ -137,14 +139,40 @@ export const ProblemView = () => {
       setSubmissionError(null); // Clear any previous errors
       const submissionResult = await submitSolution.mutateAsync({
         userCode: code,
-        language: selectedLanguage,
-        userId: user.id || 0
+        language: selectedLanguage
       });
       setResult(submissionResult);
+      setIsRunResult(false); // Mark this as a submission result
     } catch (error) {
       console.error('Submission error:', error);
       setSubmissionError(error as Error);
       setResult(null); // Clear any previous results
+      setIsRunResult(false);
+    }
+  };
+
+  const handleRun = async () => {
+    if (!problem || !selectedLanguage) return;
+
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      onOpen(); // Show login modal
+      return;
+    }
+
+    try {
+      setSubmissionError(null); // Clear any previous errors
+      const runResult = await runSolution.mutateAsync({
+        userCode: code,
+        language: selectedLanguage
+      });
+      setResult(runResult);
+      setIsRunResult(true); // Mark this as a run result
+    } catch (error) {
+      console.error('Run error:', error);
+      setSubmissionError(error as Error);
+      setResult(null); // Clear any previous results
+      setIsRunResult(false);
     }
   };
 
@@ -381,13 +409,29 @@ export const ProblemView = () => {
             </CardBody>
           </Card>
 
-          {submissionError && <ApiErrorDisplay error={submissionError} title="Submission Failed" showDetails={true} />}
+          {submissionError && (
+            <ApiErrorDisplay
+              error={submissionError}
+              title={isRunResult ? 'Run Failed' : 'Submission Failed'}
+              showDetails={true}
+            />
+          )}
 
           {result && (
-            <Card className={`border-2 ${result.pass ? 'border-success' : 'border-danger'}`}>
+            <Card
+              className={`border-2 ${result.pass ? (isRunResult ? 'border-secondary' : 'border-success') : isRunResult ? 'border-warning' : 'border-danger'}`}
+            >
               <CardHeader className="pb-3">
-                <h4 className={`text-xl font-bold ${result.pass ? 'text-success' : 'text-danger'}`}>
-                  {result.pass ? '✅ Success!' : '❌ Failed'}
+                <h4
+                  className={`text-xl font-bold ${result.pass ? (isRunResult ? 'text-secondary' : 'text-success') : isRunResult ? 'text-warning' : 'text-danger'}`}
+                >
+                  {isRunResult
+                    ? result.pass
+                      ? '🔄 Run Complete!'
+                      : '⚠️ Run Failed'
+                    : result.pass
+                      ? '✅ Success!'
+                      : '❌ Failed'}
                 </h4>
               </CardHeader>
               <CardBody className="pt-0">
@@ -412,8 +456,12 @@ export const ProblemView = () => {
 
                 {result.errorMessage && (
                   <div className="mt-4">
-                    <h5 className="text-danger font-semibold mb-2">Error Message:</h5>
-                    <CodeBlock className="w-full text-danger">{result.errorMessage}</CodeBlock>
+                    <h5 className={`font-semibold mb-2 ${isRunResult ? 'text-warning' : 'text-danger'}`}>
+                      Error Message:
+                    </h5>
+                    <CodeBlock className={`w-full ${isRunResult ? 'text-warning' : 'text-danger'}`}>
+                      {result.errorMessage}
+                    </CodeBlock>
                   </div>
                 )}
               </CardBody>
@@ -482,6 +530,17 @@ export const ProblemView = () => {
                     className="font-semibold"
                   >
                     Reset Code
+                  </Button>
+                  <Button
+                    color="secondary"
+                    variant="bordered"
+                    size="lg"
+                    isLoading={runSolution.isPending}
+                    isDisabled={!code.trim() || !selectedLanguage}
+                    onPress={handleRun}
+                    className="font-semibold"
+                  >
+                    {runSolution.isPending ? 'Running...' : 'Run Solution'}
                   </Button>
                   <Button
                     color="primary"

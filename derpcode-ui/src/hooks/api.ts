@@ -107,8 +107,15 @@ export const useValidateProblem = () => {
 
 export const useSubmitSolution = (problemId: number) => {
   return useMutation({
-    mutationFn: ({ userCode, language, userId }: { userCode: string; language: Language; userId: number }) =>
-      problemsApi.submitSolution(problemId, userId, userCode, language)
+    mutationFn: ({ userCode, language }: { userCode: string; language: Language }) =>
+      problemsApi.submitSolution(problemId, userCode, language)
+  });
+};
+
+export const useRunSolution = (problemId: number) => {
+  return useMutation({
+    mutationFn: ({ userCode, language }: { userCode: string; language: Language }) =>
+      problemsApi.runSolution(problemId, userCode, language)
   });
 };
 

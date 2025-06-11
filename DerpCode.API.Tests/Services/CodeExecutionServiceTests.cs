@@ -86,7 +86,7 @@ public sealed class CodeExecutionServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await this.codeExecutionService.RunCodeAsync(null!, LanguageType.CSharp, problem, CancellationToken.None));
+            await this.codeExecutionService.RunCodeAsync(1, null!, LanguageType.CSharp, problem, CancellationToken.None));
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public sealed class CodeExecutionServiceTests
     {
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await this.codeExecutionService.RunCodeAsync("test code", LanguageType.CSharp, null!, CancellationToken.None));
+            await this.codeExecutionService.RunCodeAsync(1, "test code", LanguageType.CSharp, null!, CancellationToken.None));
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public sealed class CodeExecutionServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None));
+            await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None));
 
         Assert.Equal("No driver found for language: CSharp", exception!.Message);
     }
@@ -120,7 +120,7 @@ public sealed class CodeExecutionServiceTests
         var problem = CreateTestProblem();
         var containerId = "test-container-id";
 
-        var successResult = new SubmissionResult
+        var successResult = new ProblemSubmission
         {
             Pass = true,
             TestCaseCount = 5,
@@ -133,7 +133,7 @@ public sealed class CodeExecutionServiceTests
         this.SetupSuccessfulContainerExecution(containerId, successResult);
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -141,7 +141,7 @@ public sealed class CodeExecutionServiceTests
         Assert.Equal(5, result.TestCaseCount);
         Assert.Equal(5, result.PassedTestCases);
         Assert.Equal(0, result.FailedTestCases);
-        Assert.Empty(result.ErrorMessage);
+        Assert.True(string.IsNullOrEmpty(result.ErrorMessage));
         Assert.Equal(150, result.ExecutionTimeInMs);
 
         // Verify Docker interactions
@@ -167,7 +167,7 @@ public sealed class CodeExecutionServiceTests
         var problem = CreateTestProblem();
         var containerId = "test-container-id";
 
-        var failureResult = new SubmissionResult
+        var failureResult = new ProblemSubmission
         {
             Pass = false,
             TestCaseCount = 5,
@@ -180,7 +180,7 @@ public sealed class CodeExecutionServiceTests
         this.SetupSuccessfulContainerExecution(containerId, failureResult);
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -203,7 +203,7 @@ public sealed class CodeExecutionServiceTests
         this.SetupContainerExecutionWithError(containerId, "Compilation error: Syntax error on line 5");
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -227,7 +227,7 @@ public sealed class CodeExecutionServiceTests
             .ThrowsAsync(new DockerApiException(System.Net.HttpStatusCode.InternalServerError, "Docker daemon error"));
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -254,7 +254,7 @@ public sealed class CodeExecutionServiceTests
             .ThrowsAsync(new InvalidOperationException("Unexpected error"));
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -289,7 +289,7 @@ public sealed class CodeExecutionServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
-            await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, cancellationToken));
+            await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, cancellationToken));
     }
 
     [Fact]
@@ -331,7 +331,7 @@ public sealed class CodeExecutionServiceTests
         this.mockFileSystemService.Setup(x => x.CombinePaths(tempDir, "error.txt")).Returns(errorPath);
         this.mockFileSystemService.Setup(x => x.CombinePaths(tempDir, "output.txt")).Returns(outputPath);
 
-        var successResult = new SubmissionResult { Pass = true };
+        var successResult = new ProblemSubmission { Pass = true };
         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var resultJson = JsonSerializer.Serialize(successResult, jsonOptions);
 
@@ -341,7 +341,7 @@ public sealed class CodeExecutionServiceTests
         this.mockFileSystemService.Setup(x => x.FileExists(outputPath)).Returns(false);
 
         // Act
-        await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(capturedParams);
@@ -371,7 +371,7 @@ public sealed class CodeExecutionServiceTests
         this.SetupContainerExecutionWithoutResults(containerId);
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, LanguageType.CSharp, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -392,12 +392,12 @@ public sealed class CodeExecutionServiceTests
         problem.Drivers.Add(CreateTestDriver(language));
 
         var containerId = "test-container-id";
-        var successResult = new SubmissionResult { Pass = true };
+        var successResult = new ProblemSubmission { Pass = true };
 
         this.SetupSuccessfulContainerExecution(containerId, successResult);
 
         // Act
-        var result = await this.codeExecutionService.RunCodeAsync(userCode, language, problem, CancellationToken.None);
+        var result = await this.codeExecutionService.RunCodeAsync(1, userCode, language, problem, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -458,7 +458,7 @@ public sealed class CodeExecutionServiceTests
             .ReturnsAsync(new ContainerWaitResponse { StatusCode = 0 });
     }
 
-    private void SetupSuccessfulContainerExecution(string containerId, SubmissionResult result)
+    private void SetupSuccessfulContainerExecution(string containerId, ProblemSubmission result)
     {
         this.SetupContainerOperations(containerId);
 

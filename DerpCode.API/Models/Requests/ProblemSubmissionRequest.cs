@@ -1,12 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using DerpCode.API.Models.Entities;
 
-namespace DerpCode.API.Models;
+namespace DerpCode.API.Models.Requests;
 
-public sealed record SubmissionRequest
+public sealed record ProblemSubmissionRequest
 {
-    public int ProblemId { get; init; }
-
     [MinLength(1)]
     [Required]
     public string UserCode { get; init; } = string.Empty;
