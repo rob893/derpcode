@@ -31,8 +31,6 @@ public sealed class ProblemsController : ServiceControllerBase
 
     private readonly IProblemRepository problemRepository;
 
-    private readonly IProblemSubmissionRepository problemSubmissionRepository;
-
     private readonly ITagRepository tagRepository;
 
     public ProblemsController(
@@ -40,7 +38,6 @@ public sealed class ProblemsController : ServiceControllerBase
         ICorrelationIdService correlationIdService,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
-        IProblemSubmissionRepository problemSubmissionRepository,
         ITagRepository tagRepository)
             : base(correlationIdService)
     {
@@ -48,7 +45,6 @@ public sealed class ProblemsController : ServiceControllerBase
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
         this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
-        this.problemSubmissionRepository = problemSubmissionRepository ?? throw new ArgumentNullException(nameof(problemSubmissionRepository));
     }
 
     [AllowAnonymous]
@@ -313,7 +309,17 @@ public sealed class ProblemsController : ServiceControllerBase
                     Image = driver.Image,
                     SubmissionResult = new ProblemSubmissionDto
                     {
+                        Id = -1,
+                        UserId = userId.Value,
+                        ProblemId = newProblem.Id,
+                        Language = driver.Language,
+                        Code = driver.Answer,
+                        CreatedAt = DateTimeOffset.UtcNow,
                         Pass = false,
+                        TestCaseCount = -1,
+                        PassedTestCases = -1,
+                        FailedTestCases = -1,
+                        ExecutionTimeInMs = -1,
                         ErrorMessage = ex.Message
                     }
                 });
@@ -329,112 +335,5 @@ public sealed class ProblemsController : ServiceControllerBase
         };
 
         return this.Ok(response);
-    }
-
-    [HttpGet("{id}/submissions/{submissionId}", Name = nameof(GetProblemSubmissionAsync))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProblemSubmissionDto>> GetProblemSubmissionAsync([FromRoute] int id, [FromRoute] int submissionId)
-    {
-        var submission = await this.problemSubmissionRepository.GetByIdAsync(submissionId, track: false, this.HttpContext.RequestAborted);
-
-        if (submission == null || submission.ProblemId != id)
-        {
-            return this.NotFound($"Submission with ID {submissionId} for problem with ID {id} not found");
-        }
-
-        if (!this.IsUserAuthorizedForResource(submission))
-        {
-            return this.Forbidden("You can only see your own submissions.");
-        }
-
-        return this.Ok(ProblemSubmissionDto.FromEntity(submission));
-    }
-
-    [HttpPost("{id}/submissions", Name = nameof(SubmitSolutionAsync))]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ProblemSubmissionDto>> SubmitSolutionAsync([FromRoute] int id, [FromBody] ProblemSubmissionRequest request)
-    {
-        if (request == null || string.IsNullOrEmpty(request.UserCode))
-        {
-            return this.BadRequest("User code and language are required");
-        }
-
-        if (!this.User.TryGetUserId(out var userId))
-        {
-            return this.Forbidden();
-        }
-
-        var problem = await this.problemRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
-
-        if (problem == null)
-        {
-            return this.NotFound($"Problem with ID {id} not found");
-        }
-
-        var driver = problem.Drivers.FirstOrDefault(d => d.Language == request.Language);
-        if (driver == null)
-        {
-            return this.BadRequest($"No driver template found for language {request.Language}");
-        }
-
-        try
-        {
-            var result = await this.codeExecutionService.RunCodeAsync(userId.Value, request.UserCode, request.Language, problem, this.HttpContext.RequestAborted);
-
-            problem.ProblemSubmissions.Add(result);
-            var updated = await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-            if (updated == 0)
-            {
-                return this.InternalServerError("Failed to save submission. Please try again later.");
-            }
-
-            return this.CreatedAtRoute(nameof(GetProblemSubmissionAsync), new { id = result.ProblemId, submissionId = result.Id }, ProblemSubmissionDto.FromEntity(result));
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(ex, "Error executing code");
-            return this.InternalServerError();
-        }
-    }
-
-    [HttpPost("{id}/run", Name = nameof(RunSolutionAsync))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProblemSubmissionDto>> RunSolutionAsync([FromRoute] int id, [FromBody] ProblemSubmissionRequest request)
-    {
-        if (request == null || string.IsNullOrEmpty(request.UserCode))
-        {
-            return this.BadRequest("User code and language are required");
-        }
-
-        if (!this.User.TryGetUserId(out var userId))
-        {
-            return this.Forbidden();
-        }
-
-        var problem = await this.problemRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
-
-        if (problem == null)
-        {
-            return this.NotFound($"Problem with ID {id} not found");
-        }
-
-        var driver = problem.Drivers.FirstOrDefault(d => d.Language == request.Language);
-        if (driver == null)
-        {
-            return this.BadRequest($"No driver template found for language {request.Language}");
-        }
-
-        try
-        {
-            var result = await this.codeExecutionService.RunCodeAsync(userId.Value, request.UserCode, request.Language, problem, this.HttpContext.RequestAborted);
-            return this.Ok(ProblemSubmissionDto.FromEntity(result));
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(ex, "Error executing code");
-            return this.InternalServerError();
-        }
     }
 }

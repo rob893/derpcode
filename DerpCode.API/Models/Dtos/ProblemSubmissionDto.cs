@@ -3,19 +3,31 @@ using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
 
-public sealed record ProblemSubmissionDto
+public sealed record ProblemSubmissionDto : IIdentifiable<int>
 {
-    public bool Pass { get; init; }
+    public required int Id { get; init; }
 
-    public int TestCaseCount { get; init; }
+    public required int UserId { get; init; }
 
-    public int PassedTestCases { get; init; }
+    public required int ProblemId { get; init; }
 
-    public int FailedTestCases { get; init; }
+    public required LanguageType Language { get; init; }
 
-    public string ErrorMessage { get; init; } = string.Empty;
+    public required string Code { get; init; }
 
-    public long ExecutionTimeInMs { get; init; }
+    public required DateTimeOffset CreatedAt { get; init; }
+
+    public required bool Pass { get; init; }
+
+    public required int TestCaseCount { get; init; }
+
+    public required int PassedTestCases { get; init; }
+
+    public required int FailedTestCases { get; init; }
+
+    public required string ErrorMessage { get; init; }
+
+    public required long ExecutionTimeInMs { get; init; }
 
     public static ProblemSubmissionDto FromEntity(ProblemSubmission submission)
     {
@@ -23,6 +35,12 @@ public sealed record ProblemSubmissionDto
 
         return new ProblemSubmissionDto
         {
+            Id = submission.Id,
+            UserId = submission.UserId,
+            ProblemId = submission.ProblemId,
+            Language = submission.Language,
+            Code = submission.Code,
+            CreatedAt = submission.CreatedAt,
             Pass = submission.Pass,
             TestCaseCount = submission.TestCaseCount,
             PassedTestCases = submission.PassedTestCases,
