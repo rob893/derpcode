@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -20,8 +20,19 @@ interface ProblemSubmissionsProps {
   onSubmissionSelect: (submission: ProblemSubmission) => void;
 }
 
+type SortKey = 'language' | 'submittedAt' | 'executionTime';
+type SortDirection = 'ascending' | 'descending';
+
 export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSubmissionsProps) => {
   const { user } = useAuth();
+  const [sortDescriptor, setSortDescriptor] = useState<{
+    column: SortKey;
+    direction: SortDirection;
+  }>({
+    column: 'submittedAt',
+    direction: 'descending' // Default to most recent first
+  });
+
   const {
     data: submissionsResponse,
     isLoading,
@@ -29,8 +40,32 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
   } = useUserSubmissionsForProblem(user?.id || 0, problemId, { first: 20, includeNodes: true });
 
   const submissions = useMemo(() => {
-    return submissionsResponse?.nodes || [];
-  }, [submissionsResponse]);
+    const rawSubmissions = submissionsResponse?.nodes || [];
+
+    // Sort submissions based on current sort descriptor
+    const sorted = [...rawSubmissions].sort((a, b) => {
+      let result = 0;
+
+      switch (sortDescriptor.column) {
+        case 'language':
+          result = a.language.localeCompare(b.language);
+          break;
+        case 'submittedAt':
+          result = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'executionTime':
+          result = a.executionTimeInMs - b.executionTimeInMs;
+          break;
+        default:
+          // Default sort by most recent submission
+          result = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      return sortDescriptor.direction === 'descending' ? -result : result;
+    });
+
+    return sorted;
+  }, [submissionsResponse, sortDescriptor]);
 
   const getLanguageLabel = (language: Language): string => {
     switch (language) {
@@ -71,11 +106,11 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
   };
 
   const columns = [
-    { key: 'status', label: 'Status' },
-    { key: 'language', label: 'Language' },
-    { key: 'testCases', label: 'Test Cases' },
-    { key: 'executionTime', label: 'Runtime' },
-    { key: 'submittedAt', label: 'Submitted' }
+    { key: 'status', label: 'Status', sortable: false },
+    { key: 'language', label: 'Language', sortable: true },
+    { key: 'testCases', label: 'Test Cases', sortable: false },
+    { key: 'executionTime', label: 'Runtime', sortable: true },
+    { key: 'submittedAt', label: 'Submitted', sortable: true }
   ];
 
   const tableRows = useMemo(() => {
@@ -152,6 +187,18 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
       <Table
         aria-label="Submissions table"
         selectionMode="single"
+        sortDescriptor={{
+          column: sortDescriptor.column,
+          direction: sortDescriptor.direction
+        }}
+        onSortChange={descriptor => {
+          if (descriptor.column) {
+            setSortDescriptor({
+              column: descriptor.column as SortKey,
+              direction: descriptor.direction as SortDirection
+            });
+          }
+        }}
         onRowAction={key => {
           const submission = submissions.find(s => s.id === Number(key));
           if (submission) {
@@ -167,7 +214,7 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
       >
         <TableHeader columns={columns}>
           {column => (
-            <TableColumn key={column.key} className="bg-default-50">
+            <TableColumn key={column.key} className="bg-default-50" allowsSorting={column.sortable}>
               {column.label}
             </TableColumn>
           )}

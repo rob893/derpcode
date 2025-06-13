@@ -98,7 +98,7 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
                 return this.InternalServerError("Failed to save submission. Please try again later.");
             }
 
-            return this.CreatedAtRoute(nameof(GetProblemSubmissionAsync), new { id = result.ProblemId, submissionId = result.Id }, ProblemSubmissionDto.FromEntity(result));
+            return this.CreatedAtRoute(nameof(GetProblemSubmissionAsync), new { problemId = result.ProblemId, submissionId = result.Id }, ProblemSubmissionDto.FromEntity(result));
         }
         catch (Exception ex)
         {
