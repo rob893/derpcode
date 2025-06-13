@@ -20,7 +20,7 @@ export const useProblems = () => {
   return useQuery({
     queryKey: queryKeys.problems,
     queryFn: problemsApi.getProblems,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 15 * 60 * 1000 // 15 minutes
   });
 };
 
@@ -29,7 +29,7 @@ export const useProblem = (id: number) => {
     queryKey: queryKeys.problem(id),
     queryFn: () => problemsApi.getProblem(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 15 * 60 * 1000 // 15 minutes
   });
 };
 
@@ -38,7 +38,7 @@ export const useAdminProblem = (id: number) => {
     queryKey: queryKeys.adminProblem(id),
     queryFn: () => problemsApi.getAdminProblem(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 15 * 60 * 1000 // 15 minutes
   });
 };
 
@@ -108,10 +108,15 @@ export const useValidateProblem = () => {
   });
 };
 
-export const useSubmitSolution = (problemId: number) => {
+export const useSubmitSolution = (userId: number, problemId: number) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ userCode, language }: { userCode: string; language: Language }) =>
-      problemsApi.submitSolution(problemId, userCode, language)
+      problemsApi.submitSolution(problemId, userCode, language),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.userSubmissions(userId, problemId) });
+    }
   });
 };
 
@@ -127,7 +132,7 @@ export const useDriverTemplates = () => {
   return useQuery({
     queryKey: queryKeys.driverTemplates,
     queryFn: driverTemplatesApi.getDriverTemplates,
-    staleTime: 10 * 60 * 1000 // 10 minutes (these change less frequently)
+    staleTime: 30 * 60 * 1000 // 30 minutes (these change less frequently)
   });
 };
 
@@ -166,7 +171,7 @@ export const useUserSubmissionsForProblem = (
     queryKey: queryKeys.userSubmissions(userId, problemId),
     queryFn: () => submissionsApi.getUserSubmissionsForProblem(userId, problemId, queryParams),
     enabled: !!userId && !!problemId,
-    staleTime: 2 * 60 * 1000 // 2 minutes
+    staleTime: 30 * 60 * 1000 // 30 minutes
   });
 };
 
@@ -175,6 +180,6 @@ export const useProblemSubmission = (problemId: number, submissionId: number) =>
     queryKey: queryKeys.problemSubmission(problemId, submissionId),
     queryFn: () => submissionsApi.getProblemSubmission(problemId, submissionId),
     enabled: !!problemId && !!submissionId,
-    staleTime: 10 * 60 * 1000 // 10 minutes (submissions don't change)
+    staleTime: 30 * 60 * 1000 // 30 minutes (submissions don't change)
   });
 };

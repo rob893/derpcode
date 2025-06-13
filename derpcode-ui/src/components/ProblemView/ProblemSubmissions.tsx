@@ -37,7 +37,7 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
     data: submissionsResponse,
     isLoading,
     error
-  } = useUserSubmissionsForProblem(user?.id || 0, problemId, { first: 20, includeNodes: true });
+  } = useUserSubmissionsForProblem(user?.id || 0, problemId, { last: 15, includeNodes: true });
 
   const submissions = useMemo(() => {
     const rawSubmissions = submissionsResponse?.nodes || [];
@@ -181,7 +181,7 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Your Submissions</h3>
-        <p className="text-sm text-default-500">{submissions.length} submission(s)</p>
+        <p className="text-sm text-default-500">Last {submissions.length} submission(s)</p>
       </div>
 
       <Table
