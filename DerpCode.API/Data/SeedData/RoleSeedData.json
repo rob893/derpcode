@@ -6,5 +6,9 @@
   {
     "Id": 2,
     "Name": "User"
+  },
+  {
+    "Id": 3,
+    "Name": "PremiumUser"
   }
 ]

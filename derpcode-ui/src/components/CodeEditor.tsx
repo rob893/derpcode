@@ -8,6 +8,7 @@ interface CodeEditorProps {
   uiTemplate: string;
   onChange(value: string | undefined): void;
   flamesEnabled?: boolean;
+  readOnly?: boolean;
 }
 
 interface FlameParticle {
@@ -19,7 +20,14 @@ interface FlameParticle {
   velocity: { x: number; y: number };
 }
 
-export const CodeEditor = ({ language, code, onChange, uiTemplate, flamesEnabled = true }: CodeEditorProps) => {
+export const CodeEditor = ({
+  language,
+  code,
+  onChange,
+  uiTemplate,
+  flamesEnabled = true,
+  readOnly = false
+}: CodeEditorProps) => {
   const [flames, setFlames] = useState<FlameParticle[]>([]);
   const editorRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -155,7 +163,8 @@ export const CodeEditor = ({ language, code, onChange, uiTemplate, flamesEnabled
           lineNumbers: 'on',
           roundedSelection: false,
           scrollBeyondLastLine: false,
-          automaticLayout: true
+          automaticLayout: true,
+          readOnly: readOnly
         }}
       />
 

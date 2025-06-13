@@ -130,3 +130,39 @@ export interface AdminProblemDriverDto {
   driverCode: string;
   answer: string;
 }
+
+export interface ProblemSubmission {
+  id: number;
+  userId: number;
+  problemId: number;
+  language: Language;
+  code: string;
+  createdAt: string;
+  pass: boolean;
+  testCaseCount: number;
+  passedTestCases: number;
+  failedTestCases: number;
+  errorMessage: string;
+  executionTimeInMs: number;
+  testCaseResults: TestCaseResult[];
+}
+
+export interface TestCaseResult {
+  id: number;
+  input: any;
+  expectedOutput: any;
+  actualOutput: any;
+  pass: boolean;
+  errorMessage: string;
+}
+
+export interface UserSubmissionQueryParameters {
+  problemId?: number;
+  after?: string;
+  before?: string;
+  first?: number;
+  last?: number;
+  includeTotal?: boolean;
+  includeNodes?: boolean;
+  includeEdges?: boolean;
+}

@@ -43,6 +43,11 @@ export function hasAdminRole(user: User | null): boolean {
   return isAdmin;
 }
 
+export function hasPremiumUserRole(user: User | null): boolean {
+  const isAdmin = user?.roles?.includes('PremiumUser') ?? false;
+  return isAdmin;
+}
+
 export function isTokenExpired(token: string): boolean {
   try {
     const decoded = jwtDecode<JwtPayload>(token);

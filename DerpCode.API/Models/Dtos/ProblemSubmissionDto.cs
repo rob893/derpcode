@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
@@ -29,6 +31,8 @@ public sealed record ProblemSubmissionDto : IIdentifiable<int>
 
     public required long ExecutionTimeInMs { get; init; }
 
+    public required List<TestCaseResultDto> TestCaseResults { get; init; }
+
     public static ProblemSubmissionDto FromEntity(ProblemSubmission submission)
     {
         ArgumentNullException.ThrowIfNull(submission);
@@ -46,7 +50,8 @@ public sealed record ProblemSubmissionDto : IIdentifiable<int>
             PassedTestCases = submission.PassedTestCases,
             FailedTestCases = submission.FailedTestCases,
             ErrorMessage = submission.ErrorMessage ?? string.Empty,
-            ExecutionTimeInMs = submission.ExecutionTimeInMs
+            ExecutionTimeInMs = submission.ExecutionTimeInMs,
+            TestCaseResults = [.. submission.TestCaseResults.Select(TestCaseResultDto.FromEntity)]
         };
     }
 }

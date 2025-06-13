@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { problemsApi, driverTemplatesApi } from '../services/api';
+import { problemsApi, driverTemplatesApi, submissionsApi } from '../services/api';
 import { authApi } from '../services/auth';
-import type { CreateProblemRequest, Language } from '../types/models';
+import type { CreateProblemRequest, Language, UserSubmissionQueryParameters } from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
 
 // Query Keys
@@ -9,7 +9,10 @@ export const queryKeys = {
   problems: ['problems'] as const,
   problem: (id: number) => ['problems', id] as const,
   adminProblem: (id: number) => ['problems', 'admin', id] as const,
-  driverTemplates: ['driverTemplates'] as const
+  driverTemplates: ['driverTemplates'] as const,
+  userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
+  problemSubmission: (problemId: number, submissionId: number) =>
+    ['problems', problemId, 'submissions', submissionId] as const
 } as const;
 
 // Problem hooks
@@ -150,5 +153,28 @@ export const useLogout = () => {
 export const useRefreshToken = () => {
   return useMutation({
     mutationFn: () => authApi.refreshToken()
+  });
+};
+
+// Submission hooks
+export const useUserSubmissionsForProblem = (
+  userId: number,
+  problemId: number,
+  queryParams?: Partial<UserSubmissionQueryParameters>
+) => {
+  return useQuery({
+    queryKey: queryKeys.userSubmissions(userId, problemId),
+    queryFn: () => submissionsApi.getUserSubmissionsForProblem(userId, problemId, queryParams),
+    enabled: !!userId && !!problemId,
+    staleTime: 2 * 60 * 1000 // 2 minutes
+  });
+};
+
+export const useProblemSubmission = (problemId: number, submissionId: number) => {
+  return useQuery({
+    queryKey: queryKeys.problemSubmission(problemId, submissionId),
+    queryFn: () => submissionsApi.getProblemSubmission(problemId, submissionId),
+    enabled: !!problemId && !!submissionId,
+    staleTime: 10 * 60 * 1000 // 10 minutes (submissions don't change)
   });
 };

@@ -6,7 +6,9 @@ import {
   type CreateProblemValidationResponse,
   type SubmissionResult,
   type Language,
-  type AdminProblemDto
+  type AdminProblemDto,
+  type ProblemSubmission,
+  type UserSubmissionQueryParameters
 } from '../types/models';
 import apiClient from './axiosConfig';
 
@@ -71,5 +73,36 @@ export const driverTemplatesApi = {
   async getDriverTemplates(): Promise<DriverTemplate[]> {
     const response = await apiClient.get<CursorPaginatedResponse<DriverTemplate>>('/api/v1/driverTemplates');
     return response.data.nodes || response.data.edges?.map(edge => edge.node) || [];
+  }
+};
+
+export const submissionsApi = {
+  async getUserSubmissionsForProblem(
+    userId: number,
+    problemId: number,
+    queryParams?: Partial<UserSubmissionQueryParameters>
+  ): Promise<CursorPaginatedResponse<ProblemSubmission>> {
+    const params = new URLSearchParams();
+    params.append('problemId', problemId.toString());
+
+    if (queryParams?.first) params.append('first', queryParams.first.toString());
+    if (queryParams?.last) params.append('last', queryParams.last.toString());
+    if (queryParams?.after) params.append('after', queryParams.after);
+    if (queryParams?.before) params.append('before', queryParams.before);
+    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
+    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
+    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+
+    const response = await apiClient.get<CursorPaginatedResponse<ProblemSubmission>>(
+      `/api/v1/users/${userId}/submissions?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  async getProblemSubmission(problemId: number, submissionId: number): Promise<ProblemSubmission> {
+    const response = await apiClient.get<ProblemSubmission>(
+      `/api/v1/problems/${problemId}/submissions/${submissionId}`
+    );
+    return response.data;
   }
 };

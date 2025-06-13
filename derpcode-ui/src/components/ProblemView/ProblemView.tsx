@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Button, Spinner, useDisclosure } from '@heroui/react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { Language } from '../types/models';
-import type { SubmissionResult, ProblemSubmission } from '../types/models';
-import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { ProblemDescription } from './ProblemView/ProblemDescription';
-import { ProblemCodeEditor } from './ProblemView/ProblemCodeEditor';
-import { ProblemSubmissionResult } from './ProblemView/ProblemSubmissionResult';
-import { ProblemModals } from './ProblemView/ProblemModals';
-import { useDeleteProblem, useProblem, useSubmitSolution, useRunSolution, useCloneProblem } from '../hooks/api';
-import { useAuth } from '../hooks/useAuth';
-import { useAutoSave } from '../hooks/useAutoSave';
-import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../utils/localStorageUtils';
+import { Language } from '../../types/models';
+import type { SubmissionResult } from '../../types/models';
+import { ApiErrorDisplay } from '../ApiErrorDisplay';
+import { ProblemDescription } from './ProblemDescription';
+import { ProblemCodeEditor } from './ProblemCodeEditor';
+import { ProblemSubmissionResult } from './ProblemSubmissionResult';
+import { ProblemModals } from './ProblemModals';
+import { useDeleteProblem, useProblem, useSubmitSolution, useRunSolution, useCloneProblem } from '../../hooks/api';
+import { useAuth } from '../../hooks/useAuth';
+import { useAutoSave } from '../../hooks/useAutoSave';
+import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../../utils/localStorageUtils';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,14 +33,11 @@ export const ProblemView = () => {
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [isRunResult, setIsRunResult] = useState(false); // Track if current result is from run or submit
   const [problemToDelete, setProblemToDelete] = useState<{ id: number; name: string } | null>(null);
-  const [selectedSubmission, setSelectedSubmission] = useState<ProblemSubmission | null>(null);
-  const [userWorkingCode, setUserWorkingCode] = useState(''); // Store user's working code when viewing submissions
-  const [userWorkingLanguage, setUserWorkingLanguage] = useState<Language | undefined>(undefined); // Store user's working language when viewing submissions
 
-  // Auto-save functionality (disabled when viewing submissions)
+  // Auto-save functionality
   useAutoSave(
-    selectedSubmission ? '' : code, // Don't auto-save when viewing a submission
-    selectedSubmission ? null : user?.id || null, // Disable auto-save when viewing a submission
+    code,
+    user?.id || null,
     problem?.id || 0,
     selectedLanguage || Language.JavaScript,
     3000 // 3 seconds delay
@@ -65,14 +62,6 @@ export const ProblemView = () => {
   useEffect(() => {
     cleanupOldAutoSaveData(30); // Keep data for 30 days
   }, []);
-
-  // Handle submission selection - load submission code into editor
-  useEffect(() => {
-    if (selectedSubmission) {
-      setSelectedLanguage(selectedSubmission.language);
-      setCode(selectedSubmission.code);
-    }
-  }, [selectedSubmission]);
 
   const handleSubmit = async () => {
     if (!problem || !selectedLanguage) return;
@@ -181,34 +170,6 @@ export const ProblemView = () => {
     setCode(newCode);
   };
 
-  const handleSubmissionSelect = (submission: ProblemSubmission) => {
-    // Save the current working code and language before switching to submission view
-    setUserWorkingCode(code);
-    setUserWorkingLanguage(selectedLanguage);
-    setSelectedSubmission(submission);
-  };
-
-  const handleReturnToWorkingCode = () => {
-    if (!problem) return;
-
-    setSelectedSubmission(null);
-
-    // Restore the user's working language first
-    const languageToRestore = userWorkingLanguage || selectedLanguage;
-    if (languageToRestore) {
-      setSelectedLanguage(languageToRestore);
-    }
-
-    // Restore the user's working code if it exists, otherwise restore saved code or template
-    if (userWorkingCode) {
-      setCode(userWorkingCode);
-    } else if (languageToRestore) {
-      const { code: savedCode } = loadCodeWithPriority(user?.id || null, problem.id, languageToRestore);
-      const selectedDriver = problem.drivers.find(d => d.language === languageToRestore);
-      setCode(savedCode || selectedDriver?.uiTemplate || '');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -256,7 +217,6 @@ export const ProblemView = () => {
             onClone={handleCloneProblem}
             onDelete={handleDeleteClick}
             isCloneLoading={cloneProblem.isPending}
-            onSubmissionSelect={handleSubmissionSelect}
           />
 
           {submissionError && (
@@ -283,8 +243,6 @@ export const ProblemView = () => {
             onReset={onResetOpen}
             isSubmitting={submitSolution.isPending}
             isRunning={runSolution.isPending}
-            selectedSubmission={selectedSubmission}
-            onReturnToWorkingCode={handleReturnToWorkingCode}
           />
         </div>
       </div>

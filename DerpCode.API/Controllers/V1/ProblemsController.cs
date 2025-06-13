@@ -320,7 +320,8 @@ public sealed class ProblemsController : ServiceControllerBase
                         PassedTestCases = -1,
                         FailedTestCases = -1,
                         ExecutionTimeInMs = -1,
-                        ErrorMessage = ex.Message
+                        ErrorMessage = ex.Message,
+                        TestCaseResults = []
                     }
                 });
             }
