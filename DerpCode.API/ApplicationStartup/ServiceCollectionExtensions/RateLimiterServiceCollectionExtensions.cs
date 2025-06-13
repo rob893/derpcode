@@ -28,6 +28,7 @@ public static class RateLimiterServiceCollectionExtensions
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             {
                 var path = httpContext.Request.Path.ToString();
+                var method = httpContext.Request.Method;
 
                 if (path.StartsWith("/api/v1/auth/register", StringComparison.OrdinalIgnoreCase))
                 {
@@ -50,6 +51,22 @@ public static class RateLimiterServiceCollectionExtensions
                         {
                             AutoReplenishment = true,
                             PermitLimit = 25,
+                            QueueLimit = 0,
+                            Window = TimeSpan.FromSeconds(60)
+                        });
+                }
+
+                if (
+                    path.StartsWith("/api/v1/problems", StringComparison.OrdinalIgnoreCase) &&
+                    (path.EndsWith("/submissions", StringComparison.OrdinalIgnoreCase) || path.EndsWith("/run", StringComparison.OrdinalIgnoreCase)) &&
+                    method.Equals("POST", StringComparison.OrdinalIgnoreCase))
+                {
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.GetPartitionKey(),
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 8,
                             QueueLimit = 0,
                             Window = TimeSpan.FromSeconds(60)
                         });

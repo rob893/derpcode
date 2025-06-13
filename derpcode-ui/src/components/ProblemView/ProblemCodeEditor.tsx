@@ -175,7 +175,7 @@ export const ProblemCodeEditor = ({
                   variant="bordered"
                   size="lg"
                   isLoading={isRunning}
-                  isDisabled={!code.trim() || !selectedLanguage}
+                  isDisabled={!code.trim() || !selectedLanguage || isSubmitting}
                   onPress={onRun}
                   className="font-semibold"
                 >
@@ -185,7 +185,7 @@ export const ProblemCodeEditor = ({
                   color="primary"
                   size="lg"
                   isLoading={isSubmitting}
-                  isDisabled={!code.trim() || !selectedLanguage}
+                  isDisabled={!code.trim() || !selectedLanguage || isRunning}
                   onPress={onSubmit}
                   className="font-semibold"
                 >
