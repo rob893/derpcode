@@ -46,6 +46,7 @@ namespace DerpCode.API.Migrations
                     LastEmailChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastUsernameChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastEmailConfirmationSent = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
+                    Experience = table.Column<int>(type: "int", nullable: false),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -103,6 +104,8 @@ namespace DerpCode.API.Migrations
                     Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Explanation = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Difficulty = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -334,6 +337,48 @@ namespace DerpCode.API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ProblemSubmissions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ProblemId = table.Column<int>(type: "int", nullable: false),
+                    Language = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Code = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    Pass = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    TestCaseCount = table.Column<int>(type: "int", nullable: false),
+                    PassedTestCases = table.Column<int>(type: "int", nullable: false),
+                    FailedTestCases = table.Column<int>(type: "int", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExecutionTimeInMs = table.Column<int>(type: "int", nullable: false),
+                    MemoryKb = table.Column<int>(type: "int", nullable: true),
+                    TestCaseResults = table.Column<string>(type: "json", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProblemSubmissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProblemSubmissions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProblemSubmissions_Problems_ProblemId",
+                        column: x => x.ProblemId,
+                        principalTable: "Problems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ProblemTag",
                 columns: table => new
                 {
@@ -406,6 +451,16 @@ namespace DerpCode.API.Migrations
                 column: "ProblemId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProblemSubmissions_ProblemId",
+                table: "ProblemSubmissions",
+                column: "ProblemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProblemSubmissions_UserId",
+                table: "ProblemSubmissions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProblemTag_TagsId",
                 table: "ProblemTag",
                 column: "TagsId");
@@ -437,6 +492,9 @@ namespace DerpCode.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProblemDrivers");
+
+            migrationBuilder.DropTable(
+                name: "ProblemSubmissions");
 
             migrationBuilder.DropTable(
                 name: "ProblemTag");

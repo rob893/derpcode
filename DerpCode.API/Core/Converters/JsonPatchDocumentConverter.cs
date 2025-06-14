@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.JsonPatch;
 
-namespace DerpCode.API.Core;
+namespace DerpCode.API.Core.Converters;
 
 public sealed class JsonPatchDocumentConverter<T> : JsonConverter<JsonPatchDocument<T>> where T : class
 {

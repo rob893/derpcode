@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { Button, Spinner, useDisclosure } from '@heroui/react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Language } from '../../types/models';
-import type { SubmissionResult, ProblemSubmission } from '../../types/models';
+import type { ProblemSubmission } from '../../types/models';
 import { ApiErrorDisplay } from '../ApiErrorDisplay';
 import { ProblemDescription } from './ProblemDescription';
 import { ProblemCodeEditor } from './ProblemCodeEditor';
@@ -29,7 +29,7 @@ export const ProblemView = () => {
 
   const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
   const [code, setCode] = useState('');
-  const [result, setResult] = useState<SubmissionResult | null>(null);
+  const [result, setResult] = useState<ProblemSubmission | null>(null);
   const [submissionError, setSubmissionError] = useState<Error | null>(null);
   const [isRunResult, setIsRunResult] = useState(false); // Track if current result is from run or submit
   const [problemToDelete, setProblemToDelete] = useState<{ id: number; name: string } | null>(null);

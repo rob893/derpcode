@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Divider, Code as CodeBlock, Tabs, Tab } from '@heroui/react';
-import { EyeIcon, EyeSlashIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  PencilIcon,
+  TrashIcon,
+  DocumentDuplicateIcon,
+  LockClosedIcon
+} from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../../types/models';
 import type { Problem, ProblemSubmission } from '../../types/models';
-import { hasAdminRole } from '../../utils/auth';
+import { hasAdminRole, hasPremiumUserRole } from '../../utils/auth';
 import { ProblemSubmissions } from './ProblemSubmissions';
 
 interface ProblemDescriptionProps {
@@ -221,12 +228,46 @@ export const ProblemDescription = ({
 
           <Tab key="explanation" title="Explanation">
             <div className="space-y-4 mt-4">
-              <div className="text-center py-8">
-                <p className="text-default-500 text-lg">Coming Soon</p>
-                <p className="text-default-400 text-sm mt-2">
-                  Detailed explanations and step-by-step solutions will be available here.
-                </p>
-              </div>
+              {hasPremiumUserRole(user) ? (
+                // Premium user - show explanation
+                problem.explanation ? (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">Solution Explanation</h3>
+                    <p className="text-default-600 leading-relaxed whitespace-pre-wrap">{problem.explanation}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-default-500 text-lg">No Explanation Available</p>
+                    <p className="text-default-400 text-sm mt-2">
+                      The author hasn't provided an explanation for this problem yet.
+                    </p>
+                  </div>
+                )
+              ) : (
+                // Non-premium user - show locked content
+                <div className="text-center py-12">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="bg-warning-100 dark:bg-warning-900/20 p-4 rounded-full">
+                      <LockClosedIcon className="w-12 h-12 text-warning-600 dark:text-warning-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">Premium Feature</h3>
+                    <p className="text-default-600 text-center max-w-md">
+                      Solution explanations are available for premium subscribers only.
+                    </p>
+                    <Button
+                      color="primary"
+                      size="lg"
+                      className="mt-4"
+                      onPress={() => {
+                        // TODO: Navigate to subscription page or open subscription modal
+                        console.log('Navigate to subscription');
+                      }}
+                    >
+                      Subscribe Now
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </Tab>
 

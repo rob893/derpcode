@@ -9,13 +9,7 @@ import {
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import {
-  useDriverTemplates,
-  useCreateProblem,
-  useValidateProblem,
-  useAdminProblem,
-  useUpdateProblem
-} from '../hooks/api';
+import { useDriverTemplates, useCreateProblem, useValidateProblem, useProblem, useUpdateProblem } from '../hooks/api';
 import {
   Button,
   Card,
@@ -46,7 +40,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
 
   // For edit mode, fetch the existing problem
   const problemId = mode === 'edit' && id ? parseInt(id, 10) : 0;
-  const { data: existingProblem, isLoading: problemLoading, error: problemError } = useAdminProblem(problemId);
+  const { data: existingProblem, isLoading: problemLoading, error: problemError } = useProblem(problemId);
 
   const isLoading = templatesLoading || (mode === 'edit' && problemLoading);
   const error = templatesError || (mode === 'edit' && problemError);
@@ -54,6 +48,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
   const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
     name: '',
     description: '',
+    explanation: '',
     difficulty: ProblemDifficulty.Easy,
     tags: [],
     input: [],
@@ -76,6 +71,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
       setProblem({
         name: existingProblem.name,
         description: existingProblem.description,
+        explanation: existingProblem.explanation || '',
         difficulty: existingProblem.difficulty,
         tags: existingProblem.tags,
         input: existingProblem.input,
@@ -85,13 +81,19 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
       });
 
       // Convert AdminProblemDriverDto to CreateProblemDriverRequest
-      const editDrivers: CreateProblemDriverRequest[] = existingProblem.drivers.map(driver => ({
-        language: driver.language,
-        image: driver.image,
-        driverCode: driver.driverCode,
-        uiTemplate: driver.uiTemplate,
-        answer: driver.answer
-      }));
+      const editDrivers: CreateProblemDriverRequest[] = existingProblem.drivers.map(driver => {
+        if (!driver.image) throw new Error('Driver image is missing');
+        if (!driver.driverCode) throw new Error('Driver code is missing');
+        if (!driver.answer) throw new Error('Driver UI template is missing');
+
+        return {
+          language: driver.language,
+          image: driver.image,
+          driverCode: driver.driverCode,
+          uiTemplate: driver.uiTemplate,
+          answer: driver.answer
+        };
+      });
       setDrivers(editDrivers);
 
       // Set input/output display values
@@ -330,6 +332,16 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                       variant="bordered"
                       color="primary"
                       minRows={4}
+                    />
+
+                    <Textarea
+                      label="Explanation"
+                      placeholder="Explanation of the solution approach (shown after solving)"
+                      value={problem.explanation}
+                      onChange={e => setProblem(prev => ({ ...prev, explanation: e.target.value }))}
+                      variant="bordered"
+                      color="primary"
+                      minRows={3}
                     />
 
                     <Select
@@ -614,7 +626,8 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
           </CardHeader>
           <CardBody className="pt-0">
             <p className="text-success text-sm">
-              All driver templates validated successfully. You can now create the problem.
+              All driver templates validated successfully. You can now {mode === 'edit' ? 'update' : 'create'} the
+              problem.
             </p>
             {validationResult?.driverValidations?.map((dv: any, index: number) => (
               <div key={index} className="mt-2 p-3 bg-success/10 border border-success/20 rounded-lg">
@@ -636,6 +649,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
           isDisabled={
             !problem.name ||
             !problem.description ||
+            !problem.explanation ||
             drivers.length === 0 ||
             drivers.some(d => !d.driverCode || !d.answer)
           }
@@ -652,6 +666,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
           isDisabled={
             !problem.name ||
             !problem.description ||
+            !problem.explanation ||
             drivers.length === 0 ||
             drivers.some(d => !d.driverCode || !d.answer) ||
             !isValidated

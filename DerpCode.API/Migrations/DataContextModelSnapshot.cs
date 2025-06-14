@@ -17,7 +17,7 @@ namespace DerpCode.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.16")
+                .HasAnnotation("ProductVersion", "8.0.17")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -88,6 +88,10 @@ namespace DerpCode.API.Migrations
                     b.Property<string>("ExpectedOutput")
                         .IsRequired()
                         .HasColumnType("json");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Hints")
                         .IsRequired()

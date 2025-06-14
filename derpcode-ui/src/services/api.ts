@@ -4,9 +4,7 @@ import {
   type DriverTemplate,
   type CreateProblemRequest,
   type CreateProblemValidationResponse,
-  type SubmissionResult,
   type Language,
-  type AdminProblemDto,
   type ProblemSubmission,
   type UserSubmissionQueryParameters
 } from '../types/models';
@@ -23,11 +21,6 @@ export const problemsApi = {
     return response.data;
   },
 
-  async getAdminProblem(id: number): Promise<AdminProblemDto> {
-    const response = await apiClient.get<AdminProblemDto>(`/api/v1/problems/admin/${id}`);
-    return response.data;
-  },
-
   async validateProblem(problem: CreateProblemRequest): Promise<CreateProblemValidationResponse> {
     const response = await apiClient.post<CreateProblemValidationResponse>('/api/v1/problems/validate', problem);
     return response.data;
@@ -38,8 +31,8 @@ export const problemsApi = {
     return response.data;
   },
 
-  async updateProblem(problemId: number, problem: CreateProblemRequest): Promise<AdminProblemDto> {
-    const response = await apiClient.put<AdminProblemDto>(`/api/v1/problems/${problemId}`, problem);
+  async updateProblem(problemId: number, problem: CreateProblemRequest): Promise<Problem> {
+    const response = await apiClient.put<Problem>(`/api/v1/problems/${problemId}`, problem);
     return response.data;
   },
 
@@ -47,21 +40,21 @@ export const problemsApi = {
     await apiClient.delete(`/api/v1/problems/${problemId}`);
   },
 
-  async cloneProblem(problemId: number): Promise<AdminProblemDto> {
-    const response = await apiClient.post<AdminProblemDto>(`/api/v1/problems/${problemId}/clone`);
+  async cloneProblem(problemId: number): Promise<Problem> {
+    const response = await apiClient.post<Problem>(`/api/v1/problems/${problemId}/clone`);
     return response.data;
   },
 
-  async submitSolution(problemId: number, userCode: string, language: Language): Promise<SubmissionResult> {
-    const response = await apiClient.post<SubmissionResult>(`/api/v1/problems/${problemId}/submissions`, {
+  async submitSolution(problemId: number, userCode: string, language: Language): Promise<ProblemSubmission> {
+    const response = await apiClient.post<ProblemSubmission>(`/api/v1/problems/${problemId}/submissions`, {
       userCode,
       language
     });
     return response.data;
   },
 
-  async runSolution(problemId: number, userCode: string, language: Language): Promise<SubmissionResult> {
-    const response = await apiClient.post<SubmissionResult>(`/api/v1/problems/${problemId}/run`, {
+  async runSolution(problemId: number, userCode: string, language: Language): Promise<ProblemSubmission> {
+    const response = await apiClient.post<ProblemSubmission>(`/api/v1/problems/${problemId}/run`, {
       userCode,
       language
     });

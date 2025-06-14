@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250609002339_InitialCreate")]
+    [Migration("20250614190945_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace DerpCode.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.16")
+                .HasAnnotation("ProductVersion", "8.0.17")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -92,6 +92,10 @@ namespace DerpCode.API.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Hints")
                         .IsRequired()
                         .HasColumnType("json");
@@ -148,6 +152,66 @@ namespace DerpCode.API.Migrations
                     b.HasIndex("ProblemId");
 
                     b.ToTable("ProblemDrivers");
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemSubmission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ExecutionTimeInMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FailedTestCases")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("MemoryKb")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Pass")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("PassedTestCases")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProblemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TestCaseCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TestCaseResults")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProblemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProblemSubmissions");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.RefreshToken", b =>
@@ -251,6 +315,9 @@ namespace DerpCode.API.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Experience")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("LastEmailChange")
                         .HasColumnType("datetime(6)");
@@ -452,6 +519,25 @@ namespace DerpCode.API.Migrations
                     b.Navigation("Problem");
                 });
 
+            modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemSubmission", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.Problem", "Problem")
+                        .WithMany("ProblemSubmissions")
+                        .HasForeignKey("ProblemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DerpCode.API.Models.Entities.User", "User")
+                        .WithMany("ProblemSubmissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Problem");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DerpCode.API.Models.Entities.RefreshToken", b =>
                 {
                     b.HasOne("DerpCode.API.Models.Entities.User", "User")
@@ -536,6 +622,8 @@ namespace DerpCode.API.Migrations
             modelBuilder.Entity("DerpCode.API.Models.Entities.Problem", b =>
                 {
                     b.Navigation("Drivers");
+
+                    b.Navigation("ProblemSubmissions");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.Role", b =>
@@ -546,6 +634,8 @@ namespace DerpCode.API.Migrations
             modelBuilder.Entity("DerpCode.API.Models.Entities.User", b =>
                 {
                     b.Navigation("LinkedAccounts");
+
+                    b.Navigation("ProblemSubmissions");
 
                     b.Navigation("RefreshTokens");
 

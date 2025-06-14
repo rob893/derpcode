@@ -66,6 +66,12 @@ public sealed class AcsEmailService : IEmailService
         ArgumentException.ThrowIfNullOrEmpty(plainTextMessage);
         ArgumentException.ThrowIfNullOrEmpty(htmlMessage);
 
+        if (!this.emailSettings.Enabled)
+        {
+            this.logger.LogWarning("Email service is disabled. Not sending email to user {UserId} with subject {Subject}", user.Id, subject);
+            return;
+        }
+
         var emailClient = this.emailClientFactory.CreateClient();
 
         var emailMessage = new EmailMessage(

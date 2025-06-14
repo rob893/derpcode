@@ -1,8 +1,8 @@
 import { Card, CardBody, CardHeader, Code as CodeBlock } from '@heroui/react';
-import type { SubmissionResult } from '../../types/models';
+import type { ProblemSubmission } from '../../types/models';
 
 interface ProblemSubmissionResultProps {
-  result: SubmissionResult;
+  result: ProblemSubmission;
   isRunResult: boolean;
 }
 

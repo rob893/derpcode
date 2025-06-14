@@ -47,7 +47,8 @@ public sealed class AcsEmailServiceTests
         this.emailSettings = new EmailSettings
         {
             FromAddress = "test@derpcode.dev",
-            AcsEndpoint = new Uri("https://test-acs.communication.azure.com")
+            AcsEndpoint = new Uri("https://test-acs.communication.azure.com"),
+            Enabled = true
         };
 
         this.mockEmailOptions.Setup(x => x.Value).Returns(this.emailSettings);

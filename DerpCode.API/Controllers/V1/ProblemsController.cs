@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ public sealed class ProblemsController : ServiceControllerBase
     public async Task<ActionResult<CursorPaginatedResponse<ProblemDto>>> GetProblemsAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
         var problems = await this.problemRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
-        var response = problems.Select(ProblemDto.FromEntity).ToCursorPaginatedResponse(searchParams);
+        var response = problems.Select(p => ProblemDto.FromEntity(p, this.User)).ToCursorPaginatedResponse(searchParams);
         return this.Ok(response);
     }
 
@@ -70,29 +71,13 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.NotFound($"Problem with ID {id} not found");
         }
 
-        return this.Ok(ProblemDto.FromEntity(problem));
-    }
-
-    [HttpGet("admin/{id}", Name = nameof(GetAdminProblemAsync))]
-    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<AdminProblemDto>> GetAdminProblemAsync([FromRoute] int id)
-    {
-        var problem = await this.problemRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
-
-        if (problem == null)
-        {
-            return this.NotFound($"Problem with ID {id} not found");
-        }
-
-        return this.Ok(AdminProblemDto.FromEntity(problem));
+        return this.Ok(ProblemDto.FromEntity(problem, this.User));
     }
 
     [HttpPost(Name = nameof(CreateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<AdminProblemDto>> CreateProblemAsync([FromBody] CreateProblemRequest problem)
+    public async Task<ActionResult<ProblemDto>> CreateProblemAsync([FromBody] CreateProblemRequest problem)
     {
         if (problem == null)
         {
@@ -111,13 +96,13 @@ public sealed class ProblemsController : ServiceControllerBase
         this.problemRepository.Add(newProblem);
         await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
-        return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, AdminProblemDto.FromEntity(newProblem));
+        return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, ProblemDto.FromEntity(newProblem, this.User));
     }
 
     [HttpPost("{problemId}/clone", Name = nameof(CloneProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<AdminProblemDto>> CloneProblemAsync([FromRoute] int problemId)
+    public async Task<ActionResult<ProblemDto>> CloneProblemAsync([FromRoute] int problemId)
     {
         var existingProblem = await this.problemRepository.GetByIdAsync(problemId, track: false, this.HttpContext.RequestAborted);
 
@@ -134,7 +119,7 @@ public sealed class ProblemsController : ServiceControllerBase
     [HttpPatch("{problemId}", Name = nameof(UpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<AdminProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
+    public async Task<ActionResult<ProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
     {
         if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
         {
@@ -169,7 +154,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.InternalServerError("Failed to update problem. Please try again later.");
         }
 
-        var problemToReturn = AdminProblemDto.FromEntity(problem);
+        var problemToReturn = ProblemDto.FromEntity(problem, this.User);
 
         return this.Ok(problemToReturn);
     }
@@ -177,7 +162,7 @@ public sealed class ProblemsController : ServiceControllerBase
     [HttpPut("{problemId}", Name = nameof(FullUpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<AdminProblemDto>> FullUpdateProblemAsync([FromRoute] int problemId, [FromBody] CreateProblemRequest updateRequest)
+    public async Task<ActionResult<ProblemDto>> FullUpdateProblemAsync([FromRoute] int problemId, [FromBody] CreateProblemRequest updateRequest)
     {
         if (updateRequest == null)
         {
@@ -204,6 +189,7 @@ public sealed class ProblemsController : ServiceControllerBase
         existingProblem.Name = newProblem.Name;
         existingProblem.Description = newProblem.Description;
         existingProblem.Difficulty = newProblem.Difficulty;
+        existingProblem.Explanation = newProblem.Explanation;
         existingProblem.Tags = newProblem.Tags;
         existingProblem.Hints = newProblem.Hints;
         existingProblem.ExpectedOutput = newProblem.ExpectedOutput;
@@ -238,7 +224,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.InternalServerError("Failed to update problem. Please try again later.");
         }
 
-        return this.Ok(AdminProblemDto.FromEntity(existingProblem));
+        return this.Ok(ProblemDto.FromEntity(existingProblem, this.User));
     }
 
     [HttpDelete("{problemId}", Name = nameof(DeleteProblemAsync))]
@@ -281,12 +267,14 @@ public sealed class ProblemsController : ServiceControllerBase
 
         var newProblem = problem.ToEntity();
 
-        var driverValidations = new List<CreateProblemDriverValidationResponse>();
-        foreach (var driver in newProblem.Drivers)
+        var driverValidations = new ConcurrentBag<CreateProblemDriverValidationResponse>();
+
+        var cancellationToken = this.HttpContext.RequestAborted;
+        var tasks = newProblem.Drivers.Select(async driver =>
         {
             try
             {
-                var result = await this.codeExecutionService.RunCodeAsync(userId.Value, driver.Answer, driver.Language, newProblem, this.HttpContext.RequestAborted);
+                var result = await this.codeExecutionService.RunCodeAsync(userId.Value, driver.Answer, driver.Language, newProblem, cancellationToken);
                 driverValidations.Add(new CreateProblemDriverValidationResponse
                 {
                     Language = driver.Language,
@@ -325,13 +313,15 @@ public sealed class ProblemsController : ServiceControllerBase
                     }
                 });
             }
-        }
+        });
+
+        await Task.WhenAll(tasks);
 
         var isValid = driverValidations.All(dv => dv.IsValid);
         var response = new CreateProblemValidationResponse
         {
             IsValid = isValid,
-            DriverValidations = driverValidations,
+            DriverValidations = driverValidations.ToList(),
             ErrorMessage = isValid ? null : "One or more driver templates failed validation"
         };
 

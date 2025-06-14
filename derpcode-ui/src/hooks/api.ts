@@ -8,7 +8,6 @@ import type { LoginRequest, RegisterRequest } from '../types/auth';
 export const queryKeys = {
   problems: ['problems'] as const,
   problem: (id: number) => ['problems', id] as const,
-  adminProblem: (id: number) => ['problems', 'admin', id] as const,
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
   problemSubmission: (problemId: number, submissionId: number) =>
@@ -28,15 +27,6 @@ export const useProblem = (id: number) => {
   return useQuery({
     queryKey: queryKeys.problem(id),
     queryFn: () => problemsApi.getProblem(id),
-    enabled: !!id,
-    staleTime: 15 * 60 * 1000 // 15 minutes
-  });
-};
-
-export const useAdminProblem = (id: number) => {
-  return useQuery({
-    queryKey: queryKeys.adminProblem(id),
-    queryFn: () => problemsApi.getAdminProblem(id),
     enabled: !!id,
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
@@ -69,7 +59,6 @@ export const useUpdateProblem = () => {
 
       // Update the specific problem caches
       queryClient.setQueryData(queryKeys.problem(updatedProblem.id), updatedProblem);
-      queryClient.setQueryData(queryKeys.adminProblem(updatedProblem.id), updatedProblem);
     }
   });
 };
@@ -97,7 +86,6 @@ export const useCloneProblem = () => {
 
       // Add the new problem to the cache
       queryClient.setQueryData(queryKeys.problem(newProblem.id), newProblem);
-      queryClient.setQueryData(queryKeys.adminProblem(newProblem.id), newProblem);
     }
   });
 };

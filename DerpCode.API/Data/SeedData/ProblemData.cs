@@ -15,6 +15,7 @@ public static class ProblemData
             Tags = [TagData.Tags[0]],
             Description = "Given two numbers, return their sum.",
             Difficulty = ProblemDifficulty.VeryEasy,
+            Explanation = "This is a very simple problem that tests your understanding of basic arithmetic operations. You need to add two numbers together and return the result. The '+' operator is used for addition in most programming languages.",
             ExpectedOutput = [6, 10],
             Hints = ["Use the '+' operator to add two numbers."],
             Drivers =
@@ -435,6 +436,7 @@ public static class ProblemData
             Description = "Given a number, return \"fizz\" if it is divisible by 3, \"buzz\" if it is divisible by 5, and \"fizzbuzz\" if it is divisible by both.",
             Difficulty = ProblemDifficulty.Easy,
             Input = [5, 1, 3, 4, 15],
+            Explanation = "This is a classic problem that tests your understanding of conditional statements and the modulo operator. etc",
             Hints = ["Use the modulo operator '%' to check divisibility."],
             ExpectedOutput = ["buzz", "", "fizz", "", "fizzbuzz"],
             Drivers =

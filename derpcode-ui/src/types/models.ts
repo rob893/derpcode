@@ -8,6 +8,7 @@ export interface Problem {
   difficulty: ProblemDifficulty;
   drivers: ProblemDriver[];
   hints: string[];
+  explanation?: string;
 }
 
 export enum Language {
@@ -34,15 +35,9 @@ export interface ProblemDriver {
   problemId: number;
   language: Language;
   uiTemplate: string;
-}
-
-export interface SubmissionResult {
-  pass: boolean;
-  testCaseCount: number;
-  passedTestCases: number;
-  failedTestCases: number;
-  errorMessage: string;
-  executionTimeInMs: number;
+  image?: string;
+  driverCode?: string;
+  answer?: string;
 }
 
 export interface DriverTemplate {
@@ -76,6 +71,7 @@ export interface CreateProblemRequest {
   name: string;
   description: string;
   difficulty: ProblemDifficulty;
+  explanation: string;
   expectedOutput: any[];
   input: any[];
   hints: string[];
@@ -106,19 +102,7 @@ export interface CreateProblemDriverValidationResponse {
   errorMessage?: string;
   language: Language;
   image: string;
-  submissionResult: SubmissionResult;
-}
-
-export interface AdminProblemDto {
-  id: number;
-  name: string;
-  expectedOutput: any[];
-  input: any[];
-  tags: TagDto[];
-  description: string;
-  difficulty: ProblemDifficulty;
-  drivers: AdminProblemDriverDto[];
-  hints: string[];
+  submissionResult: ProblemSubmission;
 }
 
 export interface AdminProblemDriverDto {

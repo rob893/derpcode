@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Security.Claims;
 using DerpCode.API.Constants;
 using Microsoft.AspNetCore.JsonPatch;
@@ -91,11 +93,27 @@ public static class UtilityExtensions
         return false;
     }
 
+    public static HashSet<string> GetUserRoles(this ClaimsPrincipal principal)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+
+        return [.. principal.Claims
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == "roles")
+            .Select(c => c.Value)];
+    }
+
     public static bool IsAdmin(this ClaimsPrincipal principal)
     {
         ArgumentNullException.ThrowIfNull(principal);
 
         return principal.IsInRole(UserRoleName.Admin);
+    }
+
+    public static bool IsPremiumUser(this ClaimsPrincipal principal)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+
+        return principal.IsInRole(UserRoleName.PremiumUser);
     }
 
     public static JsonPatchDocument<TDestination> MapPatchDocument<TSource, TDestination>(
