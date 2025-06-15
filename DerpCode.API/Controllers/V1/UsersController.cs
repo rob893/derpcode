@@ -26,17 +26,21 @@ public sealed class UsersController : ServiceControllerBase
 
     private readonly IEmailService emailService;
 
+    private readonly ICurrentUserService currentUserService;
+
     private readonly ILogger<UsersController> logger;
 
     public UsersController(
         IUserRepository userRepository,
         IEmailService emailService,
+        ICurrentUserService currentUserService,
         ILogger<UsersController> logger,
         ICorrelationIdService correlationIdService)
         : base(correlationIdService)
     {
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -69,16 +73,16 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> GetUserAsync([FromRoute] int id)
     {
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return this.Forbidden("You can only see your own user information.");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"User with id {id} does not exist.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only see your own user information.");
         }
 
         var userToReturn = UserDto.FromEntity(user);
@@ -102,16 +106,16 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUserAsync([FromRoute] int id)
     {
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return this.Forbidden("You can only delete your own user information.");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"No User with Id {id} found.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only delete your own user.");
         }
 
         this.userRepository.Remove(user);
@@ -142,16 +146,16 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUserLinkedAccountAsync([FromRoute] int id, [FromRoute] LinkedAccountType linkedAccountType)
     {
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return this.Forbidden("You can only delete your own linked accounts.");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"No User with Id {id} found.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only delete your own linked accounts.");
         }
 
         var linkedAccount = user.LinkedAccounts.FirstOrDefault(account => account.LinkedAccountType == linkedAccountType);
@@ -325,16 +329,16 @@ public sealed class UsersController : ServiceControllerBase
             return this.BadRequest();
         }
 
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return this.Forbidden("You can only update your own user information.");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"No user with Id {id} found.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only update your own information.");
         }
 
         if (user.LastLogin is null || user.LastLogin <= DateTimeOffset.UtcNow.AddMinutes(-30))
@@ -385,16 +389,16 @@ public sealed class UsersController : ServiceControllerBase
             return this.BadRequest();
         }
 
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return this.Forbidden("You can only update your own password.");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"No user with Id {id} found.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only update your own password.");
         }
 
         user.LastPasswordChange = DateTimeOffset.UtcNow;
@@ -422,16 +426,16 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> SendEmailConfirmationAsync([FromRoute] int id)
     {
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return this.Forbidden("You can only resend confirmation email for your own account.");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"No user with Id {id} found.");
-        }
-
-        if (!this.IsUserAuthorizedForResource(user.Id))
-        {
-            return this.Forbidden("You can only resend confirmation email for your own account.");
         }
 
         if (string.IsNullOrWhiteSpace(user.Email))

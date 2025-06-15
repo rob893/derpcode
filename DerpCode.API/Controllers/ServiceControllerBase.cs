@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DerpCode.API.Core;
-using DerpCode.API.Extensions;
-using DerpCode.API.Models;
 using DerpCode.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,23 +19,9 @@ public abstract class ServiceControllerBase : ControllerBase
     protected string CorrelationId => this.correlationIdService.CorrelationId;
 
     [NonAction]
-    public bool IsUserAuthorizedForResource(IOwnedByUser<int> resource, bool isAdminAuthorized = true)
+    public BadRequestObjectResult BadRequest(string? errorMessage = "Bad request.")
     {
-        ArgumentNullException.ThrowIfNull(resource);
-
-        return (isAdminAuthorized && this.User.IsAdmin()) || (this.User.TryGetUserId(out var userId) && userId == resource.UserId);
-    }
-
-    [NonAction]
-    public bool IsUserAuthorizedForResource(int userIdInQuestion, bool isAdminAuthorized = true)
-    {
-        return (isAdminAuthorized && this.User.IsAdmin()) || (this.User.TryGetUserId(out var userId) && userId == userIdInQuestion);
-    }
-
-    [NonAction]
-    public BadRequestObjectResult BadRequest(string errorMessage = "Bad request.")
-    {
-        return this.BadRequest([errorMessage]);
+        return this.BadRequest([errorMessage ?? "Bad request."]);
     }
 
     [NonAction]
@@ -47,9 +31,9 @@ public abstract class ServiceControllerBase : ControllerBase
     }
 
     [NonAction]
-    public UnauthorizedObjectResult Unauthorized(string errorMessage = "Unauthorized.")
+    public UnauthorizedObjectResult Unauthorized(string? errorMessage = "Unauthorized.")
     {
-        return this.Unauthorized([errorMessage]);
+        return this.Unauthorized([errorMessage ?? "Unauthorized."]);
     }
 
     [NonAction]
@@ -59,9 +43,9 @@ public abstract class ServiceControllerBase : ControllerBase
     }
 
     [NonAction]
-    public ObjectResult Forbidden(string errorMessage = "Forbidden.")
+    public ObjectResult Forbidden(string? errorMessage = "Forbidden.")
     {
-        return this.Forbidden([errorMessage]);
+        return this.Forbidden([errorMessage ?? "Forbidden."]);
     }
 
     [NonAction]
@@ -71,9 +55,9 @@ public abstract class ServiceControllerBase : ControllerBase
     }
 
     [NonAction]
-    public NotFoundObjectResult NotFound(string errorMessage = "Resource not found.")
+    public NotFoundObjectResult NotFound(string? errorMessage = "Resource not found.")
     {
-        return this.NotFound([errorMessage]);
+        return this.NotFound([errorMessage ?? "Resource not found."]);
     }
 
     [NonAction]
@@ -83,14 +67,35 @@ public abstract class ServiceControllerBase : ControllerBase
     }
 
     [NonAction]
-    public ObjectResult InternalServerError(string errorMessage = "Internal server error.")
+    public ObjectResult InternalServerError(string? errorMessage = "Internal server error.")
     {
-        return this.InternalServerError([errorMessage]);
+        return this.InternalServerError([errorMessage ?? "Internal server error."]);
     }
 
     [NonAction]
     public ObjectResult InternalServerError(IEnumerable<string> errorMessages)
     {
         return base.StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetailsWithErrors(errorMessages, StatusCodes.Status500InternalServerError, this.Request));
+    }
+
+    [NonAction]
+    protected ObjectResult HandleServiceFailureResult<T>(Result<T> result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        if (result.IsSuccess)
+        {
+            throw new InvalidOperationException("This method should only be called for failed results.");
+        }
+
+        return result.ErrorType switch
+        {
+            DomainErrorType.NotFound => this.NotFound(result.ErrorMessage),
+            DomainErrorType.Validation => this.BadRequest(result.ErrorMessage),
+            DomainErrorType.Unauthorized => this.Unauthorized(result.ErrorMessage),
+            DomainErrorType.Forbidden => this.Forbidden(result.ErrorMessage),
+            DomainErrorType.Conflict => this.Conflict(result.ErrorMessage),
+            _ => this.InternalServerError(result.ErrorMessage)
+        };
     }
 }

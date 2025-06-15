@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using DerpCode.API.Extensions;
 using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
@@ -29,13 +27,9 @@ public sealed record ProblemDto : IIdentifiable<int>
 
     public required List<ProblemDriverDto> Drivers { get; init; }
 
-    public static ProblemDto FromEntity(Problem problem, ClaimsPrincipal user)
+    public static ProblemDto FromEntity(Problem problem, bool isCurrentUserAdmin, bool isCurrentUserPremium)
     {
         ArgumentNullException.ThrowIfNull(problem);
-        ArgumentNullException.ThrowIfNull(user);
-
-        var isAdmin = user.IsAdmin();
-        var isPremiumUser = user.IsPremiumUser();
 
         return new ProblemDto
         {
@@ -44,11 +38,11 @@ public sealed record ProblemDto : IIdentifiable<int>
             Description = problem.Description,
             Difficulty = problem.Difficulty,
             ExpectedOutput = problem.ExpectedOutput,
-            ExplanationArticle = isAdmin || isPremiumUser ? ArticleDto.FromEntity(problem.ExplanationArticle) : null,
+            ExplanationArticle = isCurrentUserAdmin || isCurrentUserPremium ? ArticleDto.FromEntity(problem.ExplanationArticle) : null,
             Hints = [.. problem.Hints],
             Input = problem.Input,
             Tags = [.. problem.Tags.Select(TagDto.FromEntity)],
-            Drivers = [.. problem.Drivers.Select(x => ProblemDriverDto.FromEntity(x, user))]
+            Drivers = [.. problem.Drivers.Select(x => ProblemDriverDto.FromEntity(x, isCurrentUserAdmin))]
         };
     }
 }

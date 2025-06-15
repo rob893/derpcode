@@ -18,7 +18,7 @@ public sealed record CreateProblemRequest
     public string Description { get; init; } = string.Empty;
 
     [Required]
-    public CreateProblemExplanationArticleRequest ExplanationArticle { get; set; } = default!;
+    public CreateProblemExplanationArticleRequest ExplanationArticle { get; init; } = default!;
 
     [Required]
     public ProblemDifficulty? Difficulty { get; init; }

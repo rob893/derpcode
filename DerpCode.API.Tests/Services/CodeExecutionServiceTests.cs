@@ -1,5 +1,4 @@
 using System.Text.Json;
-using DerpCode.API.Models;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Services;
 using Docker.DotNet;

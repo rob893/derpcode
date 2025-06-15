@@ -231,6 +231,10 @@ dotnet_diagnostic.CA1812.severity = none
 # High-performance logging with LoggerMessage in ASP.NET Core.
 # Disabled because I don't want to refactor logging right now.
 dotnet_diagnostic.CA1848.severity = none
+# Do not declare static members on generic types.
+# Disabled because I disagree with this.
+dotnet_diagnostic.CA1000.severity = none
+
 
 [*/Migrations/**]
 generated_code = true

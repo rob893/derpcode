@@ -25,18 +25,22 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
 
     private readonly IProblemSubmissionRepository problemSubmissionRepository;
 
+    private readonly ICurrentUserService currentUserService;
+
     public ProblemSubmissionsController(
         ILogger<ProblemSubmissionsController> logger,
         ICorrelationIdService correlationIdService,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
-        IProblemSubmissionRepository problemSubmissionRepository)
+        IProblemSubmissionRepository problemSubmissionRepository,
+        ICurrentUserService currentUserService)
             : base(correlationIdService)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
         this.problemSubmissionRepository = problemSubmissionRepository ?? throw new ArgumentNullException(nameof(problemSubmissionRepository));
+        this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     [HttpGet("submissions/{submissionId}", Name = nameof(GetProblemSubmissionAsync))]
@@ -51,7 +55,7 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
             return this.NotFound($"Submission with ID {submissionId} for problem with ID {problemId} not found");
         }
 
-        if (!this.IsUserAuthorizedForResource(submission))
+        if (!this.currentUserService.IsUserAuthorizedForResource(submission))
         {
             return this.Forbidden("You can only see your own submissions.");
         }
