@@ -12,7 +12,11 @@ public sealed class Problem : IIdentifiable<int>
 
     public string Description { get; set; } = string.Empty;
 
-    public string Explanation { get; set; } = string.Empty;
+    public Article ExplanationArticle { get; set; } = default!;
+
+    public int ExplanationArticleId { get; set; }
+
+    public List<Article> SolutionArticles { get; set; } = [];
 
     [MaxLength(15)]
     public ProblemDifficulty Difficulty { get; set; }

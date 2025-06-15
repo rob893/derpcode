@@ -32,6 +32,8 @@ public sealed class ProblemsController : ServiceControllerBase
 
     private readonly IProblemRepository problemRepository;
 
+    private readonly IArticleRepository articleRepository;
+
     private readonly ITagRepository tagRepository;
 
     public ProblemsController(
@@ -39,12 +41,14 @@ public sealed class ProblemsController : ServiceControllerBase
         ICorrelationIdService correlationIdService,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
+        IArticleRepository articleRepository,
         ITagRepository tagRepository)
             : base(correlationIdService)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
+        this.articleRepository = articleRepository ?? throw new ArgumentNullException(nameof(articleRepository));
         this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
     }
 
@@ -84,6 +88,11 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.BadRequest("Problem cannot be null");
         }
 
+        if (!this.User.TryGetUserId(out var userId))
+        {
+            return this.Forbidden("You must be logged in to create a problem.");
+        }
+
         var newProblem = problem.ToEntity();
 
         if (problem.Tags != null && problem.Tags.Count > 0)
@@ -91,7 +100,13 @@ public sealed class ProblemsController : ServiceControllerBase
             var tagNames = problem.Tags.Select(t => t.Name).ToHashSet();
             var existingTags = await this.tagRepository.SearchAsync(t => tagNames.Contains(t.Name), track: true, this.HttpContext.RequestAborted);
             newProblem.Tags = [.. existingTags.Union(newProblem.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
+
         }
+
+        newProblem.ExplanationArticle.UserId = userId.Value;
+        newProblem.ExplanationArticle.LastEditedById = userId.Value;
+        newProblem.ExplanationArticle.Tags = [.. newProblem.Tags];
+
 
         this.problemRepository.Add(newProblem);
         await this.problemRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
@@ -104,7 +119,7 @@ public sealed class ProblemsController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<ProblemDto>> CloneProblemAsync([FromRoute] int problemId)
     {
-        var existingProblem = await this.problemRepository.GetByIdAsync(problemId, track: false, this.HttpContext.RequestAborted);
+        var existingProblem = await this.problemRepository.GetByIdAsync(problemId, [x => x.ExplanationArticle], this.HttpContext.RequestAborted);
 
         if (existingProblem == null)
         {
@@ -126,7 +141,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.BadRequest("A JSON patch document with at least 1 operation is required.");
         }
 
-        var problem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
+        var problem = await this.problemRepository.GetByIdAsync(problemId, [x => x.ExplanationArticle], this.HttpContext.RequestAborted);
 
         if (problem == null)
         {
@@ -169,7 +184,12 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.BadRequest("Problem cannot be null");
         }
 
-        var existingProblem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
+        if (!this.User.TryGetUserId(out var userId))
+        {
+            return this.Forbidden("You must be logged in to create a problem.");
+        }
+
+        var existingProblem = await this.problemRepository.GetByIdAsync(problemId, [x => x.ExplanationArticle], this.HttpContext.RequestAborted);
 
         if (existingProblem == null)
         {
@@ -183,17 +203,24 @@ public sealed class ProblemsController : ServiceControllerBase
             var tagNames = updateRequest.Tags.Select(t => t.Name).ToHashSet();
             var existingTags = await this.tagRepository.SearchAsync(t => tagNames.Contains(t.Name), track: true, this.HttpContext.RequestAborted);
             newProblem.Tags = [.. existingTags.Union(newProblem.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
+            newProblem.ExplanationArticle.Tags = [.. existingTags.Union(newProblem.ExplanationArticle.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
         }
 
         // Update the existing problem with the new values
         existingProblem.Name = newProblem.Name;
         existingProblem.Description = newProblem.Description;
         existingProblem.Difficulty = newProblem.Difficulty;
-        existingProblem.Explanation = newProblem.Explanation;
         existingProblem.Tags = newProblem.Tags;
         existingProblem.Hints = newProblem.Hints;
         existingProblem.ExpectedOutput = newProblem.ExpectedOutput;
         existingProblem.Input = newProblem.Input;
+
+        // Update the explanation article
+        existingProblem.ExplanationArticle.Title = updateRequest.ExplanationArticle.Title;
+        existingProblem.ExplanationArticle.Content = updateRequest.ExplanationArticle.Content;
+        existingProblem.ExplanationArticle.UpdatedAt = DateTimeOffset.UtcNow;
+        existingProblem.ExplanationArticle.LastEditedById = userId.Value;
+        existingProblem.ExplanationArticle.Tags = newProblem.ExplanationArticle.Tags;
 
         var newProblemDrivers = newProblem.Drivers.Select(d => d.Language).ToHashSet();
         existingProblem.Drivers.RemoveAll(x => !newProblemDrivers.Contains(x.Language));
@@ -232,7 +259,7 @@ public sealed class ProblemsController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> DeleteProblemAsync([FromRoute] int problemId)
     {
-        var problem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
+        var problem = await this.problemRepository.GetByIdAsync(problemId, [p => p.ExplanationArticle, p => p.SolutionArticles], this.HttpContext.RequestAborted);
         if (problem == null)
         {
             return this.NotFound($"Problem with ID {problemId} not found");

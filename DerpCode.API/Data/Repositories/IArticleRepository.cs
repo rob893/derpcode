@@ -4,6 +4,6 @@ using DerpCode.API.Models.QueryParameters;
 
 namespace DerpCode.API.Data.Repositories;
 
-public interface IProblemSubmissionRepository : IRepository<ProblemSubmission, long, ProblemSubmissionQueryParameters>
+public interface IArticleRepository : IRepository<Article, CursorPaginationQueryParameters>
 {
 }

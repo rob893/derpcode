@@ -29,6 +29,10 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
     public DbSet<ProblemSubmission> ProblemSubmissions => this.Set<ProblemSubmission>();
 
+    public DbSet<Article> Articles => this.Set<Article>();
+
+    public DbSet<ArticleComment> ArticleComments => this.Set<ArticleComment>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -124,6 +128,24 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
                     v => JsonSerializer.Serialize(v, options),
                     v => JsonSerializer.Deserialize<List<TestCaseResult>>(v, options) ?? new List<TestCaseResult>())
                 .Metadata.SetValueComparer(listComparer);
+        });
+
+        builder.Entity<Article>(article =>
+        {
+            article.Property(s => s.Type).HasConversion<string>();
+        });
+
+        builder.Entity<ArticleComment>(comment =>
+        {
+            comment.HasOne(c => c.ParentComment)
+                .WithMany(c => c.Replies)
+                .HasForeignKey(c => c.ParentCommentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            comment.HasOne(c => c.QuotedComment)
+                .WithMany()
+                .HasForeignKey(c => c.QuotedCommentId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

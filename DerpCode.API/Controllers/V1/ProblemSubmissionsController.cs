@@ -73,6 +73,11 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
             return this.Forbidden();
         }
 
+        if (!this.User.TryGetEmailVerified(out var emailVerified) || !emailVerified.Value)
+        {
+            return this.Forbidden("You must verify your email before submitting solutions.");
+        }
+
         var problem = await this.problemRepository.GetByIdAsync(problemId, track: true, this.HttpContext.RequestAborted);
 
         if (problem == null)

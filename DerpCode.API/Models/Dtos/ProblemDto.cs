@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
-using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Entities;
 
@@ -17,7 +15,7 @@ public sealed record ProblemDto : IIdentifiable<int>
 
     public required string Description { get; init; }
 
-    public required string? Explanation { get; init; }
+    public required ArticleDto? ExplanationArticle { get; init; }
 
     public required ProblemDifficulty Difficulty { get; init; }
 
@@ -46,7 +44,7 @@ public sealed record ProblemDto : IIdentifiable<int>
             Description = problem.Description,
             Difficulty = problem.Difficulty,
             ExpectedOutput = problem.ExpectedOutput,
-            Explanation = isAdmin || isPremiumUser ? problem.Explanation : null,
+            ExplanationArticle = isAdmin || isPremiumUser ? ArticleDto.FromEntity(problem.ExplanationArticle) : null,
             Hints = [.. problem.Hints],
             Input = problem.Input,
             Tags = [.. problem.Tags.Select(TagDto.FromEntity)],

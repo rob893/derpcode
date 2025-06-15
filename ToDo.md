@@ -1,5 +1,7 @@
 - Bicep templates for vm, acs, and associated roles
 - xp system with unlocks (themes, titles, editor animations, etc)
-- save user submissions
 - programs (guided learnings based on subject)
-- update email (endpoint to send update email link to new email)
+- User can update email (endpoint to send update email link to new email)
+- optimize problem querying (list should not return drivers, articles, etc). Artilce should should be pulled back on explanation tab
+- support markdown in description and solution text
+- implement solutions tab (endpoint for CRUD articles)

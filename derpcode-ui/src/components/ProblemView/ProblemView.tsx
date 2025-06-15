@@ -11,12 +11,14 @@ import { ProblemSubmissionResult } from './ProblemSubmissionResult';
 import { ProblemModals } from './ProblemModals';
 import { useDeleteProblem, useProblem, useSubmitSolution, useRunSolution, useCloneProblem } from '../../hooks/api';
 import { useAuth } from '../../hooks/useAuth';
+import { useCurrentUser } from '../../hooks/useUser';
 import { useAutoSave } from '../../hooks/useAutoSave';
 import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../../utils/localStorageUtils';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
   const { user, isAuthenticated } = useAuth();
+  const { data: currentUserData } = useCurrentUser(); // Get full user data with emailConfirmed
   const navigate = useNavigate();
   const { data: problem, isLoading, error } = useProblem(Number(id!));
   const submitSolution = useSubmitSolution(user?.id || 0, problem?.id || 0);
@@ -26,6 +28,11 @@ export const ProblemView = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure();
   const { isOpen: isResetOpen, onOpen: onResetOpen, onOpenChange: onResetOpenChange } = useDisclosure();
+  const {
+    isOpen: isEmailVerificationOpen,
+    onOpen: onEmailVerificationOpen,
+    onOpenChange: onEmailVerificationOpenChange
+  } = useDisclosure();
 
   const [selectedLanguage, setSelectedLanguage] = useState<Language | undefined>(undefined);
   const [code, setCode] = useState('');
@@ -80,6 +87,12 @@ export const ProblemView = () => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       onOpen(); // Show login modal
+      return;
+    }
+
+    // Check if user's email is verified
+    if (currentUserData && !currentUserData.emailConfirmed) {
+      onEmailVerificationOpen(); // Show email verification modal
       return;
     }
 
@@ -304,6 +317,9 @@ export const ProblemView = () => {
         onResetOpenChange={onResetOpenChange}
         problemName={problem.name}
         onConfirmReset={handleResetCode}
+        isEmailVerificationOpen={isEmailVerificationOpen}
+        onEmailVerificationOpenChange={onEmailVerificationOpenChange}
+        onNavigateToAccount={() => navigate('/account')}
       />
     </div>
   );

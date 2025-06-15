@@ -67,7 +67,11 @@ public sealed class UserSubmissionsController : ServiceControllerBase
         };
 
         var submissions = await this.problemSubmissionRepository.SearchAsync(problemSearchParams, track: false, this.HttpContext.RequestAborted);
-        var paginatedResponse = submissions.Select(ProblemSubmissionDto.FromEntity).ToCursorPaginatedResponse(searchParams);
+        var paginatedResponse = submissions.Select(ProblemSubmissionDto.FromEntity).ToCursorPaginatedResponse(
+            e => e.Id,
+            id => id.ConvertToBase64Url(),
+            id => id.ConvertToLongFromBase64Url(),
+            searchParams);
 
         return this.Ok(paginatedResponse);
     }

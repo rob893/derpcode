@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DerpCode.API.Models.Entities;
 
-public sealed class ProblemSubmission : IIdentifiable<int>, IOwnedByUser<int>
+public sealed class ProblemSubmission : IIdentifiable<long>, IOwnedByUser<int>
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public int UserId { get; set; }
 

@@ -230,10 +230,12 @@ export const ProblemDescription = ({
             <div className="space-y-4 mt-4">
               {hasPremiumUserRole(user) ? (
                 // Premium user - show explanation
-                problem.explanation ? (
+                problem.explanationArticle ? (
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-foreground">Solution Explanation</h3>
-                    <p className="text-default-600 leading-relaxed whitespace-pre-wrap">{problem.explanation}</p>
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">{problem.explanationArticle.title}</h3>
+                    <p className="text-default-600 leading-relaxed whitespace-pre-wrap">
+                      {problem.explanationArticle.content}
+                    </p>
                   </div>
                 ) : (
                   <div className="text-center py-8">

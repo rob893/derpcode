@@ -5,9 +5,9 @@ using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
 
-public sealed record ProblemSubmissionDto : IIdentifiable<int>
+public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<int>
 {
-    public required int Id { get; init; }
+    public required long Id { get; init; }
 
     public required int UserId { get; init; }
 

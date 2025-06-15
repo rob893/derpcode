@@ -48,7 +48,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
   const [problem, setProblem] = useState<Partial<CreateProblemRequest>>({
     name: '',
     description: '',
-    explanation: '',
+    explanationArticle: { title: '', content: '' },
     difficulty: ProblemDifficulty.Easy,
     tags: [],
     input: [],
@@ -71,7 +71,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
       setProblem({
         name: existingProblem.name,
         description: existingProblem.description,
-        explanation: existingProblem.explanation || '',
+        explanationArticle: existingProblem.explanationArticle || { title: '', content: '' },
         difficulty: existingProblem.difficulty,
         tags: existingProblem.tags,
         input: existingProblem.input,
@@ -334,14 +334,39 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                       minRows={4}
                     />
 
-                    <Textarea
-                      label="Explanation"
-                      placeholder="Explanation of the solution approach (shown after solving)"
-                      value={problem.explanation}
-                      onChange={e => setProblem(prev => ({ ...prev, explanation: e.target.value }))}
+                    <Input
+                      label="Explanation Article Title"
+                      placeholder="Title for the solution explanation article"
+                      value={problem.explanationArticle?.title || ''}
+                      onChange={e =>
+                        setProblem(prev => ({
+                          ...prev,
+                          explanationArticle: {
+                            title: e.target.value,
+                            content: prev.explanationArticle?.content || ''
+                          }
+                        }))
+                      }
                       variant="bordered"
                       color="primary"
-                      minRows={3}
+                    />
+
+                    <Textarea
+                      label="Explanation Article Content"
+                      placeholder="Detailed article content explaining the solution approach (shown after solving)"
+                      value={problem.explanationArticle?.content || ''}
+                      onChange={e =>
+                        setProblem(prev => ({
+                          ...prev,
+                          explanationArticle: {
+                            title: prev.explanationArticle?.title || '',
+                            content: e.target.value
+                          }
+                        }))
+                      }
+                      variant="bordered"
+                      color="primary"
+                      minRows={5}
                     />
 
                     <Select
@@ -649,7 +674,8 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
           isDisabled={
             !problem.name ||
             !problem.description ||
-            !problem.explanation ||
+            !problem.explanationArticle?.title ||
+            !problem.explanationArticle?.content ||
             drivers.length === 0 ||
             drivers.some(d => !d.driverCode || !d.answer)
           }
@@ -666,7 +692,8 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
           isDisabled={
             !problem.name ||
             !problem.description ||
-            !problem.explanation ||
+            !problem.explanationArticle?.title ||
+            !problem.explanationArticle?.content ||
             drivers.length === 0 ||
             drivers.some(d => !d.driverCode || !d.answer) ||
             !isValidated

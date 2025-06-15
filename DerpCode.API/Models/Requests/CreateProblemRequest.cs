@@ -17,9 +17,8 @@ public sealed record CreateProblemRequest
     [Required]
     public string Description { get; init; } = string.Empty;
 
-    [MinLength(1)]
     [Required]
-    public string Explanation { get; set; } = string.Empty;
+    public CreateProblemExplanationArticleRequest ExplanationArticle { get; set; } = default!;
 
     [Required]
     public ProblemDifficulty? Difficulty { get; init; }
@@ -50,11 +49,11 @@ public sealed record CreateProblemRequest
             Description = this.Description,
             Difficulty = this.Difficulty ?? throw new InvalidOperationException("Difficulty is required"),
             ExpectedOutput = this.ExpectedOutput,
-            Explanation = this.Explanation,
             Hints = [.. this.Hints],
             Input = this.Input,
             Tags = [.. this.Tags.Select(tag => tag.ToEntity())],
-            Drivers = [.. this.Drivers.Select(driver => driver.ToEntity())]
+            Drivers = [.. this.Drivers.Select(driver => driver.ToEntity())],
+            ExplanationArticle = this.ExplanationArticle.ToEntity()
         };
     }
 
@@ -67,7 +66,7 @@ public sealed record CreateProblemRequest
             Name = problem.Name,
             Description = problem.Description,
             Difficulty = problem.Difficulty,
-            Explanation = problem.Explanation,
+            ExplanationArticle = CreateProblemExplanationArticleRequest.FromEntity(problem.ExplanationArticle),
             ExpectedOutput = [.. problem.ExpectedOutput],
             Input = [.. problem.Input],
             Hints = [.. problem.Hints],

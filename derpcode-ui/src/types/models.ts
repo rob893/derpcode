@@ -1,3 +1,25 @@
+export enum ArticleType {
+  ProblemSolution = 'ProblemSolution',
+  News = 'News',
+  BlogPost = 'BlogPost',
+  Tutorial = 'Tutorial',
+  Other = 'Other'
+}
+
+export interface ExplanationArticle {
+  id: number;
+  userId: number;
+  title: string;
+  content: string;
+  upVotes: number;
+  downVotes: number;
+  createdAt: string;
+  updatedAt: string;
+  lastEditedById: number;
+  type: ArticleType;
+  tags: TagDto[];
+}
+
 export interface Problem {
   id: number;
   name: string;
@@ -8,7 +30,7 @@ export interface Problem {
   difficulty: ProblemDifficulty;
   drivers: ProblemDriver[];
   hints: string[];
-  explanation?: string;
+  explanationArticle?: ExplanationArticle;
 }
 
 export enum Language {
@@ -67,11 +89,16 @@ export interface CursorPaginatedResponsePageInfo {
   totalCount?: number;
 }
 
+export interface CreateExplanationArticleRequest {
+  title: string;
+  content: string;
+}
+
 export interface CreateProblemRequest {
   name: string;
   description: string;
   difficulty: ProblemDifficulty;
-  explanation: string;
+  explanationArticle: CreateExplanationArticleRequest;
   expectedOutput: any[];
   input: any[];
   hints: string[];

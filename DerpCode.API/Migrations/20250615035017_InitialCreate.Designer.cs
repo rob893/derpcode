@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250614190945_InitialCreate")]
+    [Migration("20250615035017_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,133 @@ namespace DerpCode.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("ArticleTag", b =>
+                {
+                    b.Property<int>("ArticlesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ArticlesId", "TagsId");
+
+                    b.HasIndex("TagsId");
+
+                    b.ToTable("ArticleTag");
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.Article", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DownVotes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LastEditedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProblemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("varchar(25)");
+
+                    b.Property<int>("UpVotes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastEditedById");
+
+                    b.HasIndex("ProblemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.ArticleComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DownVotes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("QuotedCommentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UpVotes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("ParentCommentId");
+
+                    b.HasIndex("QuotedCommentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ArticleComments");
+                });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.DriverTemplate", b =>
                 {
@@ -92,9 +219,8 @@ namespace DerpCode.API.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
-                    b.Property<string>("Explanation")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("ExplanationArticleId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Hints")
                         .IsRequired()
@@ -110,6 +236,8 @@ namespace DerpCode.API.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExplanationArticleId");
 
                     b.ToTable("Problems");
                 });
@@ -156,11 +284,11 @@ namespace DerpCode.API.Migrations
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemSubmission", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -497,6 +625,77 @@ namespace DerpCode.API.Migrations
                     b.ToTable("ProblemTag");
                 });
 
+            modelBuilder.Entity("ArticleTag", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.Article", null)
+                        .WithMany()
+                        .HasForeignKey("ArticlesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DerpCode.API.Models.Entities.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.Article", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.User", "LastEditedBy")
+                        .WithMany()
+                        .HasForeignKey("LastEditedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DerpCode.API.Models.Entities.Problem", null)
+                        .WithMany("SolutionArticles")
+                        .HasForeignKey("ProblemId");
+
+                    b.HasOne("DerpCode.API.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LastEditedBy");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.ArticleComment", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.Article", "Article")
+                        .WithMany("Comments")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DerpCode.API.Models.Entities.ArticleComment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DerpCode.API.Models.Entities.ArticleComment", "QuotedComment")
+                        .WithMany()
+                        .HasForeignKey("QuotedCommentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DerpCode.API.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("ParentComment");
+
+                    b.Navigation("QuotedComment");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DerpCode.API.Models.Entities.LinkedAccount", b =>
                 {
                     b.HasOne("DerpCode.API.Models.Entities.User", "User")
@@ -506,6 +705,17 @@ namespace DerpCode.API.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.Problem", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.Article", "ExplanationArticle")
+                        .WithMany()
+                        .HasForeignKey("ExplanationArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExplanationArticle");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemDriver", b =>
@@ -619,11 +829,23 @@ namespace DerpCode.API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DerpCode.API.Models.Entities.Article", b =>
+                {
+                    b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.ArticleComment", b =>
+                {
+                    b.Navigation("Replies");
+                });
+
             modelBuilder.Entity("DerpCode.API.Models.Entities.Problem", b =>
                 {
                     b.Navigation("Drivers");
 
                     b.Navigation("ProblemSubmissions");
+
+                    b.Navigation("SolutionArticles");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.Role", b =>

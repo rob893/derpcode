@@ -11,4 +11,6 @@ public sealed class Tag : IIdentifiable<int>
     public string Name { get; set; } = string.Empty;
 
     public List<Problem> Problems { get; set; } = [];
+
+    public List<Article> Articles { get; set; } = [];
 }

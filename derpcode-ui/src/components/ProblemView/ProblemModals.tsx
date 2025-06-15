@@ -20,6 +20,11 @@ interface ProblemModalsProps {
   onResetOpenChange: () => void;
   problemName: string;
   onConfirmReset: () => void;
+
+  // Email Verification Modal
+  isEmailVerificationOpen: boolean;
+  onEmailVerificationOpenChange: () => void;
+  onNavigateToAccount: () => void;
 }
 
 export const ProblemModals = ({
@@ -36,7 +41,10 @@ export const ProblemModals = ({
   isResetOpen,
   onResetOpenChange,
   problemName,
-  onConfirmReset
+  onConfirmReset,
+  isEmailVerificationOpen,
+  onEmailVerificationOpenChange,
+  onNavigateToAccount
 }: ProblemModalsProps) => {
   return (
     <>
@@ -137,6 +145,41 @@ export const ProblemModals = ({
                 </Button>
                 <Button color="danger" onPress={onConfirmReset}>
                   Reset Code
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Email Verification Modal */}
+      <Modal isOpen={isEmailVerificationOpen} onOpenChange={onEmailVerificationOpenChange} placement="center">
+        <ModalContent>
+          {onClose => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-2xl font-bold text-warning">Nope!</h2>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-default-600">
+                  You can't submit solutions without verifying your email first.
+                  <br />
+                  <br />
+                  Go to your account page and verify your email address.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="warning"
+                  onPress={() => {
+                    onClose();
+                    onNavigateToAccount();
+                  }}
+                >
+                  Go to Account
                 </Button>
               </ModalFooter>
             </>
