@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.QueryParameters;
@@ -18,17 +16,17 @@ namespace DerpCode.API.Controllers.V1;
 [ApiController]
 public sealed class UserSubmissionsController : ServiceControllerBase
 {
-    private readonly IProblemSubmissionRepository problemSubmissionRepository;
+    private readonly IUserSubmissionService userSubmissionService;
 
     private readonly ILogger<UserSubmissionsController> logger;
 
     public UserSubmissionsController(
-        IProblemSubmissionRepository problemSubmissionRepository,
+        IUserSubmissionService userSubmissionService,
         ILogger<UserSubmissionsController> logger,
         ICorrelationIdService correlationIdService)
         : base(correlationIdService)
     {
-        this.problemSubmissionRepository = problemSubmissionRepository ?? throw new ArgumentNullException(nameof(problemSubmissionRepository));
+        this.userSubmissionService = userSubmissionService ?? throw new ArgumentNullException(nameof(userSubmissionService));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -53,21 +51,8 @@ public sealed class UserSubmissionsController : ServiceControllerBase
             return this.Forbidden("You can only see your own submissions.");
         }
 
-        var problemSearchParams = new ProblemSubmissionQueryParameters
-        {
-            ProblemId = searchParams.ProblemId,
-            UserId = userId,
-            After = searchParams.After,
-            Before = searchParams.Before,
-            First = searchParams.First,
-            Last = searchParams.Last,
-            IncludeTotal = searchParams.IncludeTotal,
-            IncludeNodes = searchParams.IncludeNodes,
-            IncludeEdges = searchParams.IncludeEdges
-        };
-
-        var submissions = await this.problemSubmissionRepository.SearchAsync(problemSearchParams, track: false, this.HttpContext.RequestAborted);
-        var paginatedResponse = submissions.Select(ProblemSubmissionDto.FromEntity).ToCursorPaginatedResponse(
+        var submissions = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, this.HttpContext.RequestAborted);
+        var paginatedResponse = submissions.ToCursorPaginatedResponse(
             e => e.Id,
             id => id.ConvertToBase64Url(),
             id => id.ConvertToLongFromBase64Url(),

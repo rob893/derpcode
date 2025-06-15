@@ -16,6 +16,7 @@ public static class BusinessServiceCollectionExtensions
     public static IServiceCollection AddBusinessServices(this IServiceCollection services)
     {
         services.AddScoped<IProblemService, ProblemService>();
+        services.AddScoped<IUserSubmissionService, UserSubmissionService>();
 
         return services;
     }
