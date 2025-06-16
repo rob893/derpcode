@@ -1,5 +1,4 @@
 using System;
-using DerpCode.API.Services;
 using Docker.DotNet;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,8 +17,6 @@ public static class DockerServiceCollectionExtensions
             return new DockerClientConfiguration(new Uri(dockerUri))
                 .CreateClient();
         });
-
-        services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
         return services;
     }

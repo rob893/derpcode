@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Models.Settings;
-using DerpCode.API.Services;
+using DerpCode.API.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +30,7 @@ public static class AuthenticationServiceCollectionExtensions
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IGitHubOAuthService, GitHubOAuthService>();
         services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.Configure<AuthenticationSettings>(config.GetSection(ConfigurationKeys.Authentication));
 

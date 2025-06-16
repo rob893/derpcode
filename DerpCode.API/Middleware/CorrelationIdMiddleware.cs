@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
-using DerpCode.API.Services;
+using DerpCode.API.Services.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 

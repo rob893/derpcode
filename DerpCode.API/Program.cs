@@ -12,7 +12,6 @@ using DerpCode.API.Core;
 using DerpCode.API.Data;
 using DerpCode.API.Extensions;
 using DerpCode.API.Middleware;
-using DerpCode.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
@@ -54,14 +53,12 @@ public static class Program
             .AddHealthCheckServices()
             .AddIdentityServices()
             .AddRateLimiterServices(builder.Configuration)
-            .AddScoped<ICorrelationIdService, CorrelationIdService>()
-            .AddScoped<ICurrentUserService, CurrentUserService>()
-            .AddSingleton<IFileSystemService, FileSystemService>()
+            .AddCoreServices()
             .AddEmailServices(builder.Configuration)
             .AddAuthenticationServices(builder.Configuration)
             .AddDatabaseServices(builder.Configuration)
             .AddRepositoryServices()
-            .AddBusinessServices()
+            .AddDomainServices()
             .AddSwaggerServices(builder.Configuration)
             .AddCors()
             .AddHttpClient()

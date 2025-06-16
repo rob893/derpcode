@@ -1,19 +1,18 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
-using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses.Pagination;
-using DerpCode.API.Services;
+using DerpCode.API.Services.Auth;
+using DerpCode.API.Services.Core;
+using DerpCode.API.Services.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Controllers.V1;
 
@@ -22,26 +21,18 @@ namespace DerpCode.API.Controllers.V1;
 [ApiController]
 public sealed class UsersController : ServiceControllerBase
 {
-    private readonly IUserRepository userRepository;
-
-    private readonly IEmailService emailService;
+    private readonly IUserService userService;
 
     private readonly ICurrentUserService currentUserService;
 
-    private readonly ILogger<UsersController> logger;
-
     public UsersController(
-        IUserRepository userRepository,
-        IEmailService emailService,
+        IUserService userService,
         ICurrentUserService currentUserService,
-        ILogger<UsersController> logger,
         ICorrelationIdService correlationIdService)
         : base(correlationIdService)
     {
-        this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-        this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
         this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -55,10 +46,10 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<UserDto>>> GetUsersAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
-        var users = await this.userRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
-        var paginatedResponse = users.Select(UserDto.FromEntity).ToCursorPaginatedResponse(searchParams);
+        var users = await this.userService.GetUsersAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = users.ToCursorPaginatedResponse(searchParams);
 
-        return this.Ok(paginatedResponse);
+        return this.Ok(response);
     }
 
     /// <summary>
@@ -78,16 +69,14 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only see your own user information.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: false, this.HttpContext.RequestAborted);
+        var user = await this.userService.GetUserByIdAsync(id, this.HttpContext.RequestAborted);
 
         if (user == null)
         {
             return this.NotFound($"User with id {id} does not exist.");
         }
 
-        var userToReturn = UserDto.FromEntity(user);
-
-        return this.Ok(userToReturn);
+        return this.Ok(user);
     }
 
     /// <summary>
@@ -111,19 +100,11 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only delete your own user information.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var deleteResult = await this.userService.DeleteUserAsync(id, this.HttpContext.RequestAborted);
 
-        if (user == null)
+        if (!deleteResult.IsSuccess)
         {
-            return this.NotFound($"No User with Id {id} found.");
-        }
-
-        this.userRepository.Remove(user);
-        var saveResults = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-        if (saveResults == 0)
-        {
-            return this.BadRequest("Failed to delete the user.");
+            return this.HandleServiceFailureResult(deleteResult);
         }
 
         return this.NoContent();
@@ -151,26 +132,11 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only delete your own linked accounts.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var deleteResult = await this.userService.DeleteUserLinkedAccountAsync(id, linkedAccountType, this.HttpContext.RequestAborted);
 
-        if (user == null)
+        if (!deleteResult.IsSuccess)
         {
-            return this.NotFound($"No User with Id {id} found.");
-        }
-
-        var linkedAccount = user.LinkedAccounts.FirstOrDefault(account => account.LinkedAccountType == linkedAccountType);
-
-        if (linkedAccount == null)
-        {
-            return this.NotFound($"No linked account of type {linkedAccountType} found for user with Id {id}.");
-        }
-
-        user.LinkedAccounts.Remove(linkedAccount);
-        var saveResults = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-        if (saveResults == 0)
-        {
-            return this.BadRequest("Failed to delete the linked account.");
+            return this.HandleServiceFailureResult(deleteResult);
         }
 
         return this.NoContent();
@@ -187,10 +153,10 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<RoleDto>>> GetRolesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
-        var roles = await this.userRepository.GetRolesAsync(searchParams, this.HttpContext.RequestAborted);
-        var paginatedResponse = roles.Select(RoleDto.FromEntity).ToCursorPaginatedResponse(searchParams);
+        var roles = await this.userService.GetRolesAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = roles.ToCursorPaginatedResponse(searchParams);
 
-        return this.Ok(paginatedResponse);
+        return this.Ok(response);
     }
 
     /// <summary>
@@ -209,48 +175,16 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> AddRolesAsync([FromRoute] int id, [FromBody] EditRoleRequest roleEditDto)
     {
-        if (roleEditDto == null || roleEditDto.RoleNames == null || roleEditDto.RoleNames.Count == 0)
+        var addRolesResult = await this.userService.AddRolesToUserAsync(id, roleEditDto, this.HttpContext.RequestAborted);
+
+        if (!addRolesResult.IsSuccess)
         {
-            return this.BadRequest("At least one role must be specified.");
+            return this.HandleServiceFailureResult(addRolesResult);
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var user = addRolesResult.ValueOrThrow;
 
-        if (user == null)
-        {
-            return this.NotFound($"No user with id {id} exists.");
-        }
-
-        var roles = await this.userRepository.GetRolesAsync(this.HttpContext.RequestAborted);
-        var userRoles = user.UserRoles.Select(ur => ur.Role.Name?.ToUpperInvariant()).ToHashSet();
-        var selectedRoles = roleEditDto.RoleNames.Select(role => role.ToUpperInvariant()).ToHashSet();
-
-        var rolesToAdd = roles.Where(role =>
-        {
-            var upperName = role.Name?.ToUpperInvariant() ?? string.Empty;
-            return selectedRoles.Contains(upperName) && !userRoles.Contains(upperName);
-        });
-
-        if (!rolesToAdd.Any())
-        {
-            return this.Ok(UserDto.FromEntity(user));
-        }
-
-        user.UserRoles.AddRange(rolesToAdd.Select(role => new UserRole
-        {
-            Role = role
-        }));
-
-        var saveResult = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-        if (saveResult == 0)
-        {
-            return this.BadRequest("Failed to add roles.");
-        }
-
-        var userToReturn = UserDto.FromEntity(user);
-
-        return this.Ok(userToReturn);
+        return this.Ok(user);
     }
 
     /// <summary>
@@ -269,44 +203,16 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> RemoveRolesAsync([FromRoute] int id, [FromBody] EditRoleRequest roleEditDto)
     {
-        if (roleEditDto == null || roleEditDto.RoleNames == null || roleEditDto.RoleNames.Count == 0)
+        var removeRolesResult = await this.userService.RemoveRolesFromUserAsync(id, roleEditDto, this.HttpContext.RequestAborted);
+
+        if (!removeRolesResult.IsSuccess)
         {
-            return this.BadRequest("At least one role must be specified.");
+            return this.HandleServiceFailureResult(removeRolesResult);
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var user = removeRolesResult.ValueOrThrow;
 
-        if (user == null)
-        {
-            return this.NotFound($"No user with id {id} exists.");
-        }
-
-        var roles = await this.userRepository.GetRolesAsync(this.HttpContext.RequestAborted);
-        var userRoles = user.UserRoles.Select(ur => ur.Role.Name?.ToUpperInvariant()).ToHashSet();
-        var selectedRoles = roleEditDto.RoleNames.Select(role => role.ToUpperInvariant()).ToHashSet();
-
-        var roleIdsToRemove = roles.Where(role =>
-        {
-            var upperName = role.Name?.ToUpperInvariant() ?? string.Empty;
-            return selectedRoles.Contains(upperName) && userRoles.Contains(upperName);
-        }).Select(role => role.Id).ToHashSet();
-
-        if (roleIdsToRemove.Count == 0)
-        {
-            return this.Ok(UserDto.FromEntity(user));
-        }
-
-        user.UserRoles.RemoveAll(ur => roleIdsToRemove.Contains(ur.RoleId));
-        var saveResult = await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-        if (saveResult == 0)
-        {
-            return this.BadRequest("Failed to remove roles.");
-        }
-
-        var userToReturn = UserDto.FromEntity(user);
-
-        return this.Ok(userToReturn);
+        return this.Ok(user);
     }
 
     /// <summary>
@@ -334,39 +240,16 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only update your own user information.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var updateResult = await this.userService.UpdateUsernameAsync(id, request, this.HttpContext.RequestAborted);
 
-        if (user == null)
+        if (!updateResult.IsSuccess)
         {
-            return this.NotFound($"No user with Id {id} found.");
+            return this.HandleServiceFailureResult(updateResult);
         }
 
-        if (user.LastLogin is null || user.LastLogin <= DateTimeOffset.UtcNow.AddMinutes(-30))
-        {
-            return this.BadRequest("You must have authenticated within the last 30 minutes to update your username.");
-        }
+        var user = updateResult.ValueOrThrow;
 
-        if (user.LastUsernameChange > DateTimeOffset.UtcNow.AddDays(-30))
-        {
-            return this.BadRequest("You can only change your username once every 30 days.");
-        }
-
-        if (string.Equals(user.UserName, request.NewUsername, StringComparison.OrdinalIgnoreCase))
-        {
-            return this.BadRequest("The new username must be different from the current one.");
-        }
-
-        user.LastUsernameChange = DateTimeOffset.UtcNow;
-        var updateResult = await this.userRepository.UserManager.SetUserNameAsync(user, request.NewUsername);
-
-        if (!updateResult.Succeeded)
-        {
-            return this.BadRequest([.. updateResult.Errors.Select(e => e.Description)]);
-        }
-
-        var userToReturn = UserDto.FromEntity(user);
-
-        return this.Ok(userToReturn);
+        return this.Ok(user);
     }
 
     /// <summary>
@@ -394,19 +277,11 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only update your own password.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var updateResult = await this.userService.UpdatePasswordAsync(id, request, this.HttpContext.RequestAborted);
 
-        if (user == null)
+        if (!updateResult.IsSuccess)
         {
-            return this.NotFound($"No user with Id {id} found.");
-        }
-
-        user.LastPasswordChange = DateTimeOffset.UtcNow;
-        var result = await this.userRepository.UserManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
-
-        if (!result.Succeeded)
-        {
-            return this.BadRequest([.. result.Errors.Select(e => e.Description)]);
+            return this.HandleServiceFailureResult(updateResult);
         }
 
         return this.NoContent();
@@ -431,34 +306,12 @@ public sealed class UsersController : ServiceControllerBase
             return this.Forbidden("You can only resend confirmation email for your own account.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(id, track: true, this.HttpContext.RequestAborted);
+        var sendResult = await this.userService.SendEmailConfirmationAsync(id, this.HttpContext.RequestAborted);
 
-        if (user == null)
+        if (!sendResult.IsSuccess)
         {
-            return this.NotFound($"No user with Id {id} found.");
+            return this.HandleServiceFailureResult(sendResult);
         }
-
-        if (string.IsNullOrWhiteSpace(user.Email))
-        {
-            return this.BadRequest("User does not have an email address set.");
-        }
-
-        if (user.EmailConfirmed)
-        {
-            return this.BadRequest("User's email is already confirmed.");
-        }
-
-        if (user.LastEmailConfirmationSent != null && user.LastEmailConfirmationSent.Value > DateTimeOffset.UtcNow.AddHours(-1))
-        {
-            return this.BadRequest("You can only resend the email confirmation link once per hour.");
-        }
-
-        var token = await this.userRepository.UserManager.GenerateEmailConfirmationTokenAsync(user);
-
-        await this.emailService.SendEmailConfirmationToUserAsync(user, token, this.HttpContext.RequestAborted);
-
-        user.LastEmailConfirmationSent = DateTimeOffset.UtcNow;
-        await this.userRepository.SaveChangesAsync(this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }
@@ -483,27 +336,7 @@ public sealed class UsersController : ServiceControllerBase
             return this.NoContent();
         }
 
-        var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
-
-        if (user == null || string.IsNullOrWhiteSpace(user.Email) || !user.EmailConfirmed)
-        {
-            this.logger.LogWarning(
-                "Failed to send password reset link for user with email {Email}: User not found or email not confirmed.",
-                request.Email);
-            return this.NoContent();
-        }
-
-        if (user.LastPasswordChange > DateTimeOffset.UtcNow.AddHours(-1))
-        {
-            this.logger.LogWarning(
-                "Failed to send password reset link for user {UserId}: User has changed their password within the last hour.",
-                user.Id);
-            return this.NoContent();
-        }
-
-        var token = await this.userRepository.UserManager.GeneratePasswordResetTokenAsync(user);
-
-        await this.emailService.SendResetPasswordToUserAsync(user, token, this.HttpContext.RequestAborted);
+        await this.userService.ForgotPasswordAsync(request, this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }
@@ -528,26 +361,7 @@ public sealed class UsersController : ServiceControllerBase
             return this.NoContent();
         }
 
-        var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
-
-        if (user == null || !user.EmailConfirmed)
-        {
-            this.logger.LogWarning(
-                "Failed to reset password for user with email {Email}: User not found or email not confirmed.",
-                request.Email);
-            return this.NoContent();
-        }
-
-        var result = await this.userRepository.UserManager.ResetPasswordAsync(user, request.Token, request.Password);
-
-        if (!result.Succeeded)
-        {
-            this.logger.LogWarning(
-                "Failed to reset password for user {UserId} ({Email}): {Errors}",
-                user.Id,
-                user.Email,
-                string.Join(", ", result.Errors.Select(e => e.Description)));
-        }
+        await this.userService.ResetPasswordAsync(request, this.HttpContext.RequestAborted);
 
         return this.NoContent();
     }
@@ -571,18 +385,11 @@ public sealed class UsersController : ServiceControllerBase
             return this.BadRequest();
         }
 
-        var user = await this.userRepository.UserManager.FindByEmailAsync(request.Email);
+        var confirmResult = await this.userService.ConfirmEmailAsync(request, this.HttpContext.RequestAborted);
 
-        if (user == null)
+        if (!confirmResult.IsSuccess)
         {
-            return this.BadRequest("Unable to confirm email.");
-        }
-
-        var confirmResult = await this.userRepository.UserManager.ConfirmEmailAsync(user, request.Token);
-
-        if (!confirmResult.Succeeded)
-        {
-            return this.BadRequest([.. confirmResult.Errors.Select(e => e.Description)]);
+            return this.HandleServiceFailureResult(confirmResult);
         }
 
         return this.NoContent();

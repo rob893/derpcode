@@ -6,7 +6,7 @@ using DerpCode.API.Extensions;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Responses.Pagination;
-using DerpCode.API.Services;
+using DerpCode.API.Services.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,7 +1,7 @@
 using System;
 using DerpCode.API.Constants;
 using DerpCode.API.Models.Settings;
-using DerpCode.API.Services;
+using DerpCode.API.Services.Email;
 using DerpCode.API.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

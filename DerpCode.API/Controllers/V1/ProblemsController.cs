@@ -7,7 +7,8 @@ using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses;
 using DerpCode.API.Models.Responses.Pagination;
-using DerpCode.API.Services;
+using DerpCode.API.Services.Core;
+using DerpCode.API.Services.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
@@ -66,7 +67,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.HandleServiceFailureResult(newProblemResult);
         }
 
-        var newProblem = newProblemResult.Value ?? throw new InvalidOperationException("Problem creation returned null with a success result.");
+        var newProblem = newProblemResult.ValueOrThrow;
 
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, newProblem);
     }
@@ -84,7 +85,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.HandleServiceFailureResult(cloneProblemResult);
         }
 
-        var clonedProblem = cloneProblemResult.Value ?? throw new InvalidOperationException("Problem cloning returned null with a success result.");
+        var clonedProblem = cloneProblemResult.ValueOrThrow;
 
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = clonedProblem.Id }, clonedProblem);
     }
@@ -107,7 +108,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.HandleServiceFailureResult(patchedProblemResult);
         }
 
-        var patchedProblem = patchedProblemResult.Value ?? throw new InvalidOperationException("Problem patching returned null with a success result.");
+        var patchedProblem = patchedProblemResult.ValueOrThrow;
 
         return this.Ok(patchedProblem);
     }
@@ -125,7 +126,7 @@ public sealed class ProblemsController : ServiceControllerBase
             return this.HandleServiceFailureResult(updateProblemResult);
         }
 
-        var updatedProblem = updateProblemResult.Value ?? throw new InvalidOperationException("Problem update returned null with a success result.");
+        var updatedProblem = updateProblemResult.ValueOrThrow;
 
         return this.Ok(updatedProblem);
     }

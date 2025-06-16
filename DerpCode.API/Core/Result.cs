@@ -1,10 +1,22 @@
+using System;
+
 namespace DerpCode.API.Core;
 
 public sealed class Result<T>
 {
+    private Result(bool isSuccess, T? value, DomainErrorType? errorType, string? errorMessage)
+    {
+        IsSuccess = isSuccess;
+        Value = value;
+        ErrorType = errorType;
+        ErrorMessage = errorMessage;
+    }
+
     public bool IsSuccess { get; }
 
     public T? Value { get; }
+
+    public T ValueOrThrow => this.Value ?? throw new InvalidOperationException("Result does not contain a value.");
 
     public DomainErrorType? ErrorType { get; }
 
@@ -14,12 +26,4 @@ public sealed class Result<T>
 
     public static Result<T> Failure(DomainErrorType errorType, string message) =>
         new(false, default, errorType, message);
-
-    private Result(bool isSuccess, T? value, DomainErrorType? errorType, string? errorMessage)
-    {
-        IsSuccess = isSuccess;
-        Value = value;
-        ErrorType = errorType;
-        ErrorMessage = errorMessage;
-    }
 }
