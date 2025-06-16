@@ -36,23 +36,15 @@ public sealed class UserSubmissionsController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CursorPaginatedResponse<ProblemSubmissionDto>>> GetProblemSubmissionsForUserAsync([FromRoute] int userId, [FromQuery] UserSubmissionQueryParameters searchParams)
     {
-        if (searchParams == null)
+        var submissionResult = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, this.HttpContext.RequestAborted);
+
+        if (!submissionResult.IsSuccess)
         {
-            return this.BadRequest("Search parameters cannot be null.");
+            return this.HandleServiceFailureResult(submissionResult);
         }
 
-        if (!this.User.TryGetUserId(out var currentUserId))
-        {
-            return this.Unauthorized("You must be logged in to view submissions.");
-        }
+        var submissions = submissionResult.ValueOrThrow;
 
-        if (!this.User.IsAdmin() && currentUserId != userId)
-        {
-            this.logger.LogWarning("User {UserId} attempted to access submissions for user {TargetUserId} without permission.", currentUserId, userId);
-            return this.Forbidden("You can only see your own submissions.");
-        }
-
-        var submissions = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, this.HttpContext.RequestAborted);
         var paginatedResponse = submissions.ToCursorPaginatedResponse(
             e => e.Id,
             id => id.ConvertToBase64Url(),

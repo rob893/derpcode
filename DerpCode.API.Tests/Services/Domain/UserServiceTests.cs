@@ -3,10 +3,12 @@ using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
+using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Domain;
 using DerpCode.API.Services.Email;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DerpCode.API.Tests.Services.Domain;
 
@@ -21,6 +23,8 @@ public sealed class UserServiceTests
 
     private readonly Mock<IEmailService> mockEmailService;
 
+    private readonly Mock<ICurrentUserService> mockCurrentUserService;
+
     private readonly Mock<UserManager<User>> mockUserManager;
 
     private readonly UserService userService;
@@ -30,6 +34,7 @@ public sealed class UserServiceTests
         this.mockLogger = new Mock<ILogger<UserService>>();
         this.mockUserRepository = new Mock<IUserRepository>();
         this.mockEmailService = new Mock<IEmailService>();
+        this.mockCurrentUserService = new Mock<ICurrentUserService>();
 
         // Setup UserManager mock (requires more complex setup)
         var mockUserStore = new Mock<IUserStore<User>>();
@@ -41,7 +46,8 @@ public sealed class UserServiceTests
         this.userService = new UserService(
             this.mockLogger.Object,
             this.mockUserRepository.Object,
-            this.mockEmailService.Object);
+            this.mockEmailService.Object,
+            this.mockCurrentUserService.Object);
     }
 
     #region Constructor Tests
@@ -51,7 +57,7 @@ public sealed class UserServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserService(null!, this.mockUserRepository.Object, this.mockEmailService.Object));
+            new UserService(null!, this.mockUserRepository.Object, this.mockEmailService.Object, this.mockCurrentUserService.Object));
 
         Assert.Equal("logger", exception.ParamName);
     }
@@ -61,7 +67,7 @@ public sealed class UserServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserService(this.mockLogger.Object, null!, this.mockEmailService.Object));
+            new UserService(this.mockLogger.Object, null!, this.mockEmailService.Object, this.mockCurrentUserService.Object));
 
         Assert.Equal("userRepository", exception.ParamName);
     }
@@ -71,9 +77,19 @@ public sealed class UserServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserService(this.mockLogger.Object, this.mockUserRepository.Object, null!));
+            new UserService(this.mockLogger.Object, this.mockUserRepository.Object, null!, this.mockCurrentUserService.Object));
 
         Assert.Equal("emailService", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNullCurrentUserService_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            new UserService(this.mockLogger.Object, this.mockUserRepository.Object, this.mockEmailService.Object, null!));
+
+        Assert.Equal("currentUserService", exception.ParamName);
     }
 
     #endregion
@@ -125,28 +141,69 @@ public sealed class UserServiceTests
         var user = new User { Id = 1, UserName = "testuser", Email = "test@example.com" };
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.GetUserByIdAsync(1, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1, result.Id);
-        Assert.Equal("testuser", result.UserName);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(1, result.Value.Id);
+        Assert.Equal("testuser", result.Value.UserName);
     }
 
     [Fact]
-    public async Task GetUserByIdAsync_WithNonExistingUser_ReturnsNull()
+    public async Task GetUserByIdAsync_WithNonExistingUser_ReturnsFailure()
     {
         // Arrange
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.GetUserByIdAsync(1, CancellationToken.None);
 
         // Assert
-        Assert.Null(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.NotFound, result.ErrorType);
+        Assert.Equal("User not found", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task GetUserByIdAsync_WithDifferentUserAndNotAdmin_ReturnsForbidden()
+    {
+        // Arrange
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userService.GetUserByIdAsync(1, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You can only see your own user", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task GetUserByIdAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
+    {
+        // Arrange
+        var user = new User { Id = 1, UserName = "testuser", Email = "test@example.com" };
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+
+        // Act
+        var result = await this.userService.GetUserByIdAsync(1, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(1, result.Value.Id);
+        Assert.Equal("testuser", result.Value.UserName);
     }
 
     #endregion
@@ -162,6 +219,7 @@ public sealed class UserServiceTests
             .ReturnsAsync(user);
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
@@ -178,6 +236,7 @@ public sealed class UserServiceTests
         // Arrange
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
@@ -197,6 +256,7 @@ public sealed class UserServiceTests
             .ReturnsAsync(user);
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
@@ -205,6 +265,43 @@ public sealed class UserServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.Unknown, result.ErrorType);
         Assert.Equal("Failed to delete the user", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task DeleteUserAsync_WithDifferentUserAndNotAdmin_ReturnsForbidden()
+    {
+        // Arrange
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You can only delete your own user", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task DeleteUserAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
+    {
+        // Arrange
+        var user = new User { Id = 1, UserName = "testuser" };
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+
+        // Act
+        var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value);
+        this.mockUserRepository.Verify(x => x.Remove(user), Times.Once);
     }
 
     #endregion
@@ -227,6 +324,7 @@ public sealed class UserServiceTests
             .ReturnsAsync(user);
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.DeleteUserLinkedAccountAsync(1, LinkedAccountType.Google, CancellationToken.None);
@@ -243,6 +341,7 @@ public sealed class UserServiceTests
         // Arrange
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.DeleteUserLinkedAccountAsync(1, LinkedAccountType.Google, CancellationToken.None);
@@ -266,6 +365,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.DeleteUserLinkedAccountAsync(1, LinkedAccountType.Google, CancellationToken.None);
@@ -274,6 +374,50 @@ public sealed class UserServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.NotFound, result.ErrorType);
         Assert.Equal("No linked account of type Google found for user", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task DeleteUserLinkedAccountAsync_WithDifferentUserAndNotAdmin_ReturnsForbidden()
+    {
+        // Arrange
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userService.DeleteUserLinkedAccountAsync(1, LinkedAccountType.Google, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You can only delete linked accounts for your own user", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task DeleteUserLinkedAccountAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
+    {
+        // Arrange
+        var linkedAccount = new LinkedAccount { LinkedAccountType = LinkedAccountType.Google };
+        var user = new User
+        {
+            Id = 1,
+            UserName = "testuser",
+            LinkedAccounts = [linkedAccount]
+        };
+
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+
+        // Act
+        var result = await this.userService.DeleteUserLinkedAccountAsync(1, LinkedAccountType.Google, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value);
+        Assert.Empty(user.LinkedAccounts);
     }
 
     #endregion
@@ -468,6 +612,7 @@ public sealed class UserServiceTests
         this.mockUserManager.Setup(x => x.SetUserNameAsync(user, "newusername"))
             .ReturnsAsync(IdentityResult.Success)
             .Callback<User, string>((u, newUsername) => u.UserName = newUsername);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
@@ -493,6 +638,7 @@ public sealed class UserServiceTests
         var request = new UpdateUsernameRequest { NewUsername = "newusername" };
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
@@ -517,6 +663,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
@@ -542,6 +689,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
@@ -567,6 +715,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
@@ -575,6 +724,53 @@ public sealed class UserServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.Validation, result.ErrorType);
         Assert.Contains("must be different from the current one", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task UpdateUsernameAsync_WithDifferentUserAndNotAdmin_ReturnsForbidden()
+    {
+        // Arrange
+        var request = new UpdateUsernameRequest { NewUsername = "newusername" };
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You can only update your own username", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task UpdateUsernameAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
+    {
+        // Arrange
+        var request = new UpdateUsernameRequest { NewUsername = "newusername" };
+        var user = new User
+        {
+            Id = 1,
+            UserName = "oldusername",
+            LastLogin = DateTimeOffset.UtcNow.AddMinutes(-10),
+            LastUsernameChange = DateTimeOffset.UtcNow.AddDays(-35)
+        };
+
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        this.mockUserManager.Setup(x => x.SetUserNameAsync(user, "newusername"))
+            .ReturnsAsync(IdentityResult.Success)
+            .Callback<User, string>((u, newUsername) => u.UserName = newUsername);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+
+        // Act
+        var result = await this.userService.UpdateUsernameAsync(1, request, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("newusername", result.Value.UserName);
     }
 
     #endregion
@@ -592,6 +788,7 @@ public sealed class UserServiceTests
             .ReturnsAsync(user);
         this.mockUserManager.Setup(x => x.ChangePasswordAsync(user, "oldpass", "newpass"))
             .ReturnsAsync(IdentityResult.Success);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdatePasswordAsync(1, request, CancellationToken.None);
@@ -616,6 +813,7 @@ public sealed class UserServiceTests
         var request = new UpdatePasswordRequest { OldPassword = "oldpass", NewPassword = "newpass" };
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdatePasswordAsync(1, request, CancellationToken.None);
@@ -638,6 +836,7 @@ public sealed class UserServiceTests
             .ReturnsAsync(user);
         this.mockUserManager.Setup(x => x.ChangePasswordAsync(user, "oldpass", "newpass"))
             .ReturnsAsync(IdentityResult.Failed(identityError));
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.UpdatePasswordAsync(1, request, CancellationToken.None);
@@ -646,6 +845,45 @@ public sealed class UserServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.Validation, result.ErrorType);
         Assert.Contains("Password is too weak", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task UpdatePasswordAsync_WithDifferentUserAndNotAdmin_ReturnsForbidden()
+    {
+        // Arrange
+        var request = new UpdatePasswordRequest { OldPassword = "oldpass", NewPassword = "newpass" };
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userService.UpdatePasswordAsync(1, request, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You can only update your own password", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task UpdatePasswordAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
+    {
+        // Arrange
+        var request = new UpdatePasswordRequest { OldPassword = "oldpass", NewPassword = "newpass" };
+        var user = new User { Id = 1, UserName = "testuser" };
+
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        this.mockUserManager.Setup(x => x.ChangePasswordAsync(user, "oldpass", "newpass"))
+            .ReturnsAsync(IdentityResult.Success);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+
+        // Act
+        var result = await this.userService.UpdatePasswordAsync(1, request, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value);
     }
 
     #endregion
@@ -670,6 +908,7 @@ public sealed class UserServiceTests
             .ReturnsAsync("confirmation-token");
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
@@ -686,6 +925,7 @@ public sealed class UserServiceTests
         // Arrange
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
@@ -704,6 +944,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
@@ -727,6 +968,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
@@ -751,6 +993,7 @@ public sealed class UserServiceTests
 
         this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
 
         // Act
         var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
@@ -759,6 +1002,52 @@ public sealed class UserServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.Validation, result.ErrorType);
         Assert.Contains("once per hour", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SendEmailConfirmationAsync_WithDifferentUserAndNotAdmin_ReturnsForbidden()
+    {
+        // Arrange
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You can only send email confirmation links for your own account", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SendEmailConfirmationAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 1,
+            Email = "test@example.com",
+            EmailConfirmed = false,
+            LastEmailConfirmationSent = null
+        };
+
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        this.mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(user))
+            .ReturnsAsync("confirmation-token");
+        this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+
+        // Act
+        var result = await this.userService.SendEmailConfirmationAsync(1, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value);
+        this.mockEmailService.Verify(x => x.SendEmailConfirmationToUserAsync(user, "confirmation-token", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion

@@ -96,11 +96,6 @@ public sealed class ProblemsController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
     {
-        if (dtoPatchDoc == null || dtoPatchDoc.Operations.Count == 0)
-        {
-            return this.BadRequest("A JSON patch document with at least 1 operation is required.");
-        }
-
         var patchedProblemResult = await this.problemService.PatchProblemAsync(problemId, dtoPatchDoc, this.HttpContext.RequestAborted);
 
         if (!patchedProblemResult.IsSuccess)

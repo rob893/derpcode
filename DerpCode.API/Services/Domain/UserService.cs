@@ -25,20 +25,25 @@ public sealed class UserService : IUserService
 
     private readonly IEmailService emailService;
 
+    private readonly ICurrentUserService currentUserService;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UserService"/> class
     /// </summary>
     /// <param name="logger">The logger</param>
     /// <param name="userRepository">The user repository</param>
     /// <param name="emailService">The email service</param>
+    /// <param name="currentUserService">The current user service</param>
     public UserService(
         ILogger<UserService> logger,
         IUserRepository userRepository,
-        IEmailService emailService)
+        IEmailService emailService,
+        ICurrentUserService currentUserService)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     /// <inheritdoc />
@@ -55,21 +60,31 @@ public sealed class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto?> GetUserByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<Result<UserDto>> GetUserByIdAsync(int id, CancellationToken cancellationToken)
     {
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return Result<UserDto>.Failure(DomainErrorType.Forbidden, "You can only see your own user");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: false, cancellationToken);
 
         if (user == null)
         {
-            return null;
+            return Result<UserDto>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
-        return UserDto.FromEntity(user);
+        return Result<UserDto>.Success(UserDto.FromEntity(user));
     }
 
     /// <inheritdoc />
     public async Task<Result<bool>> DeleteUserAsync(int id, CancellationToken cancellationToken)
     {
+        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        {
+            return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only delete your own user");
+        }
+
         var user = await this.userRepository.GetByIdAsync(id, track: true, cancellationToken);
 
         if (user == null)
@@ -91,6 +106,11 @@ public sealed class UserService : IUserService
     /// <inheritdoc />
     public async Task<Result<bool>> DeleteUserLinkedAccountAsync(int userId, LinkedAccountType linkedAccountType, CancellationToken cancellationToken)
     {
+        if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
+        {
+            return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only delete linked accounts for your own user");
+        }
+
         var user = await this.userRepository.GetByIdAsync(userId, track: true, cancellationToken);
 
         if (user == null)
@@ -224,6 +244,11 @@ public sealed class UserService : IUserService
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
+        {
+            return Result<UserDto>.Failure(DomainErrorType.Forbidden, "You can only update your own username");
+        }
+
         var user = await this.userRepository.GetByIdAsync(userId, track: true, cancellationToken);
 
         if (user == null)
@@ -263,6 +288,11 @@ public sealed class UserService : IUserService
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
+        {
+            return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only update your own password");
+        }
+
         var user = await this.userRepository.GetByIdAsync(userId, track: true, cancellationToken);
 
         if (user == null)
@@ -285,6 +315,11 @@ public sealed class UserService : IUserService
     /// <inheritdoc />
     public async Task<Result<bool>> SendEmailConfirmationAsync(int userId, CancellationToken cancellationToken)
     {
+        if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
+        {
+            return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only send email confirmation links for your own account");
+        }
+
         var user = await this.userRepository.GetByIdAsync(userId, track: true, cancellationToken);
 
         if (user == null)

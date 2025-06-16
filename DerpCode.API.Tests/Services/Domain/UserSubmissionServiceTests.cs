@@ -2,7 +2,10 @@ using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
+using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Domain;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DerpCode.API.Tests.Services.Domain;
 
@@ -13,14 +16,22 @@ public sealed class UserSubmissionServiceTests
 {
     private readonly Mock<IProblemSubmissionRepository> mockProblemSubmissionRepository;
 
+    private readonly Mock<ICurrentUserService> mockCurrentUserService;
+
+    private readonly Mock<ILogger<UserSubmissionService>> mockLogger;
+
     private readonly UserSubmissionService userSubmissionService;
 
     public UserSubmissionServiceTests()
     {
         this.mockProblemSubmissionRepository = new Mock<IProblemSubmissionRepository>();
+        this.mockCurrentUserService = new Mock<ICurrentUserService>();
+        this.mockLogger = new Mock<ILogger<UserSubmissionService>>();
 
         this.userSubmissionService = new UserSubmissionService(
-            this.mockProblemSubmissionRepository.Object);
+            this.mockProblemSubmissionRepository.Object,
+            this.mockCurrentUserService.Object,
+            this.mockLogger.Object);
     }
 
     #region Constructor Tests
@@ -30,16 +41,36 @@ public sealed class UserSubmissionServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserSubmissionService(null!));
+            new UserSubmissionService(null!, this.mockCurrentUserService.Object, this.mockLogger.Object));
 
         Assert.Equal("problemSubmissionRepository", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNullCurrentUserService_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            new UserSubmissionService(this.mockProblemSubmissionRepository.Object, null!, this.mockLogger.Object));
+
+        Assert.Equal("currentUserService", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNullLogger_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            new UserSubmissionService(this.mockProblemSubmissionRepository.Object, this.mockCurrentUserService.Object, null!));
+
+        Assert.Equal("logger", exception.ParamName);
     }
 
     [Fact]
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Act
-        var service = new UserSubmissionService(this.mockProblemSubmissionRepository.Object);
+        var service = new UserSubmissionService(this.mockProblemSubmissionRepository.Object, this.mockCurrentUserService.Object, this.mockLogger.Object);
 
         // Assert
         Assert.NotNull(service);
@@ -68,6 +99,8 @@ public sealed class UserSubmissionServiceTests
         var submissions = new List<ProblemSubmission> { CreateTestProblemSubmission(userId) };
         var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, "1", "1", 1);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedList);
@@ -76,14 +109,15 @@ public sealed class UserSubmissionServiceTests
         var result = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal(submissions[0].Id, result.First().Id);
-        Assert.Equal(submissions[0].UserId, result.First().UserId);
-        Assert.Equal(submissions[0].ProblemId, result.First().ProblemId);
-        Assert.Equal(submissions[0].Language, result.First().Language);
-        Assert.Equal(submissions[0].Code, result.First().Code);
-        Assert.Equal(submissions[0].Pass, result.First().Pass);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+        Assert.Equal(submissions[0].Id, result.Value.First().Id);
+        Assert.Equal(submissions[0].UserId, result.Value.First().UserId);
+        Assert.Equal(submissions[0].ProblemId, result.Value.First().ProblemId);
+        Assert.Equal(submissions[0].Language, result.Value.First().Language);
+        Assert.Equal(submissions[0].Code, result.Value.First().Code);
+        Assert.Equal(submissions[0].Pass, result.Value.First().Pass);
     }
 
     [Fact]
@@ -96,6 +130,8 @@ public sealed class UserSubmissionServiceTests
         var submissions = new List<ProblemSubmission>();
         var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, null, null, 0);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedList);
@@ -133,6 +169,8 @@ public sealed class UserSubmissionServiceTests
         var submissions = new List<ProblemSubmission>();
         var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, null, null, 0);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedList);
@@ -165,6 +203,8 @@ public sealed class UserSubmissionServiceTests
         var searchParams = new UserSubmissionQueryParameters { First = 10 };
         var cancellationToken = new CancellationToken(true);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, cancellationToken))
             .ThrowsAsync(new OperationCanceledException());
@@ -187,6 +227,8 @@ public sealed class UserSubmissionServiceTests
         var submissions = new List<ProblemSubmission>();
         var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, null, null, 0);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedList);
@@ -195,11 +237,12 @@ public sealed class UserSubmissionServiceTests
         var result = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
-        Assert.Equal(0, result.TotalCount);
-        Assert.False(result.HasNextPage);
-        Assert.False(result.HasPreviousPage);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Empty(result.Value);
+        Assert.Equal(0, result.Value.TotalCount);
+        Assert.False(result.Value.HasNextPage);
+        Assert.False(result.Value.HasPreviousPage);
     }
 
     [Fact]
@@ -216,6 +259,8 @@ public sealed class UserSubmissionServiceTests
         };
         var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, true, false, "1", "3", 10);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedList);
@@ -224,16 +269,17 @@ public sealed class UserSubmissionServiceTests
         var result = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(3, result.PageCount);
-        Assert.Equal(10, result.TotalCount);
-        Assert.True(result.HasNextPage);
-        Assert.False(result.HasPreviousPage);
-        Assert.Equal("1", result.StartCursor);
-        Assert.Equal("3", result.EndCursor);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(3, result.Value.ToList().Count);
+        Assert.Equal(10, result.Value.TotalCount);
+        Assert.True(result.Value.HasNextPage);
+        Assert.False(result.Value.HasPreviousPage);
+        Assert.Equal("1", result.Value.StartCursor);
+        Assert.Equal("3", result.Value.EndCursor);
 
         // Verify all submissions are properly mapped
-        var resultList = result.ToList();
+        var resultList = result.Value.ToList();
         for (int i = 0; i < submissions.Count; i++)
         {
             Assert.Equal(submissions[i].Id, resultList[i].Id);
@@ -260,6 +306,8 @@ public sealed class UserSubmissionServiceTests
         var submissions = new List<ProblemSubmission>();
         var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, null, null, 0);
 
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
         this.mockProblemSubmissionRepository
             .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedList);
@@ -271,6 +319,77 @@ public sealed class UserSubmissionServiceTests
         this.mockProblemSubmissionRepository.Verify(
             x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserSubmissionsAsync_WithNonAdminUserAccessingOwnSubmissions_ReturnsSubmissions()
+    {
+        // Arrange
+        var userId = 123;
+        var searchParams = new UserSubmissionQueryParameters { First = 10 };
+        var submissions = new List<ProblemSubmission> { CreateTestProblemSubmission(userId) };
+        var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, "1", "1", 1);
+
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(userId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+        this.mockProblemSubmissionRepository
+            .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedList);
+
+        // Act
+        var result = await this.userSubmissionService.GetUserSubmissionsAsync(userId, searchParams, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+        Assert.Equal(submissions[0].Id, result.Value.First().Id);
+    }
+
+    [Fact]
+    public async Task GetUserSubmissionsAsync_WithNonAdminUserAccessingOtherSubmissions_ReturnsForbidden()
+    {
+        // Arrange
+        var currentUserId = 123;
+        var targetUserId = 456;
+        var searchParams = new UserSubmissionQueryParameters { First = 10 };
+
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(currentUserId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(false);
+
+        // Act
+        var result = await this.userSubmissionService.GetUserSubmissionsAsync(targetUserId, searchParams, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
+        Assert.Equal("You do not have permission to view these submissions.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task GetUserSubmissionsAsync_WithAdminUserAccessingAnySubmissions_ReturnsSubmissions()
+    {
+        // Arrange
+        var currentUserId = 123;
+        var targetUserId = 456;
+        var searchParams = new UserSubmissionQueryParameters { First = 10 };
+        var submissions = new List<ProblemSubmission> { CreateTestProblemSubmission(targetUserId) };
+        var pagedList = new CursorPaginatedList<ProblemSubmission, long>(submissions, false, false, "1", "1", 1);
+
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(currentUserId);
+        this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
+        this.mockProblemSubmissionRepository
+            .Setup(x => x.SearchAsync(It.IsAny<ProblemSubmissionQueryParameters>(), false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedList);
+
+        // Act
+        var result = await this.userSubmissionService.GetUserSubmissionsAsync(targetUserId, searchParams, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+        Assert.Equal(submissions[0].Id, result.Value.First().Id);
     }
 
     #endregion

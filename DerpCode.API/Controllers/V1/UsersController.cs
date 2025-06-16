@@ -7,7 +7,6 @@ using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses.Pagination;
-using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Core;
 using DerpCode.API.Services.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -23,16 +22,10 @@ public sealed class UsersController : ServiceControllerBase
 {
     private readonly IUserService userService;
 
-    private readonly ICurrentUserService currentUserService;
-
-    public UsersController(
-        IUserService userService,
-        ICurrentUserService currentUserService,
-        ICorrelationIdService correlationIdService)
+    public UsersController(IUserService userService, ICorrelationIdService correlationIdService)
         : base(correlationIdService)
     {
         this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
-        this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     /// <summary>
@@ -64,17 +57,14 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserDto>> GetUserAsync([FromRoute] int id)
     {
-        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
+        var userResult = await this.userService.GetUserByIdAsync(id, this.HttpContext.RequestAborted);
+
+        if (!userResult.IsSuccess)
         {
-            return this.Forbidden("You can only see your own user information.");
+            return this.HandleServiceFailureResult(userResult);
         }
 
-        var user = await this.userService.GetUserByIdAsync(id, this.HttpContext.RequestAborted);
-
-        if (user == null)
-        {
-            return this.NotFound($"User with id {id} does not exist.");
-        }
+        var user = userResult.ValueOrThrow;
 
         return this.Ok(user);
     }
@@ -95,11 +85,6 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUserAsync([FromRoute] int id)
     {
-        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
-        {
-            return this.Forbidden("You can only delete your own user information.");
-        }
-
         var deleteResult = await this.userService.DeleteUserAsync(id, this.HttpContext.RequestAborted);
 
         if (!deleteResult.IsSuccess)
@@ -127,11 +112,6 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUserLinkedAccountAsync([FromRoute] int id, [FromRoute] LinkedAccountType linkedAccountType)
     {
-        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
-        {
-            return this.Forbidden("You can only delete your own linked accounts.");
-        }
-
         var deleteResult = await this.userService.DeleteUserLinkedAccountAsync(id, linkedAccountType, this.HttpContext.RequestAborted);
 
         if (!deleteResult.IsSuccess)
@@ -230,16 +210,6 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<UserDto>> UpdateUsernameAsync([FromRoute] int id, [FromBody] UpdateUsernameRequest request)
     {
-        if (request == null)
-        {
-            return this.BadRequest();
-        }
-
-        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
-        {
-            return this.Forbidden("You can only update your own user information.");
-        }
-
         var updateResult = await this.userService.UpdateUsernameAsync(id, request, this.HttpContext.RequestAborted);
 
         if (!updateResult.IsSuccess)
@@ -267,16 +237,6 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> UpdatePasswordAsync([FromRoute] int id, [FromBody] UpdatePasswordRequest request)
     {
-        if (request == null)
-        {
-            return this.BadRequest();
-        }
-
-        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
-        {
-            return this.Forbidden("You can only update your own password.");
-        }
-
         var updateResult = await this.userService.UpdatePasswordAsync(id, request, this.HttpContext.RequestAborted);
 
         if (!updateResult.IsSuccess)
@@ -301,11 +261,6 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> SendEmailConfirmationAsync([FromRoute] int id)
     {
-        if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
-        {
-            return this.Forbidden("You can only resend confirmation email for your own account.");
-        }
-
         var sendResult = await this.userService.SendEmailConfirmationAsync(id, this.HttpContext.RequestAborted);
 
         if (!sendResult.IsSuccess)
@@ -330,12 +285,7 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
     {
-        // always return 204 to prevent user enumeration
-        if (request == null)
-        {
-            return this.NoContent();
-        }
-
+        // Always return success to prevent user enumeration
         await this.userService.ForgotPasswordAsync(request, this.HttpContext.RequestAborted);
 
         return this.NoContent();
@@ -355,12 +305,7 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
     {
-        // always return 204 to prevent user enumeration
-        if (request == null)
-        {
-            return this.NoContent();
-        }
-
+        // Always return success to prevent user enumeration
         await this.userService.ResetPasswordAsync(request, this.HttpContext.RequestAborted);
 
         return this.NoContent();
@@ -380,11 +325,6 @@ public sealed class UsersController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> ConfirmEmailAsync([FromBody] ConfirmEmailRequest request)
     {
-        if (request == null)
-        {
-            return this.BadRequest();
-        }
-
         var confirmResult = await this.userService.ConfirmEmailAsync(request, this.HttpContext.RequestAborted);
 
         if (!confirmResult.IsSuccess)

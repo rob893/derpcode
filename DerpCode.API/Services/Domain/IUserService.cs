@@ -27,7 +27,7 @@ public interface IUserService
     /// <param name="id">The user ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The user if found, null otherwise</returns>
-    Task<UserDto?> GetUserByIdAsync(int id, CancellationToken cancellationToken);
+    Task<Result<UserDto>> GetUserByIdAsync(int id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Deletes a user by ID

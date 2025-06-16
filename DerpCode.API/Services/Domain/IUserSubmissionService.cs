@@ -18,5 +18,5 @@ public interface IUserSubmissionService
     /// <param name="searchParams">The search parameters</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A result containing a paginated list of user submissions</returns>
-    Task<CursorPaginatedList<ProblemSubmissionDto, long>> GetUserSubmissionsAsync(int userId, UserSubmissionQueryParameters searchParams, CancellationToken cancellationToken);
+    Task<Result<CursorPaginatedList<ProblemSubmissionDto, long>>> GetUserSubmissionsAsync(int userId, UserSubmissionQueryParameters searchParams, CancellationToken cancellationToken);
 }

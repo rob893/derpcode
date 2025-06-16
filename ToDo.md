@@ -10,3 +10,4 @@
 - Add change tracking to problems (created by, updated by, dates, etc)
 - add caching to problem read funcs in service
 - Keep refactoring controllers out into services
+- add offset based pagination searching to base repo
