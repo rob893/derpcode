@@ -15,6 +15,8 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { AccountPage } from './pages/AccountPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { PWABanner } from './components/PWABanner';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import './App.css';
 
 function App() {
@@ -92,6 +94,10 @@ function App() {
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
+        {/* PWA Components */}
+        <PWABanner />
+        <OfflineIndicator />
       </div>
     </AuthProvider>
   );
