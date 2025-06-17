@@ -445,7 +445,7 @@ public sealed class AuthController : ServiceControllerBase
             return this.Unauthorized("You must be logged in to log out.");
         }
 
-        var user = await this.userRepository.GetByIdAsync(userId.Value, [u => u.RefreshTokens], this.HttpContext.RequestAborted);
+        var user = await this.userRepository.GetByIdAsync(userId.Value, [u => u.RefreshTokens], track: true, this.HttpContext.RequestAborted);
 
         if (user == null)
         {

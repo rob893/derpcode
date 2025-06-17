@@ -285,7 +285,7 @@ public sealed class JwtTokenServiceTests
             new() { TokenHash = "token2-hash", DeviceId = deviceId }
         };
 
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<Expression<Func<User, object>>[]>(), It.IsAny<CancellationToken>()))
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<Expression<Func<User, object>>[]>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -317,7 +317,7 @@ public sealed class JwtTokenServiceTests
         // Arrange
         var userId = 999;
 
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<Expression<Func<User, object>>[]>(), It.IsAny<CancellationToken>()))
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<Expression<Func<User, object>>[]>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         // Act & Assert
@@ -338,7 +338,7 @@ public sealed class JwtTokenServiceTests
             new() { TokenHash = "token3-hash" }
         };
 
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<Expression<Func<User, object>>[]>(), It.IsAny<CancellationToken>()))
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<Expression<Func<User, object>>[]>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))

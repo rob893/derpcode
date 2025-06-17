@@ -18,6 +18,7 @@ public static class DomainServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddScoped<IDriverTemplateService, DriverTemplateService>();
         services.AddScoped<IProblemService, ProblemService>();
         services.AddScoped<IProblemSubmissionService, ProblemSubmissionService>();
         services.AddScoped<IUserSubmissionService, UserSubmissionService>();

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
@@ -14,6 +16,7 @@ using DerpCode.API.Models.Responses;
 using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Core;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Services.Domain;
@@ -33,6 +36,8 @@ public sealed class ProblemService : IProblemService
 
     private readonly ITagRepository tagRepository;
 
+    private readonly IMemoryCache cache;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProblemService"/> class
     /// </summary>
@@ -41,39 +46,42 @@ public sealed class ProblemService : IProblemService
     /// <param name="problemRepository">The problem repository</param>
     /// <param name="tagRepository">The tag repository</param>
     /// <param name="currentUserService">The current user service</param>
+    /// <param name="cache">The memory cache</param>
     public ProblemService(
         ILogger<ProblemService> logger,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
         ITagRepository tagRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IMemoryCache cache)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
         this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
+        this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     /// <inheritdoc />
     public async Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(searchParams);
+        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
 
-        var pagedList = await this.problemRepository.SearchAsync(searchParams, track: false, cancellationToken);
-        var mapped = pagedList
+        var pagedList = problems.Values
             .Select(x => ProblemDto.FromEntity(x, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser))
-            .ToList();
+            .ToCursorPaginatedList(searchParams);
 
-        return new CursorPaginatedList<ProblemDto, int>(mapped, pagedList.HasNextPage, pagedList.HasPreviousPage, pagedList.StartCursor, pagedList.EndCursor, pagedList.TotalCount);
+        return pagedList;
     }
 
     /// <inheritdoc />
     public async Task<ProblemDto?> GetProblemByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var problem = await this.problemRepository.GetByIdAsync(id, track: false, cancellationToken);
+        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
 
-        if (problem == null)
+        if (!problems.TryGetValue(id, out var problem))
         {
             return null;
         }
@@ -102,6 +110,8 @@ public sealed class ProblemService : IProblemService
         this.problemRepository.Add(newProblem);
         await this.problemRepository.SaveChangesAsync(cancellationToken);
 
+        this.cache.Remove(CacheKeys.Problems);
+
         return Result<ProblemDto>.Success(ProblemDto.FromEntity(newProblem, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser));
     }
 
@@ -112,6 +122,7 @@ public sealed class ProblemService : IProblemService
 
         if (existingProblem == null)
         {
+            this.logger.LogWarning("Cannot clone problem {ProblemId}: Problem not found", existingProblemId);
             return Result<ProblemDto>.Failure(DomainErrorType.NotFound, $"Problem with ID {existingProblemId} not found.");
         }
 
@@ -127,6 +138,7 @@ public sealed class ProblemService : IProblemService
 
         if (patchDocument.Operations.Count == 0)
         {
+            this.logger.LogWarning("Cannot patch problem {ProblemId}: No operations provided in patch document", problemId);
             return Result<ProblemDto>.Failure(DomainErrorType.Validation, "A JSON patch document with at least 1 operation is required.");
         }
 
@@ -134,12 +146,14 @@ public sealed class ProblemService : IProblemService
 
         if (problem == null)
         {
+            this.logger.LogWarning("Cannot patch problem {ProblemId}: Problem not found", problemId);
             return Result<ProblemDto>.Failure(DomainErrorType.NotFound, $"Problem with ID {problemId} not found.");
         }
 
         var validationCheck = CreateProblemRequest.FromEntity(problem);
         if (!patchDocument.TryApply(validationCheck, out var validationError))
         {
+            this.logger.LogWarning("Cannot patch problem {ProblemId}: Invalid patch document - {ValidationError}", problemId, validationError);
             return Result<ProblemDto>.Failure(DomainErrorType.Validation, $"Invalid JSON patch document: {validationError}");
         }
 
@@ -147,6 +161,7 @@ public sealed class ProblemService : IProblemService
 
         if (!entityPatchDoc.TryApply(problem, out var error))
         {
+            this.logger.LogError("Failed to apply patch document to problem {ProblemId} after successful validation: {Error}", problemId, error);
             return Result<ProblemDto>.Failure(DomainErrorType.Unknown, $"Failed to apply JSON patch document after successful validation: {error}");
         }
 
@@ -154,8 +169,11 @@ public sealed class ProblemService : IProblemService
 
         if (updated == 0)
         {
+            this.logger.LogError("Failed to patch problem {ProblemId}: No changes were saved", problemId);
             return Result<ProblemDto>.Failure(DomainErrorType.Unknown, "Failed to update problem. No changes were saved.");
         }
+
+        this.cache.Remove(CacheKeys.Problems);
 
         return Result<ProblemDto>.Success(ProblemDto.FromEntity(problem, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser));
     }
@@ -169,6 +187,7 @@ public sealed class ProblemService : IProblemService
 
         if (existingProblem == null)
         {
+            this.logger.LogWarning("Cannot update problem {ProblemId}: Problem not found", problemId);
             return Result<ProblemDto>.Failure(DomainErrorType.NotFound, $"Problem with ID {problemId} not found.");
         }
 
@@ -224,8 +243,11 @@ public sealed class ProblemService : IProblemService
 
         if (updated == 0)
         {
+            this.logger.LogError("Failed to update problem {ProblemId}: No changes were saved", problemId);
             return Result<ProblemDto>.Failure(DomainErrorType.Unknown, "Failed to update problem. No changes were saved.");
         }
+
+        this.cache.Remove(CacheKeys.Problems);
 
         return Result<ProblemDto>.Success(ProblemDto.FromEntity(existingProblem, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser));
     }
@@ -233,10 +255,11 @@ public sealed class ProblemService : IProblemService
     /// <inheritdoc />
     public async Task<Result<bool>> DeleteProblemAsync(int problemId, CancellationToken cancellationToken)
     {
-        var problem = await this.problemRepository.GetByIdAsync(problemId, [p => p.ExplanationArticle, p => p.SolutionArticles], cancellationToken);
+        var problem = await this.problemRepository.GetByIdAsync(problemId, [p => p.ExplanationArticle, p => p.SolutionArticles], track: true, cancellationToken);
 
         if (problem == null)
         {
+            this.logger.LogWarning("Cannot delete problem {ProblemId}: Problem not found", problemId);
             return Result<bool>.Failure(DomainErrorType.NotFound, $"Problem with ID {problemId} not found.");
         }
 
@@ -246,8 +269,11 @@ public sealed class ProblemService : IProblemService
 
         if (removed == 0)
         {
+            this.logger.LogError("Failed to delete problem {ProblemId}: No changes were saved", problemId);
             return Result<bool>.Failure(DomainErrorType.Unknown, "Failed to delete problem. No changes were saved.");
         }
+
+        this.cache.Remove(CacheKeys.Problems);
 
         return Result<bool>.Success(true);
     }
@@ -316,5 +342,22 @@ public sealed class ProblemService : IProblemService
         };
 
         return response;
+    }
+
+    private async Task<IReadOnlyDictionary<int, Problem>> GetProblemsFromCacheAsync(CancellationToken cancellationToken)
+    {
+        if (!this.cache.TryGetValue(CacheKeys.Problems, out Dictionary<int, Problem>? problemLookup))
+        {
+            var problems = await this.problemRepository.SearchAsync(
+                p => true,
+                [p => p.ExplanationArticle, p => p.Tags, p => p.Drivers],
+                track: false,
+                cancellationToken);
+            problemLookup = problems.ToDictionary(p => p.Id, p => p);
+
+            this.cache.Set(CacheKeys.Problems, problemLookup, TimeSpan.FromDays(1));
+        }
+
+        return problemLookup ?? throw new InvalidOperationException("Failed to retrieve problems from cache.");
     }
 }

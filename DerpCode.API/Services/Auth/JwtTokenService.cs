@@ -152,7 +152,7 @@ public sealed class JwtTokenService : IJwtTokenService
 
     public async Task RevokeAllRefreshTokensForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
-        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], track: true, cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
         await this.RevokeAllRefreshTokensForUserAsync(user, cancellationToken);
     }
 
@@ -170,7 +170,7 @@ public sealed class JwtTokenService : IJwtTokenService
             throw new ArgumentNullException(nameof(deviceId));
         }
 
-        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
+        var user = await this.userRepository.GetByIdAsync(userId, [user => user.RefreshTokens], track: true, cancellationToken) ?? throw new ArgumentException($"User with ID {userId} not found.");
 
         // Remove the refresh token for the specified device
         user.RefreshTokens.RemoveAll(token => token.DeviceId == deviceId);

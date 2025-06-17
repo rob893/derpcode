@@ -64,6 +64,7 @@ public sealed class UserService : IUserService
     {
         if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
         {
+            this.logger.LogWarning("User {UserId} attempted to access user {TargetUserId} without permission", this.currentUserService.UserId, id);
             return Result<UserDto>.Failure(DomainErrorType.Forbidden, "You can only see your own user");
         }
 
@@ -71,6 +72,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("User {UserId} not found", id);
             return Result<UserDto>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
@@ -82,6 +84,7 @@ public sealed class UserService : IUserService
     {
         if (this.currentUserService.UserId != id && !this.currentUserService.IsAdmin)
         {
+            this.logger.LogWarning("User {UserId} attempted to delete user {TargetUserId} without permission", this.currentUserService.UserId, id);
             return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only delete your own user");
         }
 
@@ -89,6 +92,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot delete user {UserId}: User not found", id);
             return Result<bool>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
@@ -97,6 +101,7 @@ public sealed class UserService : IUserService
 
         if (saveResults == 0)
         {
+            this.logger.LogError("Failed to delete user {UserId}: No changes were saved", id);
             return Result<bool>.Failure(DomainErrorType.Unknown, "Failed to delete the user");
         }
 
@@ -108,6 +113,7 @@ public sealed class UserService : IUserService
     {
         if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
         {
+            this.logger.LogWarning("User {UserId} attempted to delete linked account for user {TargetUserId} without permission", this.currentUserService.UserId, userId);
             return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only delete linked accounts for your own user");
         }
 
@@ -115,6 +121,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot delete linked account for user {UserId}: User not found", userId);
             return Result<bool>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
@@ -122,6 +129,7 @@ public sealed class UserService : IUserService
 
         if (linkedAccount == null)
         {
+            this.logger.LogWarning("Cannot delete linked account of type {LinkedAccountType} for user {UserId}: Linked account not found", linkedAccountType, userId);
             return Result<bool>.Failure(DomainErrorType.NotFound, $"No linked account of type {linkedAccountType} found for user");
         }
 
@@ -130,6 +138,7 @@ public sealed class UserService : IUserService
 
         if (saveResults == 0)
         {
+            this.logger.LogError("Failed to delete linked account of type {LinkedAccountType} for user {UserId}: No changes were saved", linkedAccountType, userId);
             return Result<bool>.Failure(DomainErrorType.Unknown, "Failed to delete the linked account");
         }
 
@@ -156,6 +165,7 @@ public sealed class UserService : IUserService
 
         if (request.RoleNames == null || request.RoleNames.Count == 0)
         {
+            this.logger.LogWarning("Cannot add roles to user {UserId}: No roles specified", userId);
             return Result<UserDto>.Failure(DomainErrorType.Validation, "At least one role must be specified");
         }
 
@@ -163,6 +173,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot add roles to user {UserId}: User not found", userId);
             return Result<UserDto>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
@@ -190,6 +201,7 @@ public sealed class UserService : IUserService
 
         if (saveResult == 0)
         {
+            this.logger.LogError("Failed to add roles {RoleNames} to user {UserId}: No changes were saved", string.Join(", ", request.RoleNames), userId);
             return Result<UserDto>.Failure(DomainErrorType.Unknown, "Failed to add roles");
         }
 
@@ -203,6 +215,7 @@ public sealed class UserService : IUserService
 
         if (request.RoleNames == null || request.RoleNames.Count == 0)
         {
+            this.logger.LogWarning("Cannot remove roles from user {UserId}: No roles specified", userId);
             return Result<UserDto>.Failure(DomainErrorType.Validation, "At least one role must be specified");
         }
 
@@ -210,6 +223,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot remove roles from user {UserId}: User not found", userId);
             return Result<UserDto>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
@@ -233,6 +247,7 @@ public sealed class UserService : IUserService
 
         if (saveResult == 0)
         {
+            this.logger.LogError("Failed to remove roles {RoleNames} from user {UserId}: No changes were saved", string.Join(", ", request.RoleNames), userId);
             return Result<UserDto>.Failure(DomainErrorType.Unknown, "Failed to remove roles");
         }
 
@@ -246,6 +261,7 @@ public sealed class UserService : IUserService
 
         if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
         {
+            this.logger.LogWarning("User {UserId} attempted to update username for user {TargetUserId} without permission", this.currentUserService.UserId, userId);
             return Result<UserDto>.Failure(DomainErrorType.Forbidden, "You can only update your own username");
         }
 
@@ -253,21 +269,25 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot update username for user {UserId}: User not found", userId);
             return Result<UserDto>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
         if (user.LastLogin is null || user.LastLogin <= DateTimeOffset.UtcNow.AddMinutes(-30))
         {
+            this.logger.LogWarning("User {UserId} attempted to update username without recent authentication", userId);
             return Result<UserDto>.Failure(DomainErrorType.Validation, "You must have authenticated within the last 30 minutes to update your username");
         }
 
         if (user.LastUsernameChange > DateTimeOffset.UtcNow.AddDays(-30))
         {
+            this.logger.LogWarning("User {UserId} attempted to update username too soon after previous change", userId);
             return Result<UserDto>.Failure(DomainErrorType.Validation, "You can only change your username once every 30 days");
         }
 
         if (string.Equals(user.UserName, request.NewUsername, StringComparison.OrdinalIgnoreCase))
         {
+            this.logger.LogWarning("User {UserId} attempted to update username to the same value", userId);
             return Result<UserDto>.Failure(DomainErrorType.Validation, "The new username must be different from the current one");
         }
 
@@ -277,6 +297,7 @@ public sealed class UserService : IUserService
         if (!updateResult.Succeeded)
         {
             var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+            this.logger.LogWarning("Failed to update username for user {UserId}: {Errors}", userId, errors);
             return Result<UserDto>.Failure(DomainErrorType.Validation, errors);
         }
 
@@ -290,6 +311,7 @@ public sealed class UserService : IUserService
 
         if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
         {
+            this.logger.LogWarning("User {UserId} attempted to update password for user {TargetUserId} without permission", this.currentUserService.UserId, userId);
             return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only update your own password");
         }
 
@@ -297,6 +319,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot update password for user {UserId}: User not found", userId);
             return Result<bool>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
@@ -306,6 +329,7 @@ public sealed class UserService : IUserService
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            this.logger.LogWarning("Failed to update password for user {UserId}: {Errors}", userId, errors);
             return Result<bool>.Failure(DomainErrorType.Validation, errors);
         }
 
@@ -317,6 +341,7 @@ public sealed class UserService : IUserService
     {
         if (this.currentUserService.UserId != userId && !this.currentUserService.IsAdmin)
         {
+            this.logger.LogWarning("User {UserId} attempted to send email confirmation for user {TargetUserId} without permission", this.currentUserService.UserId, userId);
             return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only send email confirmation links for your own account");
         }
 
@@ -324,21 +349,25 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Cannot send email confirmation for user {UserId}: User not found", userId);
             return Result<bool>.Failure(DomainErrorType.NotFound, "User not found");
         }
 
         if (string.IsNullOrWhiteSpace(user.Email))
         {
+            this.logger.LogWarning("Cannot send email confirmation for user {UserId}: No email address set", userId);
             return Result<bool>.Failure(DomainErrorType.Validation, "User does not have an email address set");
         }
 
         if (user.EmailConfirmed)
         {
+            this.logger.LogWarning("Cannot send email confirmation for user {UserId}: Email already confirmed", userId);
             return Result<bool>.Failure(DomainErrorType.Validation, "User's email is already confirmed");
         }
 
         if (user.LastEmailConfirmationSent != null && user.LastEmailConfirmationSent.Value > DateTimeOffset.UtcNow.AddHours(-1))
         {
+            this.logger.LogWarning("Cannot send email confirmation for user {UserId}: Confirmation already sent within the last hour", userId);
             return Result<bool>.Failure(DomainErrorType.Validation, "You can only resend the email confirmation link once per hour");
         }
 
@@ -422,6 +451,7 @@ public sealed class UserService : IUserService
 
         if (user == null)
         {
+            this.logger.LogWarning("Failed to confirm email for {Email}: User not found", request.Email);
             return Result<bool>.Failure(DomainErrorType.Validation, "Unable to confirm email");
         }
 
@@ -430,6 +460,7 @@ public sealed class UserService : IUserService
         if (!confirmResult.Succeeded)
         {
             var errors = string.Join(", ", confirmResult.Errors.Select(e => e.Description));
+            this.logger.LogWarning("Failed to confirm email for user {UserId} ({Email}): {Errors}", user.Id, user.Email, errors);
             return Result<bool>.Failure(DomainErrorType.Validation, errors);
         }
 

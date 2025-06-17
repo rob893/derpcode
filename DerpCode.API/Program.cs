@@ -51,6 +51,7 @@ public static class Program
 
         builder.Services.AddControllerServices()
             .AddHealthCheckServices()
+            .AddMemoryCache()
             .AddIdentityServices()
             .AddRateLimiterServices(builder.Configuration)
             .AddCoreServices()

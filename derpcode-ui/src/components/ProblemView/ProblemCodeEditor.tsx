@@ -17,12 +17,13 @@ import {
 import { Cog6ToothIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Language } from '../../types/models';
 import type { Problem, ProblemSubmission } from '../../types/models';
+import type { User } from '../../types/auth';
 import { CodeEditor } from '../CodeEditor';
 import { loadCodeWithPriority } from '../../utils/localStorageUtils';
 
 interface ProblemCodeEditorProps {
   problem: Problem;
-  user: any;
+  user: User | null;
   selectedLanguage: Language | undefined;
   code: string;
   onLanguageChange: (language: Language) => void;

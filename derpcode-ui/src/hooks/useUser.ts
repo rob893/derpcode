@@ -7,7 +7,8 @@ export function useUser(userId?: number) {
   return useQuery({
     queryKey: ['user', userId],
     queryFn: () => userApi.getUserById(userId!),
-    enabled: !!userId
+    enabled: !!userId,
+    staleTime: 15 * 60 * 1000 // 15 minutes
   });
 }
 

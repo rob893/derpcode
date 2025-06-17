@@ -8,7 +8,6 @@ using DerpCode.API.Services.Domain;
 using DerpCode.API.Services.Email;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace DerpCode.API.Tests.Services.Domain;
 

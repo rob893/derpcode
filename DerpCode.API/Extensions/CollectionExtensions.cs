@@ -215,4 +215,136 @@ public static class CollectionExtensions
             cursor => cursor.ConvertToInt32FromBase64Url(),
             queryParameters);
     }
+
+    public static CursorPaginatedList<TEntity, TEntityKey> ToCursorPaginatedList<TEntity, TEntityKey>(
+            this IEnumerable<TEntity> src,
+            Func<TEntity, TEntityKey> keySelector,
+            Func<TEntityKey, string> keyConverter,
+            Func<string, TEntityKey> cursorConverter,
+            int? first,
+            int? last,
+            string? afterCursor,
+            string? beforeCursor,
+            bool includeTotal)
+                where TEntity : class
+                where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
+    {
+        ArgumentNullException.ThrowIfNull(src);
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ArgumentNullException.ThrowIfNull(keyConverter);
+        ArgumentNullException.ThrowIfNull(cursorConverter);
+
+        var source = includeTotal ? src.ToList() : src;
+
+        if (first != null && last != null)
+        {
+            throw new NotSupportedException($"Passing both `{nameof(first)}` and `{nameof(last)}` to paginate is not supported.");
+        }
+
+        if (afterCursor != null)
+        {
+            var after = cursorConverter(afterCursor);
+            source = source.Where(item => keySelector(item).CompareTo(after) > 0);
+        }
+
+        if (beforeCursor != null)
+        {
+            var before = cursorConverter(beforeCursor);
+            source = source.Where(item => keySelector(item).CompareTo(before) < 0);
+        }
+
+        var pageList = new List<TEntity>();
+        var hasNextPage = beforeCursor != null;
+        var hasPreviousPage = afterCursor != null;
+
+        if (first != null)
+        {
+            if (first.Value < 0)
+            {
+                throw new ArgumentException($"{nameof(first)} cannot be less than 0.", nameof(first));
+            }
+
+            pageList = source.OrderBy(keySelector).Take(first.Value + 1).ToList();
+
+            hasNextPage = pageList.Count > first.Value;
+
+            if (hasNextPage)
+            {
+                pageList.RemoveAt(pageList.Count - 1);
+            }
+        }
+        else if (last != null)
+        {
+            if (last.Value < 0)
+            {
+                throw new ArgumentException($"{nameof(last)} cannot be less than 0.", nameof(last));
+            }
+
+            pageList = source.OrderByDescending(keySelector).Take(last.Value + 1).ToList();
+
+            hasPreviousPage = pageList.Count > last.Value;
+
+            if (hasPreviousPage)
+            {
+                pageList.RemoveAt(pageList.Count - 1);
+            }
+
+            pageList.Reverse();
+        }
+        else
+        {
+            pageList = source.OrderBy(keySelector).ToList();
+        }
+
+        var firstPageItem = pageList.FirstOrDefault();
+        var lastPageItem = pageList.LastOrDefault();
+
+        return new CursorPaginatedList<TEntity, TEntityKey>(
+            pageList,
+            hasNextPage,
+            hasPreviousPage,
+            firstPageItem != null ? keyConverter(keySelector(firstPageItem)) : null,
+            lastPageItem != null ? keyConverter(keySelector(lastPageItem)) : null,
+            includeTotal ? source.Count() : null);
+    }
+
+    public static CursorPaginatedList<TEntity, TEntityKey> ToCursorPaginatedList<TEntity, TEntityKey>(
+        this IEnumerable<TEntity> src,
+        Func<TEntity, TEntityKey> keySelector,
+        Func<TEntityKey, string> keyConverter,
+        Func<string, TEntityKey> cursorConverter,
+        CursorPaginationQueryParameters queryParameters)
+            where TEntity : class
+            where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
+    {
+        ArgumentNullException.ThrowIfNull(queryParameters);
+
+        return src.ToCursorPaginatedList(
+                keySelector,
+                keyConverter,
+                cursorConverter,
+                queryParameters.First,
+                queryParameters.Last,
+                queryParameters.After,
+                queryParameters.Before,
+                queryParameters.IncludeTotal);
+    }
+
+    public static CursorPaginatedList<TEntity, int> ToCursorPaginatedList<TEntity>(
+        this IEnumerable<TEntity> src,
+        CursorPaginationQueryParameters queryParameters)
+            where TEntity : class, IIdentifiable<int>
+    {
+        ArgumentNullException.ThrowIfNull(queryParameters);
+
+        return src.ToCursorPaginatedList(
+                item => item.Id,
+                key => key.ConvertToBase64Url(),
+                cursor => cursor.ConvertToInt32FromBase64Url(),
+                queryParameters.First,
+                queryParameters.Last,
+                queryParameters.After,
+                queryParameters.Before,
+                queryParameters.IncludeTotal);
+    }
 }

@@ -56,11 +56,13 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
 
         if (submission == null || submission.ProblemId != problemId)
         {
+            this.logger.LogWarning("Submission {SubmissionId} for problem {ProblemId} not found or mismatch", submissionId, problemId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.NotFound, $"Submission with ID {submissionId} for problem with ID {problemId} not found");
         }
 
         if (!this.currentUserService.IsUserAuthorizedForResource(submission))
         {
+            this.logger.LogWarning("User {UserId} attempted to access submission {SubmissionId} without authorization", this.currentUserService.UserId, submissionId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Forbidden, "You can only see your own submissions.");
         }
 
@@ -74,11 +76,13 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
 
         if (string.IsNullOrEmpty(request.UserCode))
         {
+            this.logger.LogWarning("User {UserId} attempted to submit empty code for problem {ProblemId}", this.currentUserService.UserId, problemId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Validation, "User code is required");
         }
 
         if (!this.currentUserService.EmailVerified)
         {
+            this.logger.LogWarning("User {UserId} attempted to submit solution for problem {ProblemId} without verified email", this.currentUserService.UserId, problemId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Forbidden, "You must verify your email before submitting solutions.");
         }
 
@@ -86,12 +90,14 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
 
         if (problem == null)
         {
+            this.logger.LogWarning("User {UserId} attempted to submit solution for non-existent problem {ProblemId}", this.currentUserService.UserId, problemId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.NotFound, $"Problem with ID {problemId} not found");
         }
 
         var driver = problem.Drivers.FirstOrDefault(d => d.Language == request.Language);
         if (driver == null)
         {
+            this.logger.LogWarning("User {UserId} attempted to submit solution for problem {ProblemId} with unsupported language {Language}", this.currentUserService.UserId, problemId, request.Language);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Validation, $"No driver template found for language {request.Language}");
         }
 
@@ -124,6 +130,7 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
 
         if (string.IsNullOrEmpty(request.UserCode))
         {
+            this.logger.LogWarning("User {UserId} attempted to run empty code for problem {ProblemId}", this.currentUserService.UserId, problemId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Validation, "User code is required");
         }
 
@@ -131,12 +138,14 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
 
         if (problem == null)
         {
+            this.logger.LogWarning("User {UserId} attempted to run solution for non-existent problem {ProblemId}", this.currentUserService.UserId, problemId);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.NotFound, $"Problem with ID {problemId} not found");
         }
 
         var driver = problem.Drivers.FirstOrDefault(d => d.Language == request.Language);
         if (driver == null)
         {
+            this.logger.LogWarning("User {UserId} attempted to run solution for problem {ProblemId} with unsupported language {Language}", this.currentUserService.UserId, problemId, request.Language);
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Validation, $"No driver template found for language {request.Language}");
         }
 

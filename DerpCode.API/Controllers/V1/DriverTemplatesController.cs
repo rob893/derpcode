@@ -1,12 +1,11 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Responses.Pagination;
 using DerpCode.API.Services.Core;
+using DerpCode.API.Services.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,19 +16,20 @@ namespace DerpCode.API.Controllers.V1;
 [ApiVersion("1.0")]
 public sealed class DriverTemplatesController : ServiceControllerBase
 {
-    private readonly IDriverTemplateRepository driverTemplateRepository;
+    private readonly IDriverTemplateService driverTemplateService;
 
-    public DriverTemplatesController(ICorrelationIdService correlationIdService, IDriverTemplateRepository driverTemplateRepository) : base(correlationIdService)
+    public DriverTemplatesController(ICorrelationIdService correlationIdService, IDriverTemplateService driverTemplateService) : base(correlationIdService)
     {
-        this.driverTemplateRepository = driverTemplateRepository ?? throw new ArgumentNullException(nameof(driverTemplateRepository));
+        this.driverTemplateService = driverTemplateService ?? throw new ArgumentNullException(nameof(driverTemplateService));
     }
 
     [HttpGet(Name = nameof(GetDriverTemplatesAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<DriverTemplateDto>>> GetDriverTemplatesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
-        var templates = await this.driverTemplateRepository.SearchAsync(searchParams, track: false, this.HttpContext.RequestAborted);
-        var response = templates.Select(DriverTemplateDto.FromEntity).ToCursorPaginatedResponse(searchParams);
+        var templates = await this.driverTemplateService.GetDriverTemplatesAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = templates.ToCursorPaginatedResponse(searchParams);
+
         return this.Ok(response);
     }
 }

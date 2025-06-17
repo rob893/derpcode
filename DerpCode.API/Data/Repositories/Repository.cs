@@ -65,6 +65,11 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
     public virtual async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
     {
+        return await this.FirstOrDefaultAsync(condition, [], track, cancellationToken);
+    }
+
+    public virtual async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default)
+    {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
         if (!track)
@@ -73,6 +78,7 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
         }
 
         query = this.AddIncludes(query);
+        query = includes.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
 
         var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(condition, cancellationToken);
 
@@ -86,44 +92,25 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
 
     public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, bool track = true, CancellationToken cancellationToken = default)
     {
-        IQueryable<TEntity> query = this.Context.Set<TEntity>();
-
-        if (!track)
-        {
-            query = query.AsNoTracking();
-        }
-
-        query = this.AddIncludes(query);
-
-        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
-
-        if (item != null)
-        {
-            this.PostProcess(item);
-        }
-
-        return item;
+        return await this.GetByIdAsync(id, [], track, cancellationToken);
     }
 
-    public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, Expression<Func<TEntity, object>>[] includes, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity?> GetByIdAsync(TEntityKey id, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default)
     {
-        IQueryable<TEntity> query = this.Context.Set<TEntity>();
-
-        query = this.AddIncludes(query);
-        query = includes.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
-
-        var item = await query.OrderBy(e => e.Id).FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
-
-        if (item != null)
-        {
-            this.PostProcess(item);
-        }
-
-        return item;
+        return await this.FirstOrDefaultAsync(
+            entity => entity.Id.Equals(id),
+            includes,
+            track,
+            cancellationToken);
     }
 
     public virtual async Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
     {
+        return await this.SearchAsync(condition, [], track, cancellationToken);
+    }
+
+    public virtual async Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default)
+    {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 
         if (!track)
@@ -132,6 +119,7 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
         }
 
         query = this.AddIncludes(query);
+        query = includes.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
 
         var list = await query.Where(condition).ToListAsync(cancellationToken);
 

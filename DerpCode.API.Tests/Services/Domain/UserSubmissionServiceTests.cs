@@ -5,7 +5,6 @@ using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Domain;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace DerpCode.API.Tests.Services.Domain;
 
