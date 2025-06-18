@@ -9,6 +9,7 @@ import {
 } from '../types/models';
 import { CodeEditor } from './CodeEditor';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
+import { MarkdownRenderer } from './MarkdownRenderer';
 import { useDriverTemplates, useCreateProblem, useValidateProblem, useProblem, useUpdateProblem } from '../hooks/api';
 import {
   Button,
@@ -324,51 +325,6 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                       color="primary"
                     />
 
-                    <Textarea
-                      label="Description"
-                      placeholder="Problem description"
-                      value={problem.description}
-                      onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
-                      variant="bordered"
-                      color="primary"
-                      minRows={4}
-                    />
-
-                    <Input
-                      label="Explanation Article Title"
-                      placeholder="Title for the solution explanation article"
-                      value={problem.explanationArticle?.title || ''}
-                      onChange={e =>
-                        setProblem(prev => ({
-                          ...prev,
-                          explanationArticle: {
-                            title: e.target.value,
-                            content: prev.explanationArticle?.content || ''
-                          }
-                        }))
-                      }
-                      variant="bordered"
-                      color="primary"
-                    />
-
-                    <Textarea
-                      label="Explanation Article Content"
-                      placeholder="Detailed article content explaining the solution approach (shown after solving)"
-                      value={problem.explanationArticle?.content || ''}
-                      onChange={e =>
-                        setProblem(prev => ({
-                          ...prev,
-                          explanationArticle: {
-                            title: prev.explanationArticle?.title || '',
-                            content: e.target.value
-                          }
-                        }))
-                      }
-                      variant="bordered"
-                      color="primary"
-                      minRows={5}
-                    />
-
                     <Select
                       label="Difficulty"
                       selectedKeys={[problem.difficulty || ProblemDifficulty.Easy]}
@@ -435,9 +391,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                     </div>
                   </CardBody>
                 </Card>
-              </div>
 
-              <div className="space-y-6">
                 <Card>
                   <CardHeader>
                     <h3 className="text-xl font-semibold">Test Data</h3>
@@ -480,7 +434,9 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                     />
                   </CardBody>
                 </Card>
+              </div>
 
+              <div className="space-y-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <h3 className="text-xl font-semibold">Language Drivers</h3>
@@ -546,6 +502,115 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                   </CardBody>
                 </Card>
               </div>
+            </div>
+          </Tab>
+
+          <Tab key="description" title="Description">
+            <div className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <h3 className="text-xl font-semibold">Problem Description</h3>
+                </CardHeader>
+                <CardBody className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 h-[600px]">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Description (Markdown)</label>
+                      <Textarea
+                        placeholder="Write your problem description using Markdown syntax..."
+                        value={problem.description || ''}
+                        onChange={e => setProblem(prev => ({ ...prev, description: e.target.value }))}
+                        variant="bordered"
+                        color="primary"
+                        minRows={27}
+                        maxRows={27}
+                        classNames={{
+                          input: 'font-mono text-sm'
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Preview</label>
+                      <Card className="h-full">
+                        <CardBody className="p-4 overflow-y-auto">
+                          {problem.description ? (
+                            <MarkdownRenderer content={problem.description} className="h-full" />
+                          ) : (
+                            <p className="text-default-400 italic">Preview will appear here as you type...</p>
+                          )}
+                        </CardBody>
+                      </Card>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
+          </Tab>
+
+          <Tab key="explanation" title="Explanation">
+            <div className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <h3 className="text-xl font-semibold">Solution Explanation Article</h3>
+                </CardHeader>
+                <CardBody className="space-y-4">
+                  <Input
+                    label="Article Title"
+                    placeholder="Title for the solution explanation article"
+                    value={problem.explanationArticle?.title || ''}
+                    onChange={e =>
+                      setProblem(prev => ({
+                        ...prev,
+                        explanationArticle: {
+                          title: e.target.value,
+                          content: prev.explanationArticle?.content || ''
+                        }
+                      }))
+                    }
+                    variant="bordered"
+                    color="primary"
+                  />
+
+                  <div className="grid grid-cols-2 gap-4 h-[600px]">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Content (Markdown)</label>
+                      <Textarea
+                        placeholder="Write your explanation article content using Markdown syntax..."
+                        value={problem.explanationArticle?.content || ''}
+                        onChange={e =>
+                          setProblem(prev => ({
+                            ...prev,
+                            explanationArticle: {
+                              title: prev.explanationArticle?.title || '',
+                              content: e.target.value
+                            }
+                          }))
+                        }
+                        variant="bordered"
+                        color="primary"
+                        minRows={27}
+                        maxRows={27}
+                        classNames={{
+                          input: 'font-mono text-sm'
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Preview</label>
+                      <Card className="h-full">
+                        <CardBody className="p-4 overflow-y-auto">
+                          {problem.explanationArticle?.content ? (
+                            <MarkdownRenderer content={problem.explanationArticle.content} className="h-full" />
+                          ) : (
+                            <p className="text-default-400 italic">Preview will appear here as you type...</p>
+                          )}
+                        </CardBody>
+                      </Card>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
             </div>
           </Tab>
 

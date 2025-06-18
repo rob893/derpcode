@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { problemsApi, driverTemplatesApi, submissionsApi } from '../services/api';
 import { authApi } from '../services/auth';
 import type { CreateProblemRequest, Language, UserSubmissionQueryParameters } from '../types/models';
@@ -16,11 +17,24 @@ export const queryKeys = {
 
 // Problem hooks
 export const useProblems = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: queryKeys.problems,
     queryFn: problemsApi.getProblems,
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
+
+  // Set cache keys for each individual problem when data changes
+  useEffect(() => {
+    if (query.data) {
+      query.data.forEach(problem => {
+        queryClient.setQueryData(queryKeys.problem(problem.id), problem);
+      });
+    }
+  }, [query.data, queryClient]);
+
+  return query;
 };
 
 export const useProblem = (id: number) => {
