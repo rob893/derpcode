@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Language } from '../../types/models';
 import type { ProblemSubmission } from '../../types/models';
 import { ApiErrorDisplay } from '../ApiErrorDisplay';
+import { ResizableSplitter } from '../ResizableSplitter';
 import { ProblemDescription } from './ProblemDescription';
 import { ProblemCodeEditor } from './ProblemCodeEditor';
 import { ProblemSubmissionResult } from './ProblemSubmissionResult';
@@ -260,44 +261,98 @@ export const ProblemView = () => {
         Back to Problems
       </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <ProblemDescription
-            problem={problem}
-            user={user}
-            onEdit={() => navigate(`/problems/${problem.id}/edit`)}
-            onClone={handleCloneProblem}
-            onDelete={handleDeleteClick}
-            isCloneLoading={cloneProblem.isPending}
-            onSubmissionSelect={handleSubmissionSelect}
-          />
-
-          {submissionError && (
-            <ApiErrorDisplay
-              error={submissionError}
-              title={isRunResult ? 'Run Failed' : 'Submission Failed'}
-              showDetails={true}
+      <div className="min-h-[calc(100vh-12rem)]">
+        {/* Mobile layout: stack vertically */}
+        <div className="flex flex-col space-y-6 lg:hidden">
+          <div className="space-y-6">
+            <ProblemDescription
+              problem={problem}
+              user={user}
+              onEdit={() => navigate(`/problems/${problem.id}/edit`)}
+              onClone={handleCloneProblem}
+              onDelete={handleDeleteClick}
+              isCloneLoading={cloneProblem.isPending}
+              onSubmissionSelect={handleSubmissionSelect}
             />
-          )}
 
-          {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} />}
+            {submissionError && (
+              <ApiErrorDisplay
+                error={submissionError}
+                title={isRunResult ? 'Run Failed' : 'Submission Failed'}
+                showDetails={true}
+              />
+            )}
+
+            {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} />}
+          </div>
+
+          <div>
+            <ProblemCodeEditor
+              problem={problem}
+              user={user}
+              selectedLanguage={selectedLanguage}
+              code={code}
+              onLanguageChange={handleLanguageChange}
+              onCodeChange={handleCodeChange}
+              onSubmit={handleSubmit}
+              onRun={handleRun}
+              onReset={onResetOpen}
+              isSubmitting={submitSolution.isPending}
+              isRunning={runSolution.isPending}
+              selectedSubmission={selectedSubmission}
+              onReturnToWorkingCode={handleReturnToWorkingCode}
+            />
+          </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-4">
-          <ProblemCodeEditor
-            problem={problem}
-            user={user}
-            selectedLanguage={selectedLanguage}
-            code={code}
-            onLanguageChange={handleLanguageChange}
-            onCodeChange={handleCodeChange}
-            onSubmit={handleSubmit}
-            onRun={handleRun}
-            onReset={onResetOpen}
-            isSubmitting={submitSolution.isPending}
-            isRunning={runSolution.isPending}
-            selectedSubmission={selectedSubmission}
-            onReturnToWorkingCode={handleReturnToWorkingCode}
+        {/* Desktop layout: resizable horizontal split */}
+        <div className="hidden lg:block">
+          <ResizableSplitter
+            leftPanel={
+              <div className="space-y-6 pr-6">
+                <ProblemDescription
+                  problem={problem}
+                  user={user}
+                  onEdit={() => navigate(`/problems/${problem.id}/edit`)}
+                  onClone={handleCloneProblem}
+                  onDelete={handleDeleteClick}
+                  isCloneLoading={cloneProblem.isPending}
+                  onSubmissionSelect={handleSubmissionSelect}
+                />
+
+                {submissionError && (
+                  <ApiErrorDisplay
+                    error={submissionError}
+                    title={isRunResult ? 'Run Failed' : 'Submission Failed'}
+                    showDetails={true}
+                  />
+                )}
+
+                {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} />}
+              </div>
+            }
+            rightPanel={
+              <div className="pl-6">
+                <ProblemCodeEditor
+                  problem={problem}
+                  user={user}
+                  selectedLanguage={selectedLanguage}
+                  code={code}
+                  onLanguageChange={handleLanguageChange}
+                  onCodeChange={handleCodeChange}
+                  onSubmit={handleSubmit}
+                  onRun={handleRun}
+                  onReset={onResetOpen}
+                  isSubmitting={submitSolution.isPending}
+                  isRunning={runSolution.isPending}
+                  selectedSubmission={selectedSubmission}
+                  onReturnToWorkingCode={handleReturnToWorkingCode}
+                />
+              </div>
+            }
+            defaultLeftWidth={50}
+            minLeftWidth={25}
+            maxLeftWidth={75}
           />
         </div>
       </div>
