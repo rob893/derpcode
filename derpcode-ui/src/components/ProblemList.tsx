@@ -199,6 +199,7 @@ export const ProblemList = () => {
               variant="bordered"
               size="md"
               aria-label="Sort problems by"
+              name="problem-sort"
             >
               <SelectItem key="difficulty-asc">Difficulty (Easy → Hard)</SelectItem>
               <SelectItem key="difficulty-desc">Difficulty (Hard → Easy)</SelectItem>
@@ -230,42 +231,46 @@ export const ProblemList = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Difficulty Filter */}
                 <div className="space-y-2">
-                  <label className="text-md font-medium text-foreground">Difficulty</label>
-                  <Select
-                    placeholder="Select difficulties"
-                    selectionMode="multiple"
-                    selectedKeys={selectedDifficulties}
-                    onSelectionChange={keys => setSelectedDifficulties(new Set(Array.from(keys).map(String)))}
-                    className="w-full"
-                    variant="bordered"
-                    size="md"
-                    aria-label="Filter by difficulty"
-                  >
-                    <SelectItem key={ProblemDifficulty.VeryEasy}>Very Easy</SelectItem>
-                    <SelectItem key={ProblemDifficulty.Easy}>Easy</SelectItem>
-                    <SelectItem key={ProblemDifficulty.Medium}>Medium</SelectItem>
-                    <SelectItem key={ProblemDifficulty.Hard}>Hard</SelectItem>
-                    <SelectItem key={ProblemDifficulty.VeryHard}>Very Hard</SelectItem>
-                  </Select>
+                  <label className="text-md font-medium text-foreground">
+                    Difficulty
+                    <Select
+                      placeholder="Select difficulties"
+                      selectionMode="multiple"
+                      selectedKeys={selectedDifficulties}
+                      onSelectionChange={keys => setSelectedDifficulties(new Set(Array.from(keys).map(String)))}
+                      className="w-full"
+                      variant="bordered"
+                      size="md"
+                      aria-label="Filter by difficulty"
+                    >
+                      <SelectItem key={ProblemDifficulty.VeryEasy}>Very Easy</SelectItem>
+                      <SelectItem key={ProblemDifficulty.Easy}>Easy</SelectItem>
+                      <SelectItem key={ProblemDifficulty.Medium}>Medium</SelectItem>
+                      <SelectItem key={ProblemDifficulty.Hard}>Hard</SelectItem>
+                      <SelectItem key={ProblemDifficulty.VeryHard}>Very Hard</SelectItem>
+                    </Select>
+                  </label>
                 </div>
 
                 {/* Tags Filter */}
                 <div className="space-y-2">
-                  <label className="text-md font-medium text-foreground">Tags</label>
-                  <Select
-                    placeholder="Select tags"
-                    selectionMode="multiple"
-                    selectedKeys={selectedTags}
-                    onSelectionChange={keys => setSelectedTags(new Set(Array.from(keys).map(String)))}
-                    className="w-full"
-                    variant="bordered"
-                    size="md"
-                    aria-label="Filter by tags"
-                  >
-                    {allTags.map(tag => (
-                      <SelectItem key={tag}>{tag}</SelectItem>
-                    ))}
-                  </Select>
+                  <label className="text-md font-medium text-foreground">
+                    Tags
+                    <Select
+                      placeholder="Select tags"
+                      selectionMode="multiple"
+                      selectedKeys={selectedTags}
+                      onSelectionChange={keys => setSelectedTags(new Set(Array.from(keys).map(String)))}
+                      className="w-full"
+                      variant="bordered"
+                      size="md"
+                      aria-label="Filter by tags"
+                    >
+                      {allTags.map(tag => (
+                        <SelectItem key={tag}>{tag}</SelectItem>
+                      ))}
+                    </Select>
+                  </label>
                 </div>
               </div>
             </div>
