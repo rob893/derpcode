@@ -12,6 +12,7 @@ import { ProblemDifficulty } from '../../types/models';
 import type { Problem, ProblemSubmission } from '../../types/models';
 import { hasAdminRole, hasPremiumUserRole } from '../../utils/auth';
 import { ProblemSubmissions } from './ProblemSubmissions';
+import { MarkdownRenderer } from '../MarkdownRenderer';
 
 interface ProblemDescriptionProps {
   problem: Problem;
@@ -144,7 +145,7 @@ export const ProblemDescription = ({
             <div className="space-y-4 mt-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">Description</h3>
-                <p className="text-default-600 leading-relaxed">{problem.description}</p>
+                <MarkdownRenderer content={problem.description} />
               </div>
 
               <Divider />
@@ -233,9 +234,7 @@ export const ProblemDescription = ({
                 problem.explanationArticle ? (
                   <div>
                     <h3 className="text-lg font-semibold mb-2 text-foreground">{problem.explanationArticle.title}</h3>
-                    <p className="text-default-600 leading-relaxed whitespace-pre-wrap">
-                      {problem.explanationArticle.content}
-                    </p>
+                    <MarkdownRenderer content={problem.explanationArticle.content} />
                   </div>
                 ) : (
                   <div className="text-center py-8">
