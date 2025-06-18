@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useState, useMemo } from 'react';
-import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem } from '@heroui/react';
-import { FunnelIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Input } from '@heroui/react';
+import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblems } from '../hooks/api';
@@ -14,6 +14,7 @@ export const ProblemList = () => {
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'difficulty-asc' | 'difficulty-desc' | 'name-asc' | 'name-desc'>(
     'difficulty-asc'
   );
@@ -48,13 +49,19 @@ export const ProblemList = () => {
   // Filter and sort problems
   const filteredProblems = useMemo(() => {
     const filtered = problems.filter(problem => {
+      // Check search query
+      const searchMatch =
+        searchQuery.trim() === '' ||
+        problem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        problem.tags?.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
       // Check difficulty filter
       const difficultyMatch = selectedDifficulties.size === 0 || selectedDifficulties.has(problem.difficulty);
 
       // Check tags filter
       const tagsMatch = selectedTags.size === 0 || problem.tags?.some(tag => selectedTags.has(tag.name));
 
-      return difficultyMatch && tagsMatch;
+      return searchMatch && difficultyMatch && tagsMatch;
     });
 
     // Sort the filtered problems
@@ -72,10 +79,11 @@ export const ProblemList = () => {
           return 0;
       }
     });
-  }, [problems, selectedDifficulties, selectedTags, sortBy]);
+  }, [problems, searchQuery, selectedDifficulties, selectedTags, sortBy]);
 
   // Clear all filters
   const clearFilters = () => {
+    setSearchQuery('');
     setSelectedDifficulties(new Set());
     setSelectedTags(new Set());
   };
@@ -148,21 +156,39 @@ export const ProblemList = () => {
         <h2 className="text-3xl font-bold text-foreground">Problems</h2>
       </div>
 
-      {/* Action buttons row */}
-      <div className="flex justify-between items-center">
-        <Button
-          color="secondary"
-          variant="ghost"
-          size="md"
-          onPress={selectRandomProblem}
-          isDisabled={filteredProblems.length === 0}
-          startContent={<ArrowPathIcon className="w-4 h-4" />}
-          className="font-semibold"
-        >
-          Random Problem
-        </Button>
+      {/* Action buttons row with search bar in center */}
+      <div className="flex justify-between items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            color="secondary"
+            variant="ghost"
+            size="md"
+            onPress={selectRandomProblem}
+            isDisabled={filteredProblems.length === 0}
+            startContent={<ArrowPathIcon className="w-4 h-4" />}
+            className="font-semibold flex-shrink-0"
+          >
+            Random Problem
+          </Button>
 
-        <div className="flex items-center gap-3">
+          {/* Search Bar - Left side next to Random Problem */}
+          <div className="w-80">
+            <Input
+              placeholder="Search problems by name or tags..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              variant="bordered"
+              size="md"
+              startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+              className="w-full"
+              aria-label="Search problems"
+              isClearable
+              onClear={() => setSearchQuery('')}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Sort selector */}
           <div className="flex items-center gap-2">
             <span className="text-md text-default-600">Sort by:</span>
@@ -251,7 +277,7 @@ export const ProblemList = () => {
                 color="default"
                 size="md"
                 onPress={clearFilters}
-                isDisabled={selectedDifficulties.size === 0 && selectedTags.size === 0}
+                isDisabled={searchQuery.trim() === '' && selectedDifficulties.size === 0 && selectedTags.size === 0}
               >
                 Clear Filters
               </Button>
@@ -259,12 +285,17 @@ export const ProblemList = () => {
           </div>
 
           {/* Active Filters Display */}
-          {(selectedDifficulties.size > 0 || selectedTags.size > 0) && (
+          {(searchQuery.trim() !== '' || selectedDifficulties.size > 0 || selectedTags.size > 0) && (
             <div className="space-y-2">
               <div className="text-sm text-default-600">
                 Active filters ({filteredProblems.length} of {problems.length} problems):
               </div>
               <div className="flex flex-wrap gap-2">
+                {searchQuery.trim() !== '' && (
+                  <Chip color="default" variant="flat" size="sm" onClose={() => setSearchQuery('')}>
+                    Search: "{searchQuery}"
+                  </Chip>
+                )}
                 {Array.from(selectedDifficulties).map(difficulty => (
                   <Chip
                     key={difficulty}
@@ -310,8 +341,8 @@ export const ProblemList = () => {
             <CardBody className="text-center">
               <div className="text-lg text-default-600 mb-2">No problems found</div>
               <div className="text-sm text-default-500">
-                {selectedDifficulties.size > 0 || selectedTags.size > 0
-                  ? 'Try adjusting your filters'
+                {searchQuery.trim() !== '' || selectedDifficulties.size > 0 || selectedTags.size > 0
+                  ? 'Try adjusting your search or filters'
                   : 'No problems available yet'}
               </div>
             </CardBody>

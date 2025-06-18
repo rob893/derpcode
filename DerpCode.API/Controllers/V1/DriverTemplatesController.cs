@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Responses.Pagination;
 using DerpCode.API.Services.Core;
 using DerpCode.API.Services.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +26,7 @@ public sealed class DriverTemplatesController : ServiceControllerBase
     }
 
     [HttpGet(Name = nameof(GetDriverTemplatesAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<DriverTemplateDto>>> GetDriverTemplatesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
