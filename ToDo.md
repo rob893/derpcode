@@ -3,11 +3,12 @@
 - programs (guided learnings based on subject)
 - User can update email (endpoint to send update email link to new email)
 - optimize problem querying (list should not return drivers, articles, etc). Artilce should should be pulled back on explanation tab
-- support markdown in description and solution text
 - implement solutions tab (endpoint for CRUD articles)
 - move mapping logic into seperate class instead of dtos?
 - implement soft deleting for problems, users, articles (user soft deletes should null email. anon username and other pii. Article, problem, reply will keep original content in db but service will remove it)
 - Add change tracking to problems (created by, updated by, dates, etc)
-- add caching to problem read funcs in service
-- Keep refactoring controllers out into services
-- add offset based pagination searching to base repo
+- Keep refactoring controllers out into services (auth)
+- add dynamic cursor for ordering pages
+- move docker image files to root and add cicd for them
+- add java, php, and python support
+- seeding for problems only. Should be smart and read all problems and add only new ones. Move problems to json files. ONe problem per file.

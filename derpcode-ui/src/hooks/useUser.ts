@@ -4,10 +4,12 @@ import { useAuth } from './useAuth';
 import type { UpdatePasswordRequest, UpdateUsernameRequest } from '../types/user';
 
 export function useUser(userId?: number) {
+  const { isLoading: isAuthLoading } = useAuth();
+
   return useQuery({
     queryKey: ['user', userId],
     queryFn: () => userApi.getUserById(userId!),
-    enabled: !!userId,
+    enabled: !!userId && !isAuthLoading, // Wait for auth initialization
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
 }

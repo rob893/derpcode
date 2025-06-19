@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { problemsApi, driverTemplatesApi, submissionsApi } from '../services/api';
 import { authApi } from '../services/auth';
+import { useAuth } from './useAuth';
 import type { CreateProblemRequest, Language, UserSubmissionQueryParameters } from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
 
@@ -18,10 +19,12 @@ export const queryKeys = {
 // Problem hooks
 export const useProblems = () => {
   const queryClient = useQueryClient();
+  const { isLoading: isAuthLoading } = useAuth();
 
   const query = useQuery({
     queryKey: queryKeys.problems,
     queryFn: problemsApi.getProblems,
+    enabled: !isAuthLoading, // Wait for auth initialization
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
 
@@ -38,10 +41,12 @@ export const useProblems = () => {
 };
 
 export const useProblem = (id: number) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.problem(id),
     queryFn: () => problemsApi.getProblem(id),
-    enabled: !!id,
+    enabled: !!id && !isAuthLoading, // Wait for auth initialization and ensure id exists
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
 };
@@ -131,9 +136,12 @@ export const useRunSolution = (problemId: number) => {
 
 // Driver template hooks
 export const useDriverTemplates = () => {
+  const { isLoading: isAuthLoading } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.driverTemplates,
     queryFn: driverTemplatesApi.getDriverTemplates,
+    enabled: !isAuthLoading, // Wait for auth initialization
     staleTime: 30 * 60 * 1000 // 30 minutes (these change less frequently)
   });
 };
@@ -169,19 +177,23 @@ export const useUserSubmissionsForProblem = (
   problemId: number,
   queryParams?: Partial<UserSubmissionQueryParameters>
 ) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.userSubmissions(userId, problemId),
     queryFn: () => submissionsApi.getUserSubmissionsForProblem(userId, problemId, queryParams),
-    enabled: !!userId && !!problemId,
+    enabled: !!userId && !!problemId && !isAuthLoading, // Wait for auth initialization
     staleTime: 30 * 60 * 1000 // 30 minutes
   });
 };
 
 export const useProblemSubmission = (problemId: number, submissionId: number) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
   return useQuery({
     queryKey: queryKeys.problemSubmission(problemId, submissionId),
     queryFn: () => submissionsApi.getProblemSubmission(problemId, submissionId),
-    enabled: !!problemId && !!submissionId,
+    enabled: !!problemId && !!submissionId && !isAuthLoading, // Wait for auth initialization
     staleTime: 30 * 60 * 1000 // 30 minutes (submissions don't change)
   });
 };
