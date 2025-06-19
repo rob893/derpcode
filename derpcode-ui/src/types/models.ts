@@ -36,7 +36,8 @@ export interface Problem {
 export enum Language {
   CSharp = 'CSharp',
   JavaScript = 'JavaScript',
-  TypeScript = 'TypeScript'
+  TypeScript = 'TypeScript',
+  Rust = 'Rust'
 }
 
 export enum ProblemDifficulty {

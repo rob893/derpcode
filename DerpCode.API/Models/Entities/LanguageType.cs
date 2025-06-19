@@ -4,5 +4,6 @@ public enum LanguageType
 {
     CSharp,
     JavaScript,
-    TypeScript
+    TypeScript,
+    Rust
 }
