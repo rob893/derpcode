@@ -6,7 +6,6 @@ mkdir -p /home/runner/App
 
 echo "Building and running code..."
 
-timeout 20s dotnet new console -o App --no-restore > /dev/null 2>&1
 cp /home/runner/submission/UserCode.txt /home/runner/App/Solution.cs
 cp /home/runner/submission/DriverCode.txt /home/runner/App/Program.cs
 cp /home/runner/submission/input.json /home/runner/input.json

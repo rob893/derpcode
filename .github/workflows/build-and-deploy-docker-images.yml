@@ -1,0 +1,90 @@
+# Secrets used:
+# AZURE_VM_USER: to user to ssh into the remote server as
+# AZURE_VM_HOST: the IP/Domain to ssh into
+# AZURE_VM_SSH_KEY: the private key that matches the public key on the remote server
+# AZURE_VM_KNOWN_HOSTS: the known hosts. Run `ssh-keyscan {{ IP/Domain }}` to obtain this
+
+name: Build and Deploy Docker Images
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'Docker/**'
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Log in to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get runner public IP
+        id: ip
+        run: |
+          echo "ip=$(curl -s https://api.ipify.org)" >> "$GITHUB_OUTPUT"
+
+      - name: Allow IP on NSG
+        run: |
+          az network nsg rule create \
+            --resource-group rherber-rg-ue-d \
+            --nsg-name rherber-vm-ue-d-nsg \
+            --name AllowGitHubRunner \
+            --priority 100 \
+            --direction Inbound \
+            --access Allow \
+            --protocol Tcp \
+            --source-address-prefixes ${{ steps.ip.outputs.ip }} \
+            --source-port-ranges '*' \
+            --destination-address-prefixes '*' \
+            --destination-port-ranges 22 \
+            --description "Temporary access for GitHub runner"
+
+      - name: Wait for NSG rule to propagate
+        run: sleep 10
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          name: id_rsa
+          known_hosts: ${{ secrets.AZURE_VM_KNOWN_HOSTS }}
+
+      - name: Clean VM deployment directory
+        run: ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "rm -rf /var/www/html/APIs/Docker/*"
+
+      - name: Copy docker files to VM
+        run: scp -r ./Docker/* ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }}:/var/www/html/APIs/Docker
+
+      - name: Build docker images
+        run: |
+          ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "
+            cd /var/www/html/APIs/Docker/JavaScript && sudo docker build -t code-executor-javascript . &&
+            cd /var/www/html/APIs/Docker/TypeScript && sudo docker build -t code-executor-typescript . &&
+            cd /var/www/html/APIs/Docker/CSharp && sudo docker build -t code-executor-csharp . &&
+            cd /var/www/html/APIs/Docker/Rust && sudo docker build -t code-executor-rust .
+          "
+
+      - name: Docker prune
+        run: ssh ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_HOST }} "sudo docker container prune -f; sudo docker image prune -f"
+
+      - name: Remove NSG rule
+        if: always()
+        run: |
+          az network nsg rule delete \
+            --resource-group rherber-rg-ue-d \
+            --nsg-name rherber-vm-ue-d-nsg \
+            --name AllowGitHubRunner
