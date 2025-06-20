@@ -42,7 +42,7 @@ jobs:
           az network nsg rule create \
             --resource-group rherber-rg-ue-d \
             --nsg-name rherber-vm-ue-d-nsg \
-            --name AllowGitHubRunner \
+            --name AllowGitHubRunnerForDockerImages \
             --priority 100 \
             --direction Inbound \
             --access Allow \
@@ -87,4 +87,4 @@ jobs:
           az network nsg rule delete \
             --resource-group rherber-rg-ue-d \
             --nsg-name rherber-vm-ue-d-nsg \
-            --name AllowGitHubRunner
+            --name AllowGitHubRunnerForDockerImages
