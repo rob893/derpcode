@@ -115,7 +115,6 @@ public sealed class CodeExecutionService : ICodeExecutionService
         var container = await this.dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
         {
             Image = image,
-            Cmd = ["/bin/bash", "/home/runner/run.sh"],
             HostConfig = hostConfig,
             NetworkDisabled = true,
             User = "root"
