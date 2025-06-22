@@ -47,7 +47,6 @@ function CircularCountdown({ duration, onComplete, size = 24, strokeWidth = 2 }:
     intervalRef.current = window.setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 100) {
-          onComplete();
           return 0;
         }
         return prev - 100;
@@ -59,7 +58,14 @@ function CircularCountdown({ duration, onComplete, size = 24, strokeWidth = 2 }:
         clearInterval(intervalRef.current);
       }
     };
-  }, [onComplete]);
+  }, []);
+
+  // Call onComplete when timeLeft reaches 0, but outside of render
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      onComplete();
+    }
+  }, [timeLeft, onComplete]);
 
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;

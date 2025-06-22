@@ -27,8 +27,8 @@ public sealed class ArticlesController : ServiceControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<ArticleDto>>> GetArticlesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
     {
-        var templates = await this.articleService.GetArticlesAsync(searchParams, this.HttpContext.RequestAborted);
-        var response = templates.ToCursorPaginatedResponse(searchParams);
+        var articles = await this.articleService.GetArticlesAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = articles.ToCursorPaginatedResponse(searchParams);
 
         return this.Ok(response);
     }
@@ -42,9 +42,19 @@ public sealed class ArticlesController : ServiceControllerBase
 
         if (article == null)
         {
-            return this.NotFound();
+            return this.NotFound($"Article with ID {id} not found.");
         }
 
         return this.Ok(article);
+    }
+
+    [HttpGet("{id}/comments", Name = nameof(GetArticleCommentsAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CursorPaginatedResponse<ArticleCommentDto>>> GetArticleCommentsAsync([FromRoute] int id, [FromQuery] CursorPaginationQueryParameters searchParams)
+    {
+        var templates = await this.articleService.GetArticlesAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = templates.ToCursorPaginatedResponse(searchParams);
+
+        return this.Ok(response);
     }
 }
