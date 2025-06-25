@@ -37,4 +37,16 @@ public sealed class ArticleRepository(DataContext context) : Repository<Article,
 
         return list;
     }
+
+    public async Task<ArticleComment?> GetArticleCommentByIdAsync(int id, bool track = true, CancellationToken cancellationToken = default)
+    {
+        IQueryable<ArticleComment> query = this.Context.Set<ArticleComment>();
+
+        if (!track)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.FirstOrDefaultAsync(comment => comment.Id == id, cancellationToken);
+    }
 }

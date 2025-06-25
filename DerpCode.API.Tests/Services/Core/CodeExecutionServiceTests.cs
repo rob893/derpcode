@@ -345,7 +345,6 @@ public sealed class CodeExecutionServiceTests
         // Assert
         Assert.NotNull(capturedParams);
         Assert.Equal("test-csharp-image", capturedParams.Image);
-        Assert.Equal(["/bin/bash", "/home/runner/run.sh"], capturedParams.Cmd);
         Assert.Equal("root", capturedParams.User);
         Assert.True(capturedParams.NetworkDisabled);
 

@@ -42,13 +42,13 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: cd .. && dotnet restore
 
       - name: Build project
-        run: dotnet build --no-restore -c Release
+        run: cd .. && dotnet build --no-restore -c Release
 
       - name: Test project
-        run: dotnet test --no-build --verbosity normal -c Release
+        run: cd .. && dotnet test --no-build --verbosity normal -c Release
 
       - name: Publish project
         run: dotnet publish -c Release -o dist --no-build

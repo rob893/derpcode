@@ -24,6 +24,8 @@ public sealed record CreateArticleCommentRequest
             UpdatedAt = DateTimeOffset.UtcNow,
             IsEdited = false,
             IsDeleted = false,
+            DownVotes = 0,
+            UpVotes = 0,
             ParentCommentId = this.ParentCommentId,
             QuotedCommentId = this.QuotedCommentId
         };
