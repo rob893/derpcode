@@ -9,6 +9,8 @@ public sealed record ArticleCommentDto : IIdentifiable<int>, IOwnedByUser<int>
 
     public required int UserId { get; init; }
 
+    public required string UserName { get; init; }
+
     public required int ArticleId { get; init; }
 
     public required string Content { get; init; }
@@ -25,6 +27,8 @@ public sealed record ArticleCommentDto : IIdentifiable<int>, IOwnedByUser<int>
 
     public required bool IsDeleted { get; init; }
 
+    public required int RepliesCount { get; init; }
+
     public required int? ParentCommentId { get; init; }
 
     public required int? QuotedCommentId { get; init; }
@@ -37,9 +41,11 @@ public sealed record ArticleCommentDto : IIdentifiable<int>, IOwnedByUser<int>
         {
             Id = comment.Id,
             UserId = comment.UserId,
+            UserName = comment.User?.UserName ?? string.Empty,
             ArticleId = comment.ArticleId,
             Content = comment.Content,
             UpVotes = comment.UpVotes,
+            RepliesCount = comment.RepliesCount,
             DownVotes = comment.DownVotes,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,

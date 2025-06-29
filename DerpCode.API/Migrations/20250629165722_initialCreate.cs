@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DerpCode.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -293,6 +293,7 @@ namespace DerpCode.API.Migrations
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     UpVotes = table.Column<int>(type: "int", nullable: false),
                     DownVotes = table.Column<int>(type: "int", nullable: false),
+                    RepliesCount = table.Column<int>(type: "int", nullable: false),
                     IsEdited = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     ParentCommentId = table.Column<int>(type: "int", nullable: true),

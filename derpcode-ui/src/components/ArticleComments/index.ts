@@ -1,0 +1,1 @@
+export { ArticleComments } from './ArticleComments';

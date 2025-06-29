@@ -21,6 +21,8 @@ public sealed class CurrentUserService : ICurrentUserService
 
     public int UserId => this.User.TryGetUserId(out var id) ? id.Value : throw new InvalidOperationException("User ID claim missing or invalid.");
 
+    public string UserName => this.User.TryGetUserName(out var userName) ? userName : throw new InvalidOperationException("User name claim missing or invalid.");
+
     public bool EmailVerified => this.User.TryGetEmailVerified(out var emailVerified) && emailVerified.Value;
 
     public bool IsInRole(string role) => this.User.IsInRole(role);

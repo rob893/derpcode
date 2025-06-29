@@ -75,19 +75,73 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(response);
     }
 
-    [HttpGet("{articleId}/comments/{id}", Name = nameof(GetArticleCommentAsync))]
+    [HttpGet("{articleId}/comments/{commentId}", Name = nameof(GetArticleCommentAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentAsync([FromRoute] int articleId, [FromRoute] int id)
+    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentAsync([FromRoute] int articleId, [FromRoute] int commentId)
     {
-        var comment = await this.articleService.GetArticleCommentByIdAsync(id, this.HttpContext.RequestAborted);
+        var comment = await this.articleService.GetArticleCommentByIdAsync(commentId, this.HttpContext.RequestAborted);
 
-        if (comment == null)
+        if (comment == null || comment.ArticleId != articleId)
         {
-            return this.NotFound($"Article comment with ID {id} not found.");
+            return this.NotFound($"Article comment with ID {commentId} not found.");
         }
 
         return this.Ok(comment);
+    }
+
+    [HttpGet("{articleId}/comments/{commentId}/replies", Name = nameof(GetArticleCommentRepliesAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentRepliesAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] CursorPaginationQueryParameters searchParams)
+    {
+        if (searchParams == null)
+        {
+            return this.BadRequest("Search parameters cannot be null.");
+        }
+
+        var paramsWithArticleId = new ArticleCommentQueryParameters
+        {
+            ArticleId = articleId,
+            ParentCommentId = commentId,
+            After = searchParams.After,
+            Before = searchParams.Before,
+            First = searchParams.First,
+            Last = searchParams.Last,
+            IncludeEdges = searchParams.IncludeEdges,
+            IncludeNodes = searchParams.IncludeNodes,
+            IncludeTotal = searchParams.IncludeTotal
+        };
+        var comments = await this.articleService.GetArticleCommentsAsync(paramsWithArticleId, this.HttpContext.RequestAborted);
+        var response = comments.ToCursorPaginatedResponse(paramsWithArticleId);
+
+        return this.Ok(response);
+    }
+
+    [HttpGet("{articleId}/comments/{commentId}/quotedBy", Name = nameof(GetArticleCommentQuotedByAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentQuotedByAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] CursorPaginationQueryParameters searchParams)
+    {
+        if (searchParams == null)
+        {
+            return this.BadRequest("Search parameters cannot be null.");
+        }
+
+        var paramsWithArticleId = new ArticleCommentQueryParameters
+        {
+            ArticleId = articleId,
+            QuotedCommentId = commentId,
+            After = searchParams.After,
+            Before = searchParams.Before,
+            First = searchParams.First,
+            Last = searchParams.Last,
+            IncludeEdges = searchParams.IncludeEdges,
+            IncludeNodes = searchParams.IncludeNodes,
+            IncludeTotal = searchParams.IncludeTotal
+        };
+        var comments = await this.articleService.GetArticleCommentsAsync(paramsWithArticleId, this.HttpContext.RequestAborted);
+        var response = comments.ToCursorPaginatedResponse(paramsWithArticleId);
+
+        return this.Ok(response);
     }
 
     [HttpPost("{articleId}/comments", Name = nameof(CreateArticleCommentAsync))]
@@ -104,6 +158,6 @@ public sealed class ArticlesController : ServiceControllerBase
 
         var newComment = newCommentResult.ValueOrThrow;
 
-        return this.CreatedAtRoute(nameof(GetArticleCommentAsync), new { articleId, id = newComment.Id }, newComment);
+        return this.CreatedAtRoute(nameof(GetArticleCommentAsync), new { articleId, commentId = newComment.Id }, newComment);
     }
 }

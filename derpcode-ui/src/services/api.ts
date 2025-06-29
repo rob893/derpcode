@@ -6,7 +6,10 @@ import {
   type CreateProblemValidationResponse,
   type Language,
   type ProblemSubmission,
-  type UserSubmissionQueryParameters
+  type UserSubmissionQueryParameters,
+  type ArticleComment,
+  type CreateArticleCommentRequest,
+  type ArticleCommentQueryParameters
 } from '../types/models';
 import apiClient from './axiosConfig';
 
@@ -96,6 +99,80 @@ export const submissionsApi = {
     const response = await apiClient.get<ProblemSubmission>(
       `/api/v1/problems/${problemId}/submissions/${submissionId}`
     );
+    return response.data;
+  }
+};
+
+export const articlesApi = {
+  async getArticleComments(
+    articleId: number,
+    queryParams?: Partial<ArticleCommentQueryParameters>
+  ): Promise<CursorPaginatedResponse<ArticleComment>> {
+    const params = new URLSearchParams();
+
+    if (queryParams?.first) params.append('first', queryParams.first.toString());
+    if (queryParams?.last) params.append('last', queryParams.last.toString());
+    if (queryParams?.after) params.append('after', queryParams.after);
+    if (queryParams?.before) params.append('before', queryParams.before);
+    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
+    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
+    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+
+    const response = await apiClient.get<CursorPaginatedResponse<ArticleComment>>(
+      `/api/v1/articles/${articleId}/comments?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  async getArticleCommentReplies(
+    articleId: number,
+    commentId: number,
+    queryParams?: Partial<ArticleCommentQueryParameters>
+  ): Promise<CursorPaginatedResponse<ArticleComment>> {
+    const params = new URLSearchParams();
+
+    if (queryParams?.first) params.append('first', queryParams.first.toString());
+    if (queryParams?.last) params.append('last', queryParams.last.toString());
+    if (queryParams?.after) params.append('after', queryParams.after);
+    if (queryParams?.before) params.append('before', queryParams.before);
+    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
+    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
+    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+
+    const response = await apiClient.get<CursorPaginatedResponse<ArticleComment>>(
+      `/api/v1/articles/${articleId}/comments/${commentId}/replies?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  async getArticleCommentQuotedBy(
+    articleId: number,
+    commentId: number,
+    queryParams?: Partial<ArticleCommentQueryParameters>
+  ): Promise<CursorPaginatedResponse<ArticleComment>> {
+    const params = new URLSearchParams();
+
+    if (queryParams?.first) params.append('first', queryParams.first.toString());
+    if (queryParams?.last) params.append('last', queryParams.last.toString());
+    if (queryParams?.after) params.append('after', queryParams.after);
+    if (queryParams?.before) params.append('before', queryParams.before);
+    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
+    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
+    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+
+    const response = await apiClient.get<CursorPaginatedResponse<ArticleComment>>(
+      `/api/v1/articles/${articleId}/comments/${commentId}/quotedBy?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  async createArticleComment(articleId: number, comment: CreateArticleCommentRequest): Promise<ArticleComment> {
+    const response = await apiClient.post<ArticleComment>(`/api/v1/articles/${articleId}/comments`, comment);
+    return response.data;
+  },
+
+  async getArticleComment(articleId: number, commentId: number): Promise<ArticleComment> {
+    const response = await apiClient.get<ArticleComment>(`/api/v1/articles/${articleId}/comments/${commentId}`);
     return response.data;
   }
 };

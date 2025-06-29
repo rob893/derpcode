@@ -7,6 +7,8 @@ public interface ICurrentUserService
 {
     int UserId { get; }
 
+    string UserName { get; }
+
     bool EmailVerified { get; }
 
     bool IsInRole(string role);

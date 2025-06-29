@@ -90,6 +90,16 @@ export interface CursorPaginatedResponsePageInfo {
   totalCount?: number;
 }
 
+export interface CursorPaginationQueryParameters {
+  first?: number;
+  last?: number;
+  after?: string;
+  before?: string;
+  includeTotal?: boolean;
+  includeNodes?: boolean;
+  includeEdges?: boolean;
+}
+
 export interface CreateExplanationArticleRequest {
   title: string;
   content: string;
@@ -168,13 +178,31 @@ export interface TestCaseResult {
   errorMessage: string;
 }
 
-export interface UserSubmissionQueryParameters {
+export interface UserSubmissionQueryParameters extends CursorPaginationQueryParameters {
   problemId?: number;
-  after?: string;
-  before?: string;
-  first?: number;
-  last?: number;
-  includeTotal?: boolean;
-  includeNodes?: boolean;
-  includeEdges?: boolean;
 }
+
+export interface ArticleComment {
+  id: number;
+  userId: number;
+  userName: string;
+  articleId: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  upVotes: number;
+  downVotes: number;
+  isEdited: boolean;
+  isDeleted: boolean;
+  parentCommentId?: number;
+  quotedCommentId?: number;
+  repliesCount: number;
+}
+
+export interface CreateArticleCommentRequest {
+  content: string;
+  parentCommentId?: number;
+  quotedCommentId?: number;
+}
+
+export type ArticleCommentQueryParameters = CursorPaginationQueryParameters;

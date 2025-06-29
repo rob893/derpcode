@@ -10,13 +10,15 @@ import {
 } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../../types/models';
 import type { Problem, ProblemSubmission } from '../../types/models';
+import type { User } from '../../types/auth';
 import { hasAdminRole, hasPremiumUserRole } from '../../utils/auth';
 import { ProblemSubmissions } from './ProblemSubmissions';
 import { MarkdownRenderer } from '../MarkdownRenderer';
+import { ArticleComments } from '../ArticleComments';
 
 interface ProblemDescriptionProps {
   problem: Problem;
-  user: any;
+  user: User | null;
   onEdit: () => void;
   onClone: () => void;
   onDelete: (problem: { id: number; name: string }) => void;
@@ -232,9 +234,18 @@ export const ProblemDescription = ({
               {hasPremiumUserRole(user) ? (
                 // Premium user - show explanation
                 problem.explanationArticle ? (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-foreground">{problem.explanationArticle.title}</h3>
-                    <MarkdownRenderer content={problem.explanationArticle.content} />
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2 text-foreground">{problem.explanationArticle.title}</h3>
+                      <MarkdownRenderer content={problem.explanationArticle.content} />
+                    </div>
+
+                    <Divider />
+
+                    {/* Article Comments Section */}
+                    <div>
+                      <ArticleComments articleId={problem.explanationArticle.id} user={user} />
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">

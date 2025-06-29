@@ -28,6 +28,18 @@ public sealed class ArticleRepository(DataContext context) : Repository<Article,
             query = query.Where(comment => comment.ArticleId == searchParams.ArticleId.Value);
         }
 
+        if (searchParams.ParentCommentId.HasValue)
+        {
+            query = query.Where(comment => comment.ParentCommentId == searchParams.ParentCommentId.Value);
+        }
+
+        if (searchParams.QuotedCommentId.HasValue)
+        {
+            query = query.Where(comment => comment.QuotedCommentId == searchParams.QuotedCommentId.Value);
+        }
+
+        query = query.Include(c => c.User);
+
         var list = await query.ToCursorPaginatedListAsync(
             item => item.Id,
             this.ConvertIdToBase64,
@@ -46,6 +58,8 @@ public sealed class ArticleRepository(DataContext context) : Repository<Article,
         {
             query = query.AsNoTracking();
         }
+
+        query = query.Include(c => c.User);
 
         return await query.FirstOrDefaultAsync(comment => comment.Id == id, cancellationToken);
     }

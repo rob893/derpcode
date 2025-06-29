@@ -1,9 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { problemsApi, driverTemplatesApi, submissionsApi } from '../services/api';
+import { problemsApi, driverTemplatesApi, submissionsApi, articlesApi } from '../services/api';
 import { authApi } from '../services/auth';
 import { useAuth } from './useAuth';
-import type { CreateProblemRequest, Language, UserSubmissionQueryParameters } from '../types/models';
+import type {
+  CreateProblemRequest,
+  Language,
+  UserSubmissionQueryParameters,
+  CreateArticleCommentRequest,
+  ArticleCommentQueryParameters
+} from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
 
 // Query Keys
@@ -13,7 +19,18 @@ export const queryKeys = {
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
   problemSubmission: (problemId: number, submissionId: number) =>
-    ['problems', problemId, 'submissions', submissionId] as const
+    ['problems', problemId, 'submissions', submissionId] as const,
+  // Properly typed query parameters
+  articleComments: (articleId: number, queryParams?: Partial<ArticleCommentQueryParameters>) =>
+    ['articles', articleId, 'comments', queryParams] as const,
+  articleCommentReplies: (articleId: number, commentId: number, queryParams?: Partial<ArticleCommentQueryParameters>) =>
+    ['articles', articleId, 'comments', commentId, 'replies', queryParams] as const,
+  articleCommentQuotedBy: (
+    articleId: number,
+    commentId: number,
+    queryParams?: Partial<ArticleCommentQueryParameters>
+  ) => ['articles', articleId, 'comments', commentId, 'quotedBy', queryParams] as const,
+  articleComment: (articleId: number, commentId: number) => ['articles', articleId, 'comments', commentId] as const
 } as const;
 
 // Problem hooks
@@ -195,5 +212,85 @@ export const useProblemSubmission = (problemId: number, submissionId: number) =>
     queryFn: () => submissionsApi.getProblemSubmission(problemId, submissionId),
     enabled: !!problemId && !!submissionId && !isAuthLoading, // Wait for auth initialization
     staleTime: 30 * 60 * 1000 // 30 minutes (submissions don't change)
+  });
+};
+
+// Article comment hooks
+export const useArticleComments = (articleId: number, queryParams?: Partial<ArticleCommentQueryParameters>) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.articleComments(articleId, queryParams),
+    queryFn: () => articlesApi.getArticleComments(articleId, queryParams),
+    enabled: !!articleId && !isAuthLoading,
+    staleTime: 5 * 60 * 1000 // 5 minutes (comments may change more frequently)
+  });
+};
+
+export const useArticleCommentReplies = (
+  articleId: number,
+  commentId: number,
+  queryParams?: Partial<ArticleCommentQueryParameters>,
+  options?: { enabled?: boolean }
+) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.articleCommentReplies(articleId, commentId, queryParams),
+    queryFn: () => articlesApi.getArticleCommentReplies(articleId, commentId, queryParams),
+    enabled: !!articleId && !!commentId && !isAuthLoading && (options?.enabled ?? true),
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
+};
+
+export const useArticleCommentQuotedBy = (
+  articleId: number,
+  commentId: number,
+  queryParams?: Partial<ArticleCommentQueryParameters>
+) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.articleCommentQuotedBy(articleId, commentId, queryParams),
+    queryFn: () => articlesApi.getArticleCommentQuotedBy(articleId, commentId, queryParams),
+    enabled: !!articleId && !!commentId && !isAuthLoading,
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
+};
+
+export const useArticleComment = (articleId: number, commentId: number) => {
+  const { isLoading: isAuthLoading } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.articleComment(articleId, commentId),
+    queryFn: () => articlesApi.getArticleComment(articleId, commentId),
+    enabled: !!articleId && !!commentId && !isAuthLoading,
+    staleTime: 10 * 60 * 1000 // 10 minutes (individual comments change less frequently)
+  });
+};
+
+export const useCreateArticleComment = (articleId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (comment: CreateArticleCommentRequest) => articlesApi.createArticleComment(articleId, comment),
+    onSuccess: newComment => {
+      // Invalidate all article comments queries for this article (all pagination states)
+      queryClient.invalidateQueries({
+        queryKey: ['articles', articleId, 'comments'],
+        exact: false // This will match all queries that start with this pattern
+      });
+
+      // If this is a reply, also invalidate the parent comment's replies (all pagination states)
+      if (newComment.parentCommentId) {
+        queryClient.invalidateQueries({
+          queryKey: ['articles', articleId, 'comments', newComment.parentCommentId, 'replies'],
+          exact: false
+        });
+      }
+
+      // Set the new comment in cache
+      queryClient.setQueryData(queryKeys.articleComment(articleId, newComment.id), newComment);
+    }
   });
 };

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250615035017_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250629165722_initialCreate")]
+    partial class initialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -128,6 +128,9 @@ namespace DerpCode.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("QuotedCommentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RepliesCount")
                         .HasColumnType("int");
 
                     b.Property<int>("UpVotes")

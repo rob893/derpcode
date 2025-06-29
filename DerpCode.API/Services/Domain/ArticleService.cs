@@ -82,6 +82,12 @@ public sealed class ArticleService : IArticleService
     public async Task<Result<ArticleCommentDto>> CreateCommentAsync(int articleId, CreateArticleCommentRequest createCommentRequest, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(createCommentRequest);
+
+        if (!this.currentUserService.EmailVerified)
+        {
+            return Result<ArticleCommentDto>.Failure(DomainErrorType.Validation, "Email must be verified to create a comment.");
+        }
+
         var article = await this.articleRepository.GetByIdAsync(articleId, track: true, cancellationToken);
 
         if (article == null)
@@ -92,6 +98,29 @@ public sealed class ArticleService : IArticleService
         var newComment = createCommentRequest.ToEntity(this.currentUserService.UserId, articleId);
         article.Comments.Add(newComment);
 
+        if (createCommentRequest.ParentCommentId.HasValue)
+        {
+            var parentCommentId = createCommentRequest.ParentCommentId ?? throw new InvalidOperationException("ParentCommentId must be provided.");
+            var parentComment = await this.articleRepository.GetArticleCommentByIdAsync(parentCommentId, track: true, cancellationToken);
+
+            if (parentComment == null)
+            {
+                return Result<ArticleCommentDto>.Failure(DomainErrorType.NotFound, $"Parent comment with ID {parentCommentId} not found.");
+            }
+
+            if (parentComment.ArticleId != articleId)
+            {
+                return Result<ArticleCommentDto>.Failure(DomainErrorType.Validation, "Parent comment does not belong to the same article.");
+            }
+
+            if (parentComment.ParentCommentId.HasValue)
+            {
+                return Result<ArticleCommentDto>.Failure(DomainErrorType.Validation, "Cannot reply to a reply comment.");
+            }
+
+            parentComment.RepliesCount++;
+        }
+
         var updated = await this.articleRepository.SaveChangesAsync(cancellationToken);
 
         if (updated <= 0)
@@ -99,6 +128,9 @@ public sealed class ArticleService : IArticleService
             return Result<ArticleCommentDto>.Failure(DomainErrorType.Unknown, "Failed to create article comment.");
         }
 
-        return Result<ArticleCommentDto>.Success(ArticleCommentDto.FromEntity(newComment));
+        var dto = ArticleCommentDto.FromEntity(newComment);
+        var withUserName = dto with { UserName = this.currentUserService.UserName };
+
+        return Result<ArticleCommentDto>.Success(withUserName);
     }
 }

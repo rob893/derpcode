@@ -34,7 +34,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("ArticleTag", (string)null);
+                    b.ToTable("ArticleTag");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.Article", b =>
@@ -91,7 +91,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Articles", (string)null);
+                    b.ToTable("Articles");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.ArticleComment", b =>
@@ -127,6 +127,9 @@ namespace DerpCode.API.Migrations
                     b.Property<int?>("QuotedCommentId")
                         .HasColumnType("int");
 
+                    b.Property<int>("RepliesCount")
+                        .HasColumnType("int");
+
                     b.Property<int>("UpVotes")
                         .HasColumnType("int");
 
@@ -146,7 +149,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ArticleComments", (string)null);
+                    b.ToTable("ArticleComments");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.DriverTemplate", b =>
@@ -172,7 +175,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DriverTemplates", (string)null);
+                    b.ToTable("DriverTemplates");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.LinkedAccount", b =>
@@ -192,7 +195,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("LinkedAccounts", (string)null);
+                    b.ToTable("LinkedAccounts");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.Problem", b =>
@@ -236,7 +239,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("ExplanationArticleId");
 
-                    b.ToTable("Problems", (string)null);
+                    b.ToTable("Problems");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemDriver", b =>
@@ -276,7 +279,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("ProblemId");
 
-                    b.ToTable("ProblemDrivers", (string)null);
+                    b.ToTable("ProblemDrivers");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemSubmission", b =>
@@ -336,7 +339,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProblemSubmissions", (string)null);
+                    b.ToTable("ProblemSubmissions");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.RefreshToken", b =>
@@ -366,7 +369,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasKey("UserId", "DeviceId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.Role", b =>
@@ -413,7 +416,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tags", (string)null);
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.User", b =>
@@ -619,7 +622,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("ProblemTag", (string)null);
+                    b.ToTable("ProblemTag");
                 });
 
             modelBuilder.Entity("ArticleTag", b =>

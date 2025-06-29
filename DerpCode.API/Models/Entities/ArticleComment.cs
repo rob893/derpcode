@@ -25,6 +25,8 @@ public sealed class ArticleComment : IIdentifiable<int>, IOwnedByUser<int>
 
     public int DownVotes { get; set; }
 
+    public int RepliesCount { get; set; }
+
     public bool IsEdited { get; set; }
 
     public bool IsDeleted { get; set; }

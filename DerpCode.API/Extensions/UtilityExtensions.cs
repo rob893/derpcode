@@ -71,6 +71,23 @@ public static class UtilityExtensions
         return true;
     }
 
+    public static bool TryGetUserName(this ClaimsPrincipal principal, [NotNullWhen(true)] out string? userName)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+
+        userName = null;
+
+        var userNameClaim = principal.FindFirst(ClaimTypes.Name);
+
+        if (userNameClaim == null)
+        {
+            return false;
+        }
+
+        userName = userNameClaim.Value;
+        return true;
+    }
+
     public static bool TryGetEmailVerified(this ClaimsPrincipal principal, [NotNullWhen(true)] out bool? emailVerified)
     {
         ArgumentNullException.ThrowIfNull(principal);
