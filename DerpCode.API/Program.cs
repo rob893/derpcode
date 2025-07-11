@@ -55,6 +55,7 @@ public static class Program
             .AddIdentityServices()
             .AddRateLimiterServices(builder.Configuration)
             .AddCoreServices()
+            .AddGitHubServices(builder.Configuration)
             .AddEmailServices(builder.Configuration)
             .AddAuthenticationServices(builder.Configuration)
             .AddDatabaseServices(builder.Configuration)

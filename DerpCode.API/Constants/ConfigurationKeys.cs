@@ -17,4 +17,8 @@ public static class ConfigurationKeys
     public const string MySQL = "MySQL";
 
     public const string KeyVaultUrl = "KeyVaultUrl";
+
+    public const string GitHub = "GitHub";
+
+    public const string GitHubPat = $"{GitHub}:PersonalAccessToken";
 }
