@@ -94,7 +94,20 @@ public sealed class ProblemService : IProblemService
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        return await this.CreateProblemAsync(request, null, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<ProblemDto>> CreateProblemAsync(CreateProblemRequest request, int? newProblemId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
         var newProblem = request.ToEntity();
+
+        if (newProblemId.HasValue)
+        {
+            newProblem.Id = newProblemId.Value;
+        }
 
         if (request.Tags != null && request.Tags.Count > 0)
         {

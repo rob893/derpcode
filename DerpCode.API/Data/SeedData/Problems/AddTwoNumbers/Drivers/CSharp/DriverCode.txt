@@ -1,0 +1,131 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
+
+public class Program
+{
+    private class SubmissionResult
+    {
+        public bool Pass { get; set; }
+        public int TestCaseCount { get; set; }
+        public int PassedTestCases { get; set; }
+        public int FailedTestCases { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public long ExecutionTimeInMs { get; set; }
+        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
+    }
+
+    private class TestCaseResult
+    {
+        public int TestCaseIndex { get; set; }
+        public bool Pass { get; set; }
+        public string? ErrorMessage { get; set; }
+        public int ExecutionTimeInMs { get; set; }
+        public object Input { get; set; } = default!;
+        public object ExpectedOutput { get; set; } = default!;
+        public object ActualOutput { get; set; } = default!;
+        public bool IsHidden { get; set; }
+    }
+
+    public static void Main(string[] args)
+    {
+        if (args.Length < 3)
+        {
+            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+            Environment.Exit(1);
+        }
+
+        string inputPath = args[0];
+        string expectedPath = args[1];
+        string resultPath = args[2];
+
+        try
+        {
+            string input = File.ReadAllText(inputPath);
+            string expectedOutput = File.ReadAllText(expectedPath);
+            var sw = Stopwatch.StartNew();
+
+            var results = RunTests(input, expectedOutput);
+            results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
+
+            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            File.WriteAllText(resultPath, asJson);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error reading files: {ex.Message}");
+
+            var results = new SubmissionResult
+            {
+                ErrorMessage = ex.Message,
+            };
+            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            File.WriteAllText(resultPath, asJson);
+            Environment.Exit(1);
+        }
+    }
+
+    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
+    {
+        var input = JsonSerializer.Deserialize<int[]>(inputJsonStr);
+        var expectedOutput = JsonSerializer.Deserialize<int[]>(expectedOutputJsonStr);
+        int testCaseCount = input.Length / 2;
+        int passedTestCases = 0;
+        int failedTestCases = 0;
+        var testCaseResults = new List<TestCaseResult>();
+
+        for (int i = 0, j = 0; i < input.Length; i += 2, j++)
+        {
+            var a = input[i];
+            var b = input[i + 1];
+            
+            var testCaseSw = Stopwatch.StartNew();
+            var result = Solution.Add(a, b);
+            testCaseSw.Stop();
+            
+            int expected = expectedOutput[j];
+            bool passed = result == expected;
+
+            testCaseResults.Add(new TestCaseResult
+            {
+                TestCaseIndex = j,
+                Pass = passed,
+                ErrorMessage = passed ? null : $"Expected {expected} but got {result}",
+                ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
+                Input = new { a, b },
+                ExpectedOutput = expected,
+                ActualOutput = result,
+                IsHidden = false
+            });
+
+            if (passed)
+            {
+                passedTestCases++;
+            }
+            else
+            {
+                failedTestCases++;
+            }
+        }
+
+        return new SubmissionResult
+        {
+            TestCaseCount = testCaseCount,
+            PassedTestCases = passedTestCases,
+            FailedTestCases = failedTestCases,
+            Pass = passedTestCases == testCaseCount,
+            TestCaseResults = testCaseResults
+        };
+    }
+}

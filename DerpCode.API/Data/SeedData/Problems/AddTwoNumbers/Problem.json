@@ -1,0 +1,28 @@
+{
+  "Id": 1,
+  "Name": "Add Two Numbers",
+  "Input": [5, 1, 6, 4],
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "Math"
+    }
+  ],
+  "Description": "Given two numbers, return their sum.",
+  "Difficulty": "VeryEasy",
+  "ExplanationArticle": {
+    "Id": 1,
+    "Title": "Add Two Numbers Explanation",
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 1,
+        "Name": "Math"
+      }
+    ],
+    "UserId": 1,
+    "LastEditedById": 1
+  },
+  "ExpectedOutput": [6, 10],
+  "Hints": ["Use the '+' operator to add two numbers."]
+}

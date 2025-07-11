@@ -77,6 +77,7 @@ public static class Program
                     var serviceProvider = scope.ServiceProvider;
                     var logger = serviceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
                     var seederPassword = app.Configuration.GetValue<string>("SeederPassword") ?? throw new InvalidOperationException("Seeder password not found in configuration.");
+                    var seeder = serviceProvider.GetRequiredService<IDatabaseSeeder>();
 
                     if (o.Password != null && o.Password == seederPassword)
                     {
@@ -84,8 +85,6 @@ public static class Program
                         var clearData = args.Contains(CommandLineOptions.ClearDataArgument, StringComparer.OrdinalIgnoreCase);
                         var seedData = args.Contains(CommandLineOptions.SeedDataArgument, StringComparer.OrdinalIgnoreCase);
                         var dropDatabase = args.Contains(CommandLineOptions.DropArgument, StringComparer.OrdinalIgnoreCase);
-
-                        var seeder = serviceProvider.GetRequiredService<IDatabaseSeeder>();
 
                         logger.LogInformation("Seeding database:\nDrop database: {DropDatabase}\nApply Migrations: {Migrate}\nClear old data: {ClearData}\nSeed new data: {SeedData}", dropDatabase, migrate, clearData, seedData);
                         logger.LogWarning("Are you sure you want to apply these actions to the database in that order? Only 'yes' will continue.");
@@ -105,6 +104,8 @@ public static class Program
                     {
                         logger.LogWarning("Invalid seeder password");
                     }
+
+                    // await seeder.SyncProblemsFromFolderAsync(CancellationToken.None);
                 });
         }
 

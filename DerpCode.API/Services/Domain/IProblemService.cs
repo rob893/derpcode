@@ -39,6 +39,15 @@ public interface IProblemService
     Task<Result<ProblemDto>> CreateProblemAsync(CreateProblemRequest request, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Creates a new problem
+    /// </summary>
+    /// <param name="request">The create problem request</param>
+    /// <param name="newProblemId">Optional ID for the new problem</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The created problem</returns>
+    Task<Result<ProblemDto>> CreateProblemAsync(CreateProblemRequest request, int? newProblemId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Clones an existing problem
     /// </summary>
     /// <param name="existingProblemId">The id of the existing problem to clone</param>

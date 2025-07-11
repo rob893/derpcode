@@ -1,0 +1,114 @@
+import fs from 'fs';
+import { fizzBuzz } from './solution';
+
+interface SubmissionResult {
+  pass: boolean;
+  testCaseCount: number;
+  passedTestCases: number;
+  failedTestCases: number;
+  errorMessage: string;
+  executionTimeInMs: number;
+  testCaseResults: TestCaseResult[];
+}
+
+interface TestCaseResult {
+  testCaseIndex: number;
+  pass: boolean;
+  errorMessage: string | null;
+  executionTimeInMs: number;
+  input: any;
+  expectedOutput: any;
+  actualOutput: any;
+  isHidden: boolean;
+}
+
+function main(): void {
+  const args = process.argv.slice(2);
+
+  if (args.length < 3) {
+    console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+    process.exit(1);
+  }
+
+  const [inputPath, expectedPath, resultPath] = args;
+
+  const result: SubmissionResult = {
+    pass: false,
+    testCaseCount: 0,
+    passedTestCases: 0,
+    failedTestCases: 0,
+    errorMessage: '',
+    executionTimeInMs: 0,
+    testCaseResults: []
+  };
+
+  try {
+    const input = fs.readFileSync(inputPath, 'utf8');
+    const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+    const start = Date.now();
+
+    const testResults = runTests(input, expectedOutput);
+
+    result.pass = testResults.pass;
+    result.testCaseCount = testResults.testCaseCount;
+    result.passedTestCases = testResults.passedTestCases;
+    result.failedTestCases = testResults.failedTestCases;
+    result.testCaseResults = testResults.testCaseResults;
+    result.executionTimeInMs = Date.now() - start;
+  } catch (err: any) {
+    console.error('Error reading files:' + err.message);
+    result.errorMessage = err.message;
+  }
+
+  fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr: string, expectedOutputJsonStr: string): SubmissionResult {
+  const input: number[] = JSON.parse(inputJsonStr);
+  const expectedOutput: string[] = JSON.parse(expectedOutputJsonStr);
+  const testCaseCount = input.length;
+  let passedTestCases = 0;
+  let failedTestCases = 0;
+  const testCaseResults: TestCaseResult[] = [];
+
+  for (let i = 0; i < input.length; i++) {
+    const a = input[i];
+    
+    const testCaseStart = Date.now();
+    const result = fizzBuzz(a);
+    const testCaseEnd = Date.now();
+    
+    const expected = expectedOutput[i];
+    const passed = result === expected;
+
+    testCaseResults.push({
+      testCaseIndex: i,
+      pass: passed,
+      errorMessage: passed ? null : `Expected "${expected}" but got "${result}"`,
+      executionTimeInMs: testCaseEnd - testCaseStart,
+      input: a,
+      expectedOutput: expected,
+      actualOutput: result,
+      isHidden: false
+    });
+
+    if (passed) {
+      passedTestCases++;
+    } else {
+      failedTestCases++;
+    }
+  }
+
+  return {
+    testCaseCount,
+    passedTestCases,
+    failedTestCases,
+    pass: passedTestCases === testCaseCount,
+    errorMessage: '',
+    executionTimeInMs: 0,
+    testCaseResults
+  };
+}
+
+main();

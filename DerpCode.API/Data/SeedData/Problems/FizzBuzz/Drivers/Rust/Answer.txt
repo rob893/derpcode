@@ -1,0 +1,15 @@
+pub struct Solution;
+
+impl Solution {
+    pub fn fizz_buzz(number: i32) -> String {
+        if number % 15 == 0 {
+            "fizzbuzz".to_string()
+        } else if number % 3 == 0 {
+            "fizz".to_string()
+        } else if number % 5 == 0 {
+            "buzz".to_string()
+        } else {
+            String::new()
+        }
+    }
+}

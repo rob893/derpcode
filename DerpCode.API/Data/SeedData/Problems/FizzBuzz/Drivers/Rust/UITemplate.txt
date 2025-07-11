@@ -1,0 +1,7 @@
+pub struct Solution;
+
+impl Solution {
+    pub fn fizz_buzz(number: i32) -> String {
+        // Your code here
+    }
+}

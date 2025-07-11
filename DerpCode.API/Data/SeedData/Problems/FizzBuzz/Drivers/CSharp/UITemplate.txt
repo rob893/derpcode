@@ -1,0 +1,9 @@
+using System;
+
+public class Solution
+{
+    public static string FizzBuzz(int number)
+    {
+        // Your code here
+    }
+}

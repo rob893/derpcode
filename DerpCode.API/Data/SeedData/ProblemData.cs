@@ -6,6 +6,7 @@ namespace DerpCode.API.Data.SeedData;
 
 public static class ProblemData
 {
+    // Remove this once I test the folder sync functionality
     public static readonly List<Problem> Problems =
     [
         new Problem

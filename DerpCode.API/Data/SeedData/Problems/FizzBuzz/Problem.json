@@ -1,0 +1,28 @@
+{
+  "Id": 2,
+  "Name": "FizzBuzz",
+  "Input": [5, 1, 3, 4, 15],
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "Math"
+    }
+  ],
+  "Description": "Given a number, return \"fizz\" if it is divisible by 3, \"buzz\" if it is divisible by 5, and \"fizzbuzz\" if it is divisible by both.",
+  "Difficulty": "Easy",
+  "ExplanationArticle": {
+    "Id": 2,
+    "Title": "FizzBuzz Explanation",
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 1,
+        "Name": "Math"
+      }
+    ],
+    "UserId": 1,
+    "LastEditedById": 1
+  },
+  "ExpectedOutput": ["buzz", "", "fizz", "", "fizzbuzz"],
+  "Hints": ["Use the modulo operator '%' to check divisibility."]
+}
