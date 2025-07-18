@@ -210,8 +210,8 @@ public sealed class ProblemService : IProblemService
         {
             var tagNames = request.Tags.Select(t => t.Name).ToHashSet();
             var existingTags = await this.tagRepository.SearchAsync(t => tagNames.Contains(t.Name), track: true, cancellationToken);
-            newProblem.Tags = [.. existingTags.Union(newProblem.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
-            newProblem.ExplanationArticle.Tags = [.. existingTags.Union(newProblem.ExplanationArticle.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name)))];
+            newProblem.Tags = [.. existingTags.Union(newProblem.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name))).Where(x => tagNames.Contains(x.Name))];
+            newProblem.ExplanationArticle.Tags = [.. existingTags.Union(newProblem.ExplanationArticle.Tags.Where(t => !existingTags.Any(et => et.Name == t.Name))).Where(x => tagNames.Contains(x.Name))];
         }
 
         // Update the existing problem with the new values

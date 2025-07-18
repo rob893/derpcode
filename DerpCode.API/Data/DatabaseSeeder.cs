@@ -343,8 +343,6 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         {
             var explanationContent = await File.ReadAllTextAsync(explanationPath, cancellationToken);
             problem.ExplanationArticle.Content = explanationContent;
-            problem.ExplanationArticle.CreatedAt = DateTimeOffset.UtcNow; // TODO bug here always leading to updating problem. Should move created and updated to the seed data
-            problem.ExplanationArticle.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         // Load drivers if directory exists
@@ -462,6 +460,21 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
             return false;
         }
 
+        // For List<object>, use JSON serialization to compare values as this handles
+        // type differences between deserialized JSON and database objects
+        if (typeof(T) == typeof(object))
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            
+            var json1 = JsonSerializer.Serialize(list1, options);
+            var json2 = JsonSerializer.Serialize(list2, options);
+            return json1 == json2;
+        }
+
+        // For other types, use regular equality comparison
         for (int i = 0; i < list1.Count; i++)
         {
             if (!Equals(list1[i], list2[i]))

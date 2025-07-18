@@ -21,7 +21,9 @@
       }
     ],
     "UserId": 1,
-    "LastEditedById": 1
+    "LastEditedById": 1,
+    "CreatedAt": "2025-07-17T12:00:00Z",
+    "UpdatedAt": "2025-07-17T12:00:00Z"
   },
   "ExpectedOutput": [6, 10],
   "Hints": ["Use the '+' operator to add two numbers."]
