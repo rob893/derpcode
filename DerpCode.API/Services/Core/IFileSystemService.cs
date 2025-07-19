@@ -17,6 +17,12 @@ public interface IFileSystemService
 
     bool FileExists(string path);
 
+    string GetCurrentDirectory();
+
+    string? GetFileName(string? path);
+
+    string[] GetDirectories(string path);
+
     Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default);
 
     Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default);

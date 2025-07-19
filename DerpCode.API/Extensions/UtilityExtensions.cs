@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using DerpCode.API.Constants;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
@@ -157,5 +158,14 @@ public static class UtilityExtensions
         }
 
         return destDoc;
+    }
+
+    public static T JsonClone<T>(this T source)
+        where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return JsonSerializer.Deserialize<T>(
+            JsonSerializer.Serialize(source)) ?? new T();
     }
 }

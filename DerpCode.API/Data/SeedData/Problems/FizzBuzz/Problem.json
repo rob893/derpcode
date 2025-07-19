@@ -25,6 +25,28 @@
     "CreatedAt": "2025-07-17T12:00:00Z",
     "UpdatedAt": "2025-07-17T12:00:00Z"
   },
+  "Drivers": [
+    {
+      "Id": 5,
+      "Language": "TypeScript",
+      "Image": "code-executor-typescript"
+    },
+    {
+      "Id": 6,
+      "Language": "CSharp",
+      "Image": "code-executor-csharp"
+    },
+    {
+      "Id": 7,
+      "Language": "JavaScript",
+      "Image": "code-executor-javascript"
+    },
+    {
+      "Id": 8,
+      "Language": "Rust",
+      "Image": "code-executor-rust"
+    }
+  ],
   "ExpectedOutput": ["buzz", "", "fizz", "", "fizzbuzz"],
   "Hints": ["Use the modulo operator '%' to check divisibility."]
 }

@@ -11,6 +11,7 @@ on:
     branches: [master]
     paths:
       - 'DerpCode.API/**'
+      - '!DerpCode.API/Data/SeedData/**'
 
 permissions:
   id-token: write # Required for OIDC

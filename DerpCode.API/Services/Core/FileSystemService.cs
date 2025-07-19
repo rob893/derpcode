@@ -36,6 +36,21 @@ public sealed class FileSystemService : IFileSystemService
         return File.Exists(path);
     }
 
+    public string? GetFileName(string? path)
+    {
+        return Path.GetFileName(path);
+    }
+
+    public string GetCurrentDirectory()
+    {
+        return Directory.GetCurrentDirectory();
+    }
+
+    public string[] GetDirectories(string path)
+    {
+        return Directory.GetDirectories(path);
+    }
+
     public async Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default)
     {
         await File.WriteAllTextAsync(path, content, cancellationToken).ConfigureAwait(false);

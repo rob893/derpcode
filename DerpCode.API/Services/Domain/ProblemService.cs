@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
+using static DerpCode.API.Utilities.UtilityFunctions;
+
 namespace DerpCode.API.Services.Domain;
 
 /// <summary>
@@ -355,6 +357,92 @@ public sealed class ProblemService : IProblemService
         };
 
         return response;
+    }
+
+    public static bool HasProblemChanged(Problem leftProblem, Problem rightProblem)
+    {
+        ArgumentNullException.ThrowIfNull(leftProblem);
+        ArgumentNullException.ThrowIfNull(rightProblem);
+
+        // Compare basic properties
+        if (leftProblem.Name != rightProblem.Name ||
+            leftProblem.Description != rightProblem.Description ||
+            leftProblem.Difficulty != rightProblem.Difficulty ||
+            leftProblem.ExplanationArticle.Content != rightProblem.ExplanationArticle.Content)
+        {
+            return true;
+        }
+
+        // Compare lists (Input, ExpectedOutput, Hints)
+        if (!AreListsEqual(leftProblem.Input, rightProblem.Input) ||
+            !AreListsEqual(leftProblem.ExpectedOutput, rightProblem.ExpectedOutput) ||
+            !AreListsEqual(leftProblem.Hints, rightProblem.Hints))
+        {
+            return true;
+        }
+
+        // Compare tags
+        if (!AreTagsEqual(leftProblem.Tags, rightProblem.Tags))
+        {
+            return true;
+        }
+
+        // Compare drivers
+        if (!AreDriversEqual(leftProblem.Drivers, rightProblem.Drivers))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool AreTagsEqual(List<Tag> leftTags, List<Tag> rightTags)
+    {
+        ArgumentNullException.ThrowIfNull(leftTags);
+        ArgumentNullException.ThrowIfNull(rightTags);
+
+        if (leftTags.Count != rightTags.Count)
+        {
+            return false;
+        }
+
+        var dbTagNames = leftTags.Select(t => t.Name).OrderBy(n => n).ToList();
+        var folderTagNames = rightTags.Select(t => t.Name).OrderBy(n => n).ToList();
+
+        return dbTagNames.SequenceEqual(folderTagNames);
+    }
+
+    public static bool AreDriversEqual(List<ProblemDriver> leftDrivers, List<ProblemDriver> rightDrivers)
+    {
+        ArgumentNullException.ThrowIfNull(leftDrivers);
+        ArgumentNullException.ThrowIfNull(rightDrivers);
+
+        if (leftDrivers.Count != rightDrivers.Count)
+        {
+            return false;
+        }
+
+        var dbDriversDict = leftDrivers.ToDictionary(d => d.Language);
+        var folderDriversDict = rightDrivers.ToDictionary(d => d.Language);
+
+        foreach (var kvp in folderDriversDict)
+        {
+            if (!dbDriversDict.TryGetValue(kvp.Key, out var dbDriver))
+            {
+                return false;
+            }
+
+            var folderDriver = kvp.Value;
+            if (dbDriver.DriverCode != folderDriver.DriverCode ||
+                dbDriver.UITemplate != folderDriver.UITemplate ||
+                dbDriver.Answer != folderDriver.Answer ||
+                dbDriver.Image != folderDriver.Image)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private async Task<IReadOnlyDictionary<int, Problem>> GetProblemsFromCacheAsync(CancellationToken cancellationToken)

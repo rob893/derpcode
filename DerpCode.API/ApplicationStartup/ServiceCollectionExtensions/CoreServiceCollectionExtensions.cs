@@ -21,6 +21,7 @@ public static class CoreServiceCollectionExtensions
         services.AddScoped<ICorrelationIdService, CorrelationIdService>();
         services.AddSingleton<IFileSystemService, FileSystemService>();
         services.AddScoped<ICodeExecutionService, CodeExecutionService>();
+        services.AddScoped<IProblemSeedDataService, ProblemSeedDataService>();
 
         return services;
     }

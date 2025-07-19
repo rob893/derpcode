@@ -26,5 +26,27 @@
     "UpdatedAt": "2025-07-17T12:00:00Z"
   },
   "ExpectedOutput": [6, 10],
+  "Drivers": [
+    {
+      "Id": 1,
+      "Language": "CSharp",
+      "Image": "code-executor-csharp"
+    },
+    {
+      "Id": 2,
+      "Language": "JavaScript",
+      "Image": "code-executor-javascript"
+    },
+    {
+      "Id": 3,
+      "Language": "TypeScript",
+      "Image": "code-executor-typescript"
+    },
+    {
+      "Id": 4,
+      "Language": "Rust",
+      "Image": "code-executor-rust"
+    }
+  ],
   "Hints": ["Use the '+' operator to add two numbers."]
 }

@@ -1,1 +1,1 @@
-Use the modulo operator to check divisibility. etc
+Use the modulo operator to check divisibility. etc.
