@@ -1,52 +1,59 @@
 {
   "Id": 1,
   "Name": "Add Two Numbers",
-  "Input": [5, 1, 6, 4],
-  "Tags": [
-    {
-      "Id": 1,
-      "Name": "Math"
-    }
-  ],
   "Description": "Given two numbers, return their sum.",
-  "Difficulty": "VeryEasy",
   "ExplanationArticle": {
     "Id": 1,
+    "UserId": 1,
+    "User": null,
     "Title": "Add Two Numbers Explanation",
+    "Content": "",
+    "CreatedAt": "2025-06-29T16:57:43.527125+00:00",
+    "UpdatedAt": "2025-07-20T04:19:40.081534+00:00",
+    "LastEditedById": 1,
+    "LastEditedBy": null,
+    "UpVotes": 0,
+    "DownVotes": 0,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 1,
-        "Name": "Math"
+        "Id": 2,
+        "Name": "Math",
+        "Problems": [],
+        "Articles": [
+          null
+        ]
       }
     ],
-    "UserId": 1,
-    "LastEditedById": 1,
-    "CreatedAt": "2025-07-17T12:00:00Z",
-    "UpdatedAt": "2025-07-17T12:00:00Z"
+    "IsDeleted": false,
+    "Comments": []
   },
-  "ExpectedOutput": [6, 10],
-  "Drivers": [
-    {
-      "Id": 1,
-      "Language": "CSharp",
-      "Image": "code-executor-csharp"
-    },
+  "ExplanationArticleId": 1,
+  "SolutionArticles": [],
+  "Difficulty": "VeryEasy",
+  "ExpectedOutput": [
+    6,
+    10
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027\u002B\u0027 operator to add two numbers."
+  ],
+  "Tags": [
     {
       "Id": 2,
-      "Language": "JavaScript",
-      "Image": "code-executor-javascript"
-    },
-    {
-      "Id": 3,
-      "Language": "TypeScript",
-      "Image": "code-executor-typescript"
-    },
-    {
-      "Id": 4,
-      "Language": "Rust",
-      "Image": "code-executor-rust"
+      "Name": "Math",
+      "Problems": [
+        null
+      ],
+      "Articles": []
     }
   ],
-  "Hints": ["Use the '+' operator to add two numbers."]
+  "Drivers": [],
+  "ProblemSubmissions": []
 }
