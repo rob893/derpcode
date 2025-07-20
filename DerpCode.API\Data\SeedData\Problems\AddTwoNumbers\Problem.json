@@ -1,0 +1,59 @@
+{
+  "Id": 1,
+  "Name": "Add Two Numbers",
+  "Description": "Given two numbers, return their sum.",
+  "ExplanationArticle": {
+    "Id": 1,
+    "UserId": 1,
+    "User": null,
+    "Title": "Add Two Numbers Explanation",
+    "Content": "",
+    "CreatedAt": "2025-06-29T16:57:43.527125+00:00",
+    "UpdatedAt": "2025-07-20T04:19:40.081534+00:00",
+    "LastEditedById": 1,
+    "LastEditedBy": null,
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 2,
+        "Name": "Math",
+        "Problems": [],
+        "Articles": [
+          null
+        ]
+      }
+    ],
+    "IsDeleted": false,
+    "Comments": []
+  },
+  "ExplanationArticleId": 1,
+  "SolutionArticles": [],
+  "Difficulty": "VeryEasy",
+  "ExpectedOutput": [
+    6,
+    10
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027\u002B\u0027 operator to add two numbers."
+  ],
+  "Tags": [
+    {
+      "Id": 2,
+      "Name": "Math",
+      "Problems": [
+        null
+      ],
+      "Articles": []
+    }
+  ],
+  "Drivers": [],
+  "ProblemSubmissions": []
+}
