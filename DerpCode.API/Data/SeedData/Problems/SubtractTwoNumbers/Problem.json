@@ -10,7 +10,7 @@
     "UpVotes": 0,
     "DownVotes": 0,
     "CreatedAt": "2025-07-20T05:16:55.508166+00:00",
-    "UpdatedAt": "2025-07-20T05:19:57.268713+00:00",
+    "UpdatedAt": "2025-07-20T05:23:19.307157+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -32,7 +32,8 @@
     4
   ],
   "Hints": [
-    "Use the \u0027-\u0027 operator"
+    "Use the \u0027-\u0027 operator",
+    "You shouldn\u0027t need another hint."
   ],
   "Tags": [
     {
