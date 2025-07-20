@@ -73,8 +73,6 @@ public static class Program
             var serviceProvider = scope.ServiceProvider;
             var seeder = serviceProvider.GetRequiredService<IDatabaseSeeder>();
 
-            await seeder.SyncProblemsFromFolderAsync(CancellationToken.None);
-
             if (args.Contains(CommandLineOptions.SeedArgument, StringComparer.OrdinalIgnoreCase))
             {
                 await Parser.Default.ParseArguments<CommandLineOptions>(args)
@@ -111,6 +109,8 @@ public static class Program
                         }
                     });
             }
+
+            await seeder.SyncProblemsFromFolderAsync(CancellationToken.None);
         }
 
         // Configure the HTTP request pipeline.
