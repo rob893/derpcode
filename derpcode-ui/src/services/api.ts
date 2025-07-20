@@ -48,6 +48,11 @@ export const problemsApi = {
     return response.data;
   },
 
+  async syncProblemsToGitHub(): Promise<{ prUrl: string }> {
+    const response = await apiClient.post<{ prUrl: string }>('/api/v1/problems/sync');
+    return response.data;
+  },
+
   async submitSolution(problemId: number, userCode: string, language: Language): Promise<ProblemSubmission> {
     const response = await apiClient.post<ProblemSubmission>(`/api/v1/problems/${problemId}/submissions`, {
       userCode,

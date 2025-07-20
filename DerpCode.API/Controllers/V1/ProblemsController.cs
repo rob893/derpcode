@@ -33,15 +33,6 @@ public sealed class ProblemsController : ServiceControllerBase
         this.gitHubService = gitHubService ?? throw new ArgumentNullException(nameof(gitHubService));
     }
 
-    [HttpGet("sync", Name = nameof(SyncProblemsToGitHubAsync))]
-    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> SyncProblemsToGitHubAsync()
-    {
-        var prUrl = await this.gitHubService.SyncProblemsFromDatabaseToGithubAsync(this.HttpContext.RequestAborted);
-        return this.Ok(new { prUrl });
-    }
-
     [AllowAnonymous]
     [HttpGet(Name = nameof(GetProblemsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -66,6 +57,15 @@ public sealed class ProblemsController : ServiceControllerBase
         }
 
         return this.Ok(problem);
+    }
+
+    [HttpPost("sync", Name = nameof(SyncProblemsToGitHubAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SyncProblemsToGitHubAsync()
+    {
+        var prUrl = await this.gitHubService.SyncProblemsFromDatabaseToGithubAsync(this.HttpContext.RequestAborted);
+        return this.Ok(new { prUrl });
     }
 
     [HttpPost(Name = nameof(CreateProblemAsync))]

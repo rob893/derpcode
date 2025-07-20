@@ -9,14 +9,17 @@ import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
-  DropdownItem
+  DropdownItem,
+  useDisclosure
 } from '@heroui/react';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
+import { SyncModal } from './SyncModal';
 
 export function AppHeader() {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { isOpen: isSyncOpen, onOpen: onSyncOpen, onOpenChange: onSyncOpenChange } = useDisclosure();
 
   const isAdmin = hasAdminRole(user);
 
@@ -56,12 +59,20 @@ export function AppHeader() {
             Problems
           </button>
           {isAuthenticated && isAdmin && (
-            <button
-              onClick={() => navigate('/problems/new')}
-              className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
-            >
-              Create Problem
-            </button>
+            <>
+              <button
+                onClick={() => navigate('/problems/new')}
+                className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
+              >
+                Create Problem
+              </button>
+              <button
+                onClick={onSyncOpen}
+                className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
+              >
+                Sync Problems
+              </button>
+            </>
           )}
         </div>
 
@@ -108,6 +119,8 @@ export function AppHeader() {
           </>
         )}
       </NavbarContent>
+
+      <SyncModal isOpen={isSyncOpen} onOpenChange={onSyncOpenChange} />
     </Navbar>
   );
 }
