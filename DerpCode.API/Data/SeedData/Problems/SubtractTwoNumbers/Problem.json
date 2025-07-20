@@ -1,16 +1,16 @@
 {
-  "Id": 1,
-  "Name": "Add Two Numbers",
-  "Description": "Given two numbers, return their sum. Adding some more stuff.",
+  "Id": 4,
+  "Name": "Subtract Two Numbers",
+  "Description": "Given two numbers, return their difference.",
   "ExplanationArticle": {
-    "Id": 1,
+    "Id": 34,
     "UserId": 1,
-    "Title": "Add Two Numbers Explanation",
+    "Title": "Subtract Two Numbers Explanation",
     "Content": "",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-06-29T16:57:43.527125+00:00",
-    "UpdatedAt": "2025-07-20T05:16:52.490082+00:00",
+    "CreatedAt": "2025-07-20T05:16:55.508166+00:00",
+    "UpdatedAt": "2025-07-20T05:19:57.268713+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -22,8 +22,8 @@
   },
   "Difficulty": "VeryEasy",
   "ExpectedOutput": [
-    6,
-    10
+    4,
+    2
   ],
   "Input": [
     5,
@@ -32,22 +32,18 @@
     4
   ],
   "Hints": [
-    "Use the \u0027\u002B\u0027 operator to add two numbers.."
+    "Use the \u0027-\u0027 operator"
   ],
   "Tags": [
     {
       "Id": 2,
       "Name": "Math"
-    },
-    {
-      "Id": 4,
-      "Name": "Addition"
     }
   ],
   "Drivers": [
     {
-      "Id": 1,
-      "ProblemId": 1,
+      "Id": 14,
+      "ProblemId": 4,
       "Language": "CSharp",
       "UITemplate": "",
       "Image": "code-executor-csharp",
@@ -55,8 +51,8 @@
       "Answer": ""
     },
     {
-      "Id": 2,
-      "ProblemId": 1,
+      "Id": 15,
+      "ProblemId": 4,
       "Language": "JavaScript",
       "UITemplate": "",
       "Image": "code-executor-javascript",
@@ -64,8 +60,8 @@
       "Answer": ""
     },
     {
-      "Id": 4,
-      "ProblemId": 1,
+      "Id": 16,
+      "ProblemId": 4,
       "Language": "Rust",
       "UITemplate": "",
       "Image": "code-executor-rust",
@@ -73,8 +69,8 @@
       "Answer": ""
     },
     {
-      "Id": 13,
-      "ProblemId": 1,
+      "Id": 17,
+      "ProblemId": 4,
       "Language": "TypeScript",
       "UITemplate": "",
       "Image": "code-executor-typescript",
