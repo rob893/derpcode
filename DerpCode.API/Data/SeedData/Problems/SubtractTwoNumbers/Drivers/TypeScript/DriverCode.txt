@@ -1,0 +1,115 @@
+import fs from 'fs';
+import { subtract } from './solution';
+
+interface SubmissionResult {
+  pass: boolean;
+  testCaseCount: number;
+  passedTestCases: number;
+  failedTestCases: number;
+  errorMessage: string;
+  executionTimeInMs: number;
+  testCaseResults: TestCaseResult[];
+}
+
+interface TestCaseResult {
+  testCaseIndex: number;
+  pass: boolean;
+  errorMessage: string | null;
+  executionTimeInMs: number;
+  input: any;
+  expectedOutput: any;
+  actualOutput: any;
+  isHidden: boolean;
+}
+
+function main(): void {
+  const args = process.argv.slice(2);
+
+  if (args.length < 3) {
+    console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+    process.exit(1);
+  }
+
+  const [inputPath, expectedPath, resultPath] = args;
+
+  const result: SubmissionResult = {
+    pass: false,
+    testCaseCount: 0,
+    passedTestCases: 0,
+    failedTestCases: 0,
+    errorMessage: '',
+    executionTimeInMs: 0,
+    testCaseResults: []
+  };
+
+  try {
+    const input = fs.readFileSync(inputPath, 'utf8');
+    const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+    const start = Date.now();
+
+    const testResults = runTests(input, expectedOutput);
+
+    result.pass = testResults.pass;
+    result.testCaseCount = testResults.testCaseCount;
+    result.passedTestCases = testResults.passedTestCases;
+    result.failedTestCases = testResults.failedTestCases;
+    result.testCaseResults = testResults.testCaseResults;
+    result.executionTimeInMs = Date.now() - start;
+  } catch (err: any) {
+    console.error('Error reading files:' + err.message);
+    result.errorMessage = err.message;
+  }
+
+  fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr: string, expectedOutputJsonStr: string): SubmissionResult {
+  const input = JSON.parse(inputJsonStr);
+  const expectedOutput = JSON.parse(expectedOutputJsonStr);
+  const testCaseCount = Math.floor(input.length / 2);
+  let passedTestCases = 0;
+  let failedTestCases = 0;
+  const testCaseResults: TestCaseResult[] = [];
+
+  for (let i = 0, j = 0; i < input.length; i += 2, j++) {
+    const a = input[i];
+    const b = input[i + 1];
+    
+    const testCaseStart = Date.now();
+    const result = subtract(a, b);
+    const testCaseEnd = Date.now();
+    
+    const expected = expectedOutput[j];
+    const passed = result === expected;
+
+    testCaseResults.push({
+      testCaseIndex: j,
+      pass: passed,
+      errorMessage: passed ? null : `Expected ${expected} but got ${result}`,
+      executionTimeInMs: testCaseEnd - testCaseStart,
+      input: { a, b },
+      expectedOutput: expected,
+      actualOutput: result,
+      isHidden: false
+    });
+
+    if (passed) {
+      passedTestCases++;
+    } else {
+      failedTestCases++;
+    }
+  }
+
+  return {
+    testCaseCount,
+    passedTestCases,
+    failedTestCases,
+    pass: passedTestCases === testCaseCount,
+    errorMessage: '',
+    executionTimeInMs: 0,
+    testCaseResults
+  };
+}
+
+main();
