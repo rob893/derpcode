@@ -1,9 +1,9 @@
 {
-  "Id": 4,
+  "Id": 3,
   "Name": "Subtract Two Numbers",
   "Description": "Given two numbers, return their difference.",
   "ExplanationArticle": {
-    "Id": 33,
+    "Id": 3,
     "UserId": 1,
     "Title": "Subtract Two Numbers Explanation",
     "Content": "",
