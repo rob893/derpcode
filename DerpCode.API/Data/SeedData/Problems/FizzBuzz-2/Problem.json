@@ -9,13 +9,13 @@
     "Content": "",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-06-29T17:52:26.68456+00:00",
-    "UpdatedAt": "2025-07-20T05:35:33.860402+00:00",
+    "CreatedAt": "2025-07-20T06:01:57.994911+00:00",
+    "UpdatedAt": "2025-07-20T06:01:57.994911+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 2,
+        "Id": 1,
         "Name": "Math"
       }
     ]
@@ -40,7 +40,7 @@
   ],
   "Tags": [
     {
-      "Id": 2,
+      "Id": 1,
       "Name": "Math"
     }
   ],
@@ -55,7 +55,7 @@
       "Answer": ""
     },
     {
-      "Id": 10,
+      "Id": 6,
       "ProblemId": 2,
       "Language": "CSharp",
       "UITemplate": "",
@@ -64,7 +64,7 @@
       "Answer": ""
     },
     {
-      "Id": 11,
+      "Id": 7,
       "ProblemId": 2,
       "Language": "JavaScript",
       "UITemplate": "",
@@ -73,7 +73,7 @@
       "Answer": ""
     },
     {
-      "Id": 12,
+      "Id": 8,
       "ProblemId": 2,
       "Language": "Rust",
       "UITemplate": "",
