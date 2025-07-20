@@ -1,6 +1,9 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace DerpCode.API.Services.Integrations;
 
 public interface IGitHubService
 {
-    void Temp();
+    Task<string> SyncProblemsFromDatabaseToGithubAsync(CancellationToken cancellationToken = default);
 }

@@ -85,7 +85,6 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
             await this.SeedRolesAsync(cancellationToken);
             await this.SeedUsersAsync(cancellationToken);
 
-            //this.SeedProblems(); // remove this once I test the folder sync functionality
             this.SeedDriverTemplates();
 
             await this.context.SaveChangesAsync(cancellationToken);
@@ -148,34 +147,6 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         await this.userManager.AddToRoleAsync(newUser, UserRoleName.User);
         await this.userManager.AddToRoleAsync(newUser, UserRoleName.Admin);
         await this.userManager.AddToRoleAsync(newUser, UserRoleName.PremiumUser);
-    }
-
-    private void SeedProblems()
-    {
-        if (this.context.Problems.Any())
-        {
-            return;
-        }
-
-        var problems = ProblemData.Problems;
-
-        foreach (var problem in problems)
-        {
-            for (int i = 0; i < 15; i++)
-            {
-                problem.SolutionArticles.Add(new Article
-                {
-                    UserId = 1,
-                    Title = $"Solution {i + 1}",
-                    Content = "This is a solution article.",
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
-                    LastEditedById = 1,
-                    Type = ArticleType.ProblemSolution
-                });
-            }
-            this.context.Problems.Add(problem);
-        }
     }
 
     private void SeedDriverTemplates()

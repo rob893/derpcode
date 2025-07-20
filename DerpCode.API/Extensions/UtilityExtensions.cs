@@ -160,12 +160,19 @@ public static class UtilityExtensions
         return destDoc;
     }
 
-    public static T JsonClone<T>(this T source)
+    public static string ToJson(this object obj, JsonSerializerOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+
+        return JsonSerializer.Serialize(obj, options);
+    }
+
+    public static T JsonClone<T>(this T source, JsonSerializerOptions? serializeOptions = null, JsonSerializerOptions? deserializeOptions = null)
         where T : class, new()
     {
         ArgumentNullException.ThrowIfNull(source);
 
         return JsonSerializer.Deserialize<T>(
-            JsonSerializer.Serialize(source)) ?? new T();
+            JsonSerializer.Serialize(source, serializeOptions), deserializeOptions) ?? new T();
     }
 }

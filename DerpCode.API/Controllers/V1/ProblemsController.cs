@@ -9,6 +9,7 @@ using DerpCode.API.Models.Responses;
 using DerpCode.API.Models.Responses.Pagination;
 using DerpCode.API.Services.Core;
 using DerpCode.API.Services.Domain;
+using DerpCode.API.Services.Integrations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
@@ -23,10 +24,22 @@ public sealed class ProblemsController : ServiceControllerBase
 {
     private readonly IProblemService problemService;
 
-    public ProblemsController(ICorrelationIdService correlationIdService, IProblemService problemService)
+    private readonly IGitHubService gitHubService;
+
+    public ProblemsController(ICorrelationIdService correlationIdService, IProblemService problemService, IGitHubService gitHubService)
         : base(correlationIdService)
     {
         this.problemService = problemService ?? throw new ArgumentNullException(nameof(problemService));
+        this.gitHubService = gitHubService ?? throw new ArgumentNullException(nameof(gitHubService));
+    }
+
+    [HttpGet("sync", Name = nameof(SyncProblemsToGitHubAsync))]
+    [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SyncProblemsToGitHubAsync()
+    {
+        var prUrl = await this.gitHubService.SyncProblemsFromDatabaseToGithubAsync(this.HttpContext.RequestAborted);
+        return this.Ok(new { prUrl });
     }
 
     [AllowAnonymous]

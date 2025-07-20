@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
+using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Services.Core;
 
-public sealed class ProblemSeedDataService : IProblemSeedDataService
+public sealed partial class ProblemSeedDataService : IProblemSeedDataService
 {
     private static readonly JsonSerializerOptions jsonOptions = new()
     {
@@ -19,16 +23,22 @@ public sealed class ProblemSeedDataService : IProblemSeedDataService
         Converters =
         {
             new JsonStringEnumConverter()
-        }
+        },
+        WriteIndented = true,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
+
     };
 
     private readonly IFileSystemService fileSystemService;
 
+    private readonly IProblemRepository problemRepository;
+
     private readonly ILogger<ProblemSeedDataService> logger;
 
-    public ProblemSeedDataService(IFileSystemService fileSystemService, ILogger<ProblemSeedDataService> logger)
+    public ProblemSeedDataService(IFileSystemService fileSystemService, IProblemRepository problemRepository, ILogger<ProblemSeedDataService> logger)
     {
         this.fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
+        this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -102,7 +112,78 @@ public sealed class ProblemSeedDataService : IProblemSeedDataService
         return problem;
     }
 
-    public Dictionary<string, string> ConvertProblemToSeedDataFiles(Problem problem)
+    public async Task<(Dictionary<string, string> Updated, Dictionary<string, string> NewItems, HashSet<string> Deleted)> GetUpdatedProblemsToSyncFromDatabaseToGitAsync(CancellationToken cancellationToken = default)
+    {
+        var problemsFromDb = await this.problemRepository.SearchAsync(
+               p => true,
+               [p => p.ExplanationArticle, p => p.Tags, p => p.Drivers],
+               track: false,
+               cancellationToken);
+        var problemsFromFiles = await this.LoadProblemsFromFolderAsync(cancellationToken);
+
+        var dbProblemsAsSeedFilesLookup = problemsFromDb.ToDictionary(x => x.Id, this.ConvertProblemToSeedDataFiles);
+        var problemsFromFilesAsSeedFilesLookup = problemsFromFiles.ToDictionary(x => x.Id, this.ConvertProblemToSeedDataFiles);
+
+        var updated = new Dictionary<string, string>();
+        var newItems = new Dictionary<string, string>();
+        var deletedItems = problemsFromFilesAsSeedFilesLookup.Values
+            .SelectMany(x => x.Keys)
+            .Except(dbProblemsAsSeedFilesLookup.Values.SelectMany(x => x.Keys))
+            .ToHashSet();
+
+        foreach (var dbProblem in dbProblemsAsSeedFilesLookup)
+        {
+            var dbProblemFiles = dbProblem.Value;
+            var problemId = dbProblem.Key;
+
+            if (problemsFromFilesAsSeedFilesLookup.TryGetValue(problemId, out var filesProblemFiles))
+            {
+                foreach (var kvp in dbProblemFiles)
+                {
+                    if (deletedItems.Contains(kvp.Key))
+                    {
+                        throw new InvalidOperationException($"File {kvp.Key} was marked both for delete while being in db files!");
+                    }
+
+                    if (filesProblemFiles.TryGetValue(kvp.Key, out var filesProblemContent))
+                    {
+                        if (kvp.Value != filesProblemContent)
+                        {
+                            // Existing file changed.
+                            updated[kvp.Key] = kvp.Value;
+                        }
+                    }
+                    else
+                    {
+                        // New file for problem (like a new driver).
+                        newItems[kvp.Key] = kvp.Value;
+                    }
+                }
+            }
+            else
+            {
+                // Means new problem
+                foreach (var kvp in dbProblemFiles)
+                {
+                    if (deletedItems.Contains(kvp.Key))
+                    {
+                        throw new InvalidOperationException($"File {kvp.Key} was marked both for delete while being in db files!");
+                    }
+
+                    if (newItems.ContainsKey(kvp.Key))
+                    {
+                        throw new InvalidOperationException($"There is already a file with path ${kvp.Key} in newItems!");
+                    }
+
+                    newItems[kvp.Key] = kvp.Value;
+                }
+            }
+        }
+
+        return (updated, newItems, deletedItems);
+    }
+
+    private Dictionary<string, string> ConvertProblemToSeedDataFiles(Problem problem)
     {
         ArgumentNullException.ThrowIfNull(problem);
         ArgumentNullException.ThrowIfNull(problem.ExplanationArticle);
@@ -112,42 +193,35 @@ public sealed class ProblemSeedDataService : IProblemSeedDataService
             throw new ArgumentException("Problem must have at least one driver.", nameof(problem));
         }
 
-        var clone = problem.JsonClone();
-        var problemPath = this.fileSystemService.CombinePaths(this.GetProblemsDirectoryPath(), clone.Name);
+        var problemPath = this.fileSystemService.CombinePaths(this.GetProblemsDirectoryPath(), RemoveWhitespaceRegex().Replace(problem.Name, ""));
 
         var seedDataFiles = new Dictionary<string, string>();
 
-        foreach (var driver in clone.Drivers)
+        foreach (var driver in problem.Drivers)
         {
             var driverPath = this.fileSystemService.CombinePaths(problemPath, "Drivers", driver.Language.ToString());
 
             seedDataFiles[this.fileSystemService.CombinePaths(driverPath, "Answer.txt")] = driver.Answer;
             seedDataFiles[this.fileSystemService.CombinePaths(driverPath, "DriverCode.txt")] = driver.DriverCode;
             seedDataFiles[this.fileSystemService.CombinePaths(driverPath, "UITemplate.txt")] = driver.UITemplate;
+
+            driver.Answer = string.Empty;
+            driver.DriverCode = string.Empty;
+            driver.UITemplate = string.Empty;
         }
 
-        seedDataFiles[this.fileSystemService.CombinePaths(problemPath, "Explanation.md")] = clone.ExplanationArticle.Content;
+        seedDataFiles[this.fileSystemService.CombinePaths(problemPath, "Explanation.md")] = problem.ExplanationArticle.Content;
 
-        clone.Drivers = [];
-        clone.ExplanationArticle.Content = string.Empty;
+        problem.ExplanationArticle.Content = string.Empty;
+
+        seedDataFiles[this.fileSystemService.CombinePaths(problemPath, "Problem.json")] = ProblemDto.FromEntity(problem, true, true).ToJson(jsonOptions);
 
         return seedDataFiles;
     }
 
-    // public async Task SaveProblemToSeedDataAsync(Problem problem)
-    // {
-    //     ArgumentNullException.ThrowIfNull(problem);
-    //     ArgumentNullException.ThrowIfNull(problem.ExplanationArticle);
-
-    //     if (problem.Drivers == null || problem.Drivers.Count == 0)
-    //     {
-    //         throw new ArgumentException("Problem must have at least one driver.", nameof(problem));
-    //     }
-    // }
-
     private string GetProblemsDirectoryPath()
     {
-        return this.fileSystemService.CombinePaths(this.fileSystemService.GetCurrentDirectory(), "Data", "SeedData", "Problems");
+        return this.fileSystemService.CombinePaths("DerpCode.API", "Data", "SeedData", "Problems");
     }
 
     private async Task HydrateDriversFromDirectoryAsync(Problem problem, string driversDirectory, CancellationToken cancellationToken = default)
@@ -197,4 +271,7 @@ public sealed class ProblemSeedDataService : IProblemSeedDataService
         driver.DriverCode = driverCode;
         driver.ProblemId = problemId;
     }
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex RemoveWhitespaceRegex();
 }

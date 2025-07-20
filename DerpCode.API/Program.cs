@@ -68,45 +68,49 @@ public static class Program
 
         var app = builder.Build();
 
-        if (args.Contains(CommandLineOptions.SeedArgument, StringComparer.OrdinalIgnoreCase))
+        using (var scope = app.Services.CreateScope())
         {
-            await Parser.Default.ParseArguments<CommandLineOptions>(args)
-                .WithParsedAsync(async o =>
-                {
-                    using var scope = app.Services.CreateScope();
-                    var serviceProvider = scope.ServiceProvider;
-                    var logger = serviceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
-                    var seederPassword = app.Configuration.GetValue<string>("SeederPassword") ?? throw new InvalidOperationException("Seeder password not found in configuration.");
-                    var seeder = serviceProvider.GetRequiredService<IDatabaseSeeder>();
+            var serviceProvider = scope.ServiceProvider;
+            var seeder = serviceProvider.GetRequiredService<IDatabaseSeeder>();
 
-                    if (o.Password != null && o.Password == seederPassword)
+            await seeder.SyncProblemsFromFolderAsync(CancellationToken.None);
+
+            if (args.Contains(CommandLineOptions.SeedArgument, StringComparer.OrdinalIgnoreCase))
+            {
+                await Parser.Default.ParseArguments<CommandLineOptions>(args)
+                    .WithParsedAsync(async o =>
                     {
-                        var migrate = args.Contains(CommandLineOptions.MigrateArgument, StringComparer.OrdinalIgnoreCase);
-                        var clearData = args.Contains(CommandLineOptions.ClearDataArgument, StringComparer.OrdinalIgnoreCase);
-                        var seedData = args.Contains(CommandLineOptions.SeedDataArgument, StringComparer.OrdinalIgnoreCase);
-                        var dropDatabase = args.Contains(CommandLineOptions.DropArgument, StringComparer.OrdinalIgnoreCase);
+                        var logger = serviceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
+                        var seederPassword = app.Configuration.GetValue<string>("SeederPassword") ?? throw new InvalidOperationException("Seeder password not found in configuration.");
 
-                        logger.LogInformation("Seeding database:\nDrop database: {DropDatabase}\nApply Migrations: {Migrate}\nClear old data: {ClearData}\nSeed new data: {SeedData}", dropDatabase, migrate, clearData, seedData);
-                        logger.LogWarning("Are you sure you want to apply these actions to the database in that order? Only 'yes' will continue.");
 
-                        var answer = Console.ReadLine();
-
-                        if (answer == "yes")
+                        if (o.Password != null && o.Password == seederPassword)
                         {
-                            await seeder.SeedDatabaseAsync(seedData, clearData, migrate, dropDatabase, CancellationToken.None);
+                            var migrate = args.Contains(CommandLineOptions.MigrateArgument, StringComparer.OrdinalIgnoreCase);
+                            var clearData = args.Contains(CommandLineOptions.ClearDataArgument, StringComparer.OrdinalIgnoreCase);
+                            var seedData = args.Contains(CommandLineOptions.SeedDataArgument, StringComparer.OrdinalIgnoreCase);
+                            var dropDatabase = args.Contains(CommandLineOptions.DropArgument, StringComparer.OrdinalIgnoreCase);
+
+                            logger.LogInformation("Seeding database:\nDrop database: {DropDatabase}\nApply Migrations: {Migrate}\nClear old data: {ClearData}\nSeed new data: {SeedData}", dropDatabase, migrate, clearData, seedData);
+                            logger.LogWarning("Are you sure you want to apply these actions to the database in that order? Only 'yes' will continue.");
+
+                            var answer = Console.ReadLine();
+
+                            if (answer == "yes")
+                            {
+                                await seeder.SeedDatabaseAsync(seedData, clearData, migrate, dropDatabase, CancellationToken.None);
+                            }
+                            else
+                            {
+                                logger.LogWarning("Aborting database seed process...");
+                            }
                         }
                         else
                         {
-                            logger.LogWarning("Aborting database seed process...");
+                            logger.LogWarning("Invalid seeder password");
                         }
-                    }
-                    else
-                    {
-                        logger.LogWarning("Invalid seeder password");
-                    }
-
-                    // await seeder.SyncProblemsFromFolderAsync(CancellationToken.None);
-                });
+                    });
+            }
         }
 
         // Configure the HTTP request pipeline.

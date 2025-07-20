@@ -7,4 +7,6 @@ public sealed record GitHubSettings
     public string DerpCodeRepository { get; init; } = default!;
 
     public string DerpCodeRepositoryOwner { get; init; } = default!;
+
+    public string DerpCodeRepositoryBaseBranch { get; init; } = default!;
 }
