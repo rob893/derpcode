@@ -1,0 +1,97 @@
+{
+  "Id": 5,
+  "Name": "Add Two Numbers (Clone)",
+  "Description": "Given two numbers, return their sum. Adding some more stuff.",
+  "ExplanationArticle": {
+    "Id": 34,
+    "UserId": 1,
+    "Title": "Add Two Numbers Explanation",
+    "Content": "",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-07-20T05:52:25.564708+00:00",
+    "UpdatedAt": "2025-07-20T05:52:25.564708+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 1,
+        "Name": "math"
+      },
+      {
+        "Id": 2,
+        "Name": "Math"
+      },
+      {
+        "Id": 3,
+        "Name": "Addition"
+      }
+    ]
+  },
+  "Difficulty": "VeryEasy",
+  "ExpectedOutput": [
+    6,
+    10
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027\u002B\u0027 operator to add two numbers.."
+  ],
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "math"
+    },
+    {
+      "Id": 2,
+      "Name": "Math"
+    },
+    {
+      "Id": 3,
+      "Name": "Addition"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 13,
+      "ProblemId": 5,
+      "Language": "CSharp",
+      "UITemplate": "",
+      "Image": "code-executor-csharp",
+      "DriverCode": "",
+      "Answer": ""
+    },
+    {
+      "Id": 14,
+      "ProblemId": 5,
+      "Language": "JavaScript",
+      "UITemplate": "",
+      "Image": "code-executor-javascript",
+      "DriverCode": "",
+      "Answer": ""
+    },
+    {
+      "Id": 15,
+      "ProblemId": 5,
+      "Language": "TypeScript",
+      "UITemplate": "",
+      "Image": "code-executor-typescript",
+      "DriverCode": "",
+      "Answer": ""
+    },
+    {
+      "Id": 16,
+      "ProblemId": 5,
+      "Language": "Rust",
+      "UITemplate": "",
+      "Image": "code-executor-rust",
+      "DriverCode": "",
+      "Answer": ""
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+use serde::{Deserialize, Serialize};
+use std::{env, fs, time::Instant};
+
+mod solution;
+use solution::Solution;
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SubmissionResult {
+    pass: bool,
+    test_case_count: usize,
+    passed_test_cases: usize,
+    failed_test_cases: usize,
+    error_message: String,
+    execution_time_in_ms: u128,
+    test_case_results: Vec<TestCaseResult>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TestCaseResult {
+    test_case_index: usize,
+    pass: bool,
+    error_message: Option<String>,
+    execution_time_in_ms: u128,
+    input: serde_json::Value,
+    expected_output: serde_json::Value,
+    actual_output: serde_json::Value,
+    is_hidden: bool,
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 4 {
+        eprintln!("Usage: cargo run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+        std::process::exit(1);
+    }
+
+    let input_path = &args[1];
+    let expected_path = &args[2];
+    let result_path = &args[3];
+
+    let start = Instant::now();
+
+    let result = match run_test_harness(input_path, expected_path) {
+        Ok(mut r) => {
+            r.execution_time_in_ms = start.elapsed().as_millis();
+            r
+        }
+        Err(e) => SubmissionResult {
+            pass: false,
+            test_case_count: 0,
+            passed_test_cases: 0,
+            failed_test_cases: 0,
+            error_message: e.to_string(),
+            execution_time_in_ms: start.elapsed().as_millis(),
+            test_case_results: vec![],
+        },
+    };
+
+    let json = serde_json::to_string_pretty(&result).unwrap();
+    fs::write(result_path, json).unwrap();
+}
+
+fn run_test_harness(
+    input_path: &str,
+    expected_path: &str,
+) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
+    let input_json = fs::read_to_string(input_path)?;
+    let expected_json = fs::read_to_string(expected_path)?;
+
+    let input: Vec<i32> = serde_json::from_str(&input_json)?;
+    let expected: Vec<i32> = serde_json::from_str(&expected_json)?;
+
+    let test_case_count = input.len() / 2;
+    let mut passed = 0;
+    let mut failed = 0;
+    let mut test_results = vec![];
+
+    for (i, pair) in input.chunks(2).enumerate() {
+        if pair.len() < 2 {
+            continue;
+        }
+
+        let a = pair[0];
+        let b = pair[1];
+
+        let t_start = Instant::now();
+        let result = Solution::add(a, b);
+        let duration = t_start.elapsed().as_millis();
+
+        let expected_result = expected[i];
+        let did_pass = result == expected_result;
+
+        if did_pass {
+            passed += 1;
+        } else {
+            failed += 1;
+        }
+
+        test_results.push(TestCaseResult {
+            test_case_index: i,
+            pass: did_pass,
+            error_message: if did_pass {
+                None
+            } else {
+                Some(format!("Expected {} but got {}", expected_result, result))
+            },
+            execution_time_in_ms: duration,
+            input: serde_json::json!({ "a": a, "b": b }),
+            expected_output: serde_json::json!(expected_result),
+            actual_output: serde_json::json!(result),
+            is_hidden: false,
+        });
+    }
+
+    Ok(SubmissionResult {
+        pass: passed == test_case_count,
+        test_case_count,
+        passed_test_cases: passed,
+        failed_test_cases: failed,
+        error_message: String::new(),
+        execution_time_in_ms: 0, // filled later
+        test_case_results: test_results,
+    })
+}
