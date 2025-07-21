@@ -75,7 +75,8 @@ jobs:
             cd /var/www/html/APIs/Docker/JavaScript && sudo docker build -t code-executor-javascript . &&
             cd /var/www/html/APIs/Docker/TypeScript && sudo docker build -t code-executor-typescript . &&
             cd /var/www/html/APIs/Docker/CSharp && sudo docker build -t code-executor-csharp . &&
-            cd /var/www/html/APIs/Docker/Rust && sudo docker build -t code-executor-rust .
+            cd /var/www/html/APIs/Docker/Rust && sudo docker build -t code-executor-rust . &&
+            cd /var/www/html/APIs/Docker/Python && sudo docker build -t code-executor-python .
           "
 
       - name: Docker prune

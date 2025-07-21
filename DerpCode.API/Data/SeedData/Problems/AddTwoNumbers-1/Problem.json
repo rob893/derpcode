@@ -84,6 +84,15 @@
       "Image": "code-executor-rust",
       "DriverCode": "",
       "Answer": ""
+    },
+    {
+      "Id": 5,
+      "ProblemId": 1,
+      "Language": "Python",
+      "UITemplate": "",
+      "Image": "code-executor-python",
+      "DriverCode": "",
+      "Answer": ""
     }
   ]
 }

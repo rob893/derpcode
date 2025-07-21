@@ -1,0 +1,5 @@
+class Solution:
+    @staticmethod
+    def fizz_buzz(number):
+        # Your code here
+        pass

@@ -1,0 +1,138 @@
+import json
+import sys
+import time
+from typing import List, Dict, Any, Optional
+from solution import Solution
+
+
+class SubmissionResult:
+    def __init__(self):
+        self.pass_: bool = False
+        self.test_case_count: int = 0
+        self.passed_test_cases: int = 0
+        self.failed_test_cases: int = 0
+        self.error_message: str = ""
+        self.execution_time_in_ms: int = 0
+        self.test_case_results: List[Dict[str, Any]] = []
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "pass": self.pass_,
+            "testCaseCount": self.test_case_count,
+            "passedTestCases": self.passed_test_cases,
+            "failedTestCases": self.failed_test_cases,
+            "errorMessage": self.error_message,
+            "executionTimeInMs": self.execution_time_in_ms,
+            "testCaseResults": self.test_case_results
+        }
+
+
+class TestCaseResult:
+    def __init__(self, test_case_index: int, pass_: bool, error_message: Optional[str], 
+                 execution_time_in_ms: int, input_: Any, expected_output: Any, 
+                 actual_output: Any, is_hidden: bool = False):
+        self.test_case_index = test_case_index
+        self.pass_ = pass_
+        self.error_message = error_message
+        self.execution_time_in_ms = execution_time_in_ms
+        self.input_ = input_
+        self.expected_output = expected_output
+        self.actual_output = actual_output
+        self.is_hidden = is_hidden
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "testCaseIndex": self.test_case_index,
+            "pass": self.pass_,
+            "errorMessage": self.error_message,
+            "executionTimeInMs": self.execution_time_in_ms,
+            "input": self.input_,
+            "expectedOutput": self.expected_output,
+            "actualOutput": self.actual_output,
+            "isHidden": self.is_hidden
+        }
+
+
+def main():
+    if len(sys.argv) < 4:
+        print("Usage: python driver.py <inputFilePath> <expectedOutputFilePath> <resultFilePath>", file=sys.stderr)
+        sys.exit(1)
+
+    input_path = sys.argv[1]
+    expected_path = sys.argv[2]
+    result_path = sys.argv[3]
+
+    try:
+        with open(input_path, 'r') as f:
+            input_content = f.read()
+        with open(expected_path, 'r') as f:
+            expected_output = f.read()
+        
+        start_time = time.time()
+        results = run_tests(input_content, expected_output)
+        end_time = time.time()
+        results.execution_time_in_ms = int((end_time - start_time) * 1000)
+
+        with open(result_path, 'w') as f:
+            json.dump(results.to_dict(), f, indent=2)
+
+    except Exception as ex:
+        results = SubmissionResult()
+        results.error_message = str(ex)
+        
+        with open(result_path, 'w') as f:
+            json.dump(results.to_dict(), f, indent=2)
+        sys.exit(1)
+
+
+def run_tests(input_json_str: str, expected_output_json_str: str) -> SubmissionResult:
+    input_data = json.loads(input_json_str)
+    expected_output = json.loads(expected_output_json_str)
+    
+    test_case_count = len(input_data) // 2
+    passed_test_cases = 0
+    failed_test_cases = 0
+    test_case_results = []
+
+    for i in range(0, len(input_data), 2):
+        j = i // 2
+        a = input_data[i]
+        b = input_data[i + 1]
+        
+        test_case_start = time.time()
+        result = Solution.subtract(a, b)
+        test_case_end = time.time()
+        
+        expected = expected_output[j]
+        passed = result == expected
+        
+        test_case_result = TestCaseResult(
+            test_case_index=j,
+            pass_=passed,
+            error_message=None if passed else f"Expected {expected} but got {result}",
+            execution_time_in_ms=int((test_case_end - test_case_start) * 1000),
+            input_=[a, b],
+            expected_output=expected,
+            actual_output=result,
+            is_hidden=False
+        )
+        
+        test_case_results.append(test_case_result.to_dict())
+        
+        if passed:
+            passed_test_cases += 1
+        else:
+            failed_test_cases += 1
+
+    results = SubmissionResult()
+    results.test_case_count = test_case_count
+    results.passed_test_cases = passed_test_cases
+    results.failed_test_cases = failed_test_cases
+    results.pass_ = passed_test_cases == test_case_count
+    results.test_case_results = test_case_results
+    
+    return results
+
+
+if __name__ == "__main__":
+    main()

@@ -42,7 +42,7 @@
   ],
   "Drivers": [
     {
-      "Id": 9,
+      "Id": 11,
       "ProblemId": 3,
       "Language": "CSharp",
       "UITemplate": "",
@@ -51,7 +51,7 @@
       "Answer": ""
     },
     {
-      "Id": 10,
+      "Id": 12,
       "ProblemId": 3,
       "Language": "JavaScript",
       "UITemplate": "",
@@ -60,7 +60,7 @@
       "Answer": ""
     },
     {
-      "Id": 11,
+      "Id": 13,
       "ProblemId": 3,
       "Language": "Rust",
       "UITemplate": "",
@@ -69,11 +69,20 @@
       "Answer": ""
     },
     {
-      "Id": 12,
+      "Id": 14,
       "ProblemId": 3,
       "Language": "TypeScript",
       "UITemplate": "",
       "Image": "code-executor-typescript",
+      "DriverCode": "",
+      "Answer": ""
+    },
+    {
+      "Id": 15,
+      "ProblemId": 1,
+      "Language": "Python",
+      "UITemplate": "",
+      "Image": "code-executor-python",
       "DriverCode": "",
       "Answer": ""
     }

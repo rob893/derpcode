@@ -5,5 +5,6 @@ public enum LanguageType
     CSharp,
     JavaScript,
     TypeScript,
-    Rust
+    Rust,
+    Python
 }

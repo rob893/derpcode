@@ -1,0 +1,5 @@
+class Solution:
+    @staticmethod
+    def subtract(a, b):
+        # Your code here
+        pass
