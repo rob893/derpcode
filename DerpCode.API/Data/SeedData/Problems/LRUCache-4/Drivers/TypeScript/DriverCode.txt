@@ -1,0 +1,152 @@
+import * as fs from 'fs';
+import { LRUCache } from './solution';
+
+interface TestCaseResult {
+    testCaseIndex: number;
+    pass: boolean;
+    errorMessage: string | null;
+    executionTimeInMs: number;
+    input: any;
+    expectedOutput: any;
+    actualOutput: any;
+    isHidden: boolean;
+}
+
+interface SubmissionResult {
+    pass: boolean;
+    testCaseCount: number;
+    passedTestCases: number;
+    failedTestCases: number;
+    errorMessage: string;
+    executionTimeInMs: number;
+    testCaseResults: TestCaseResult[];
+}
+
+function main(): void {
+    const args = process.argv.slice(2);
+
+    if (args.length < 3) {
+        console.error('Usage: ts-node index.ts <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+        process.exit(1);
+    }
+
+    const [inputPath, expectedPath, resultPath] = args;
+
+    const result: SubmissionResult = {
+        pass: false,
+        testCaseCount: 0,
+        passedTestCases: 0,
+        failedTestCases: 0,
+        errorMessage: '',
+        executionTimeInMs: 0,
+        testCaseResults: []
+    };
+
+    try {
+        const input = fs.readFileSync(inputPath, 'utf8');
+        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+        const start = Date.now();
+
+        const testResults = runTests(input, expectedOutput);
+
+        result.pass = testResults.pass;
+        result.testCaseCount = testResults.testCaseCount;
+        result.passedTestCases = testResults.passedTestCases;
+        result.failedTestCases = testResults.failedTestCases;
+        result.testCaseResults = testResults.testCaseResults;
+        result.executionTimeInMs = Date.now() - start;
+
+    } catch (err: any) {
+        console.error('Error reading files:' + err.message);
+        result.errorMessage = err.message;
+    }
+
+    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr: string, expectedOutputJsonStr: string): SubmissionResult {
+    const input = JSON.parse(inputJsonStr);
+    const expectedOutput = JSON.parse(expectedOutputJsonStr);
+    
+    const operations: string[] = input[0];
+    const parameters: any[] = input[1];
+    
+    const testCaseCount = operations.length;
+    let passedTestCases = 0;
+    let failedTestCases = 0;
+    const testCaseResults: TestCaseResult[] = [];
+    const actualResults: any[] = [];
+
+    let cache: LRUCache | null = null;
+
+    for (let i = 0; i < testCaseCount; i++) {
+        const operation = operations[i];
+        const start = Date.now();
+        let result: any = null;
+
+        try {
+            if (operation === 'LRUCache') {
+                const capacity = parameters[i];
+                cache = new LRUCache(capacity);
+                result = null;
+            } else if (operation === 'get') {
+                const key = parameters[i][0];
+                result = cache!.get(key);
+            } else if (operation === 'put') {
+                const key = parameters[i][0];
+                const value = parameters[i][1];
+                cache!.put(key, value);
+                result = null;
+            }
+
+            actualResults.push(result);
+            
+            const expected = i < expectedOutput.length ? expectedOutput[i] : null;
+            const passed = (result === null && expected === null) || 
+                          (result !== null && expected !== null && result === expected);
+
+            testCaseResults.push({
+                testCaseIndex: i,
+                pass: passed,
+                errorMessage: passed ? null : `Expected ${expected} but got ${result}`,
+                executionTimeInMs: Date.now() - start,
+                input: { operation, parameters: i < parameters.length ? parameters[i] : null },
+                expectedOutput: expected,
+                actualOutput: result,
+                isHidden: false
+            });
+
+            if (passed) {
+                passedTestCases++;
+            } else {
+                failedTestCases++;
+            }
+        } catch (err: any) {
+            testCaseResults.push({
+                testCaseIndex: i,
+                pass: false,
+                errorMessage: err.message,
+                executionTimeInMs: Date.now() - start,
+                input: { operation, parameters: i < parameters.length ? parameters[i] : null },
+                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : null,
+                actualOutput: null,
+                isHidden: false
+            });
+            
+            failedTestCases++;
+        }
+    }
+
+    return {
+        testCaseCount,
+        passedTestCases,
+        failedTestCases,
+        pass: passedTestCases === testCaseCount,
+        errorMessage: '',
+        executionTimeInMs: 0,
+        testCaseResults
+    };
+}
+
+main();

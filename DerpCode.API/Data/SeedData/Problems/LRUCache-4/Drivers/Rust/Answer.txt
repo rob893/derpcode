@@ -1,0 +1,60 @@
+use std::collections::HashMap;
+
+pub struct LRUCache {
+    capacity: usize,
+    cache: HashMap<i32, i32>,
+    order: Vec<i32>,
+}
+
+impl LRUCache {
+    pub fn new(capacity: i32) -> Self {
+        LRUCache {
+            capacity: capacity as usize,
+            cache: HashMap::new(),
+            order: Vec::new(),
+        }
+    }
+    
+    pub fn get(&mut self, key: i32) -> i32 {
+        if let Some(&value) = self.cache.get(&key) {
+            // Move to front (most recently used)
+            if let Some(pos) = self.order.iter().position(|&x| x == key) {
+                self.order.remove(pos);
+            }
+            self.order.push(key);
+            value
+        } else {
+            -1
+        }
+    }
+    
+    pub fn put(&mut self, key: i32, value: i32) {
+        if self.cache.contains_key(&key) {
+            // Update existing key
+            self.cache.insert(key, value);
+            // Move to front
+            if let Some(pos) = self.order.iter().position(|&x| x == key) {
+                self.order.remove(pos);
+            }
+            self.order.push(key);
+        } else {
+            // Add new key
+            if self.cache.len() >= self.capacity {
+                // Remove least recently used
+                if let Some(lru_key) = self.order.first().cloned() {
+                    self.cache.remove(&lru_key);
+                    self.order.remove(0);
+                }
+            }
+            self.cache.insert(key, value);
+            self.order.push(key);
+        }
+    }
+}
+
+/*
+ * Your LRUCache object will be instantiated and called as such:
+ * let obj = LRUCache::new(capacity);
+ * let ret_1: i32 = obj.get(key);
+ * obj.put(key, value);
+ */

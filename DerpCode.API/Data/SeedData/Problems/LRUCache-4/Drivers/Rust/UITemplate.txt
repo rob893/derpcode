@@ -1,0 +1,28 @@
+pub struct LRUCache {
+    // Your fields here
+}
+
+impl LRUCache {
+    pub fn new(capacity: i32) -> Self {
+        // Your initialization here
+        LRUCache {
+            // Initialize your fields
+        }
+    }
+    
+    pub fn get(&mut self, key: i32) -> i32 {
+        // Your implementation here
+        -1
+    }
+    
+    pub fn put(&mut self, key: i32, value: i32) {
+        // Your implementation here
+    }
+}
+
+/*
+ * Your LRUCache object will be instantiated and called as such:
+ * let obj = LRUCache::new(capacity);
+ * let ret_1: i32 = obj.get(key);
+ * obj.put(key, value);
+ */

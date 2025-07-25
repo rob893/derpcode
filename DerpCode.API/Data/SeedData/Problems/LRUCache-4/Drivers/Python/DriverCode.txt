@@ -1,0 +1,125 @@
+import json
+import sys
+import time
+from collections import OrderedDict
+from solution import LRUCache
+
+def main():
+    if len(sys.argv) < 4:
+        print("Usage: python index.py <inputFilePath> <expectedOutputFilePath> <resultFilePath>", file=sys.stderr)
+        sys.exit(1)
+
+    input_path, expected_path, result_path = sys.argv[1:4]
+
+    result = {
+        'pass': False,
+        'testCaseCount': 0,
+        'passedTestCases': 0,
+        'failedTestCases': 0,
+        'errorMessage': '',
+        'executionTimeInMs': 0,
+        'testCaseResults': []
+    }
+
+    try:
+        with open(input_path, 'r') as f:
+            input_data = f.read()
+        with open(expected_path, 'r') as f:
+            expected_output = f.read()
+
+        start_time = time.time()
+
+        test_results = run_tests(input_data, expected_output)
+
+        result['pass'] = test_results['pass']
+        result['testCaseCount'] = test_results['testCaseCount']
+        result['passedTestCases'] = test_results['passedTestCases']
+        result['failedTestCases'] = test_results['failedTestCases']
+        result['testCaseResults'] = test_results['testCaseResults']
+        result['executionTimeInMs'] = int((time.time() - start_time) * 1000)
+
+    except Exception as err:
+        print(f"Error reading files: {err}", file=sys.stderr)
+        result['errorMessage'] = str(err)
+
+    with open(result_path, 'w') as f:
+        json.dump(result, f, indent=2)
+
+def run_tests(input_json_str, expected_output_json_str):
+    input_data = json.loads(input_json_str)
+    expected_output = json.loads(expected_output_json_str)
+    
+    operations = input_data[0]
+    parameters = input_data[1]
+    
+    test_case_count = len(operations)
+    passed_test_cases = 0
+    failed_test_cases = 0
+    test_case_results = []
+    actual_results = []
+
+    cache = None
+
+    for i in range(test_case_count):
+        operation = operations[i]
+        start_time = time.time()
+        result = None
+
+        try:
+            if operation == 'LRUCache':
+                capacity = parameters[i]
+                cache = LRUCache(capacity)
+                result = None
+            elif operation == 'get':
+                key = parameters[i][0]
+                result = cache.get(key)
+            elif operation == 'put':
+                key = parameters[i][0]
+                value = parameters[i][1]
+                cache.put(key, value)
+                result = None
+
+            actual_results.append(result)
+            
+            expected = expected_output[i] if i < len(expected_output) else None
+            passed = (result is None and expected is None) or (result is not None and expected is not None and result == expected)
+
+            test_case_results.append({
+                'testCaseIndex': i,
+                'pass': passed,
+                'errorMessage': None if passed else f"Expected {expected} but got {result}",
+                'executionTimeInMs': int((time.time() - start_time) * 1000),
+                'input': {'operation': operation, 'parameters': parameters[i] if i < len(parameters) else None},
+                'expectedOutput': expected,
+                'actualOutput': result,
+                'isHidden': False
+            })
+
+            if passed:
+                passed_test_cases += 1
+            else:
+                failed_test_cases += 1
+        except Exception as err:
+            test_case_results.append({
+                'testCaseIndex': i,
+                'pass': False,
+                'errorMessage': str(err),
+                'executionTimeInMs': int((time.time() - start_time) * 1000),
+                'input': {'operation': operation, 'parameters': parameters[i] if i < len(parameters) else None},
+                'expectedOutput': expected_output[i] if i < len(expected_output) else None,
+                'actualOutput': None,
+                'isHidden': False
+            })
+            
+            failed_test_cases += 1
+
+    return {
+        'testCaseCount': test_case_count,
+        'passedTestCases': passed_test_cases,
+        'failedTestCases': failed_test_cases,
+        'pass': passed_test_cases == test_case_count,
+        'testCaseResults': test_case_results
+    }
+
+if __name__ == "__main__":
+    main()

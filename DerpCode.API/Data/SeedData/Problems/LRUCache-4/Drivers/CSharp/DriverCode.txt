@@ -1,0 +1,198 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
+
+public class Program
+{
+    private class SubmissionResult
+    {
+        public bool Pass { get; set; }
+        public int TestCaseCount { get; set; }
+        public int PassedTestCases { get; set; }
+        public int FailedTestCases { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public long ExecutionTimeInMs { get; set; }
+        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
+    }
+
+    private class TestCaseResult
+    {
+        public int TestCaseIndex { get; set; }
+        public bool Pass { get; set; }
+        public string? ErrorMessage { get; set; }
+        public int ExecutionTimeInMs { get; set; }
+        public object? Input { get; set; }
+        public object? ExpectedOutput { get; set; }
+        public object? ActualOutput { get; set; }
+        public bool IsHidden { get; set; }
+    }
+
+    public static void Main(string[] args)
+    {
+        if (args.Length < 3)
+        {
+            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+            Environment.Exit(1);
+        }
+
+        string inputPath = args[0];
+        string expectedPath = args[1];
+        string resultPath = args[2];
+
+        try
+        {
+            string input = File.ReadAllText(inputPath);
+            string expectedOutput = File.ReadAllText(expectedPath);
+            var sw = Stopwatch.StartNew();
+
+            var results = RunTests(input, expectedOutput);
+            results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
+
+            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            File.WriteAllText(resultPath, asJson);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error reading files: {ex.Message}");
+
+            var results = new SubmissionResult
+            {
+                ErrorMessage = ex.Message,
+            };
+            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            File.WriteAllText(resultPath, asJson);
+            Environment.Exit(1);
+        }
+    }
+
+    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
+    {
+        // Parse and extract data before disposal
+        JsonElement operations, parameters, expectedOutput;
+        int testCaseCount;
+        
+        using (var inputDoc = JsonDocument.Parse(inputJsonStr))
+        using (var expectedDoc = JsonDocument.Parse(expectedOutputJsonStr))
+        {
+            operations = inputDoc.RootElement[0].Clone();
+            parameters = inputDoc.RootElement[1].Clone();
+            expectedOutput = expectedDoc.RootElement.Clone();
+            testCaseCount = operations.GetArrayLength();
+        }
+        
+        int passedTestCases = 0;
+        int failedTestCases = 0;
+        var testCaseResults = new List<TestCaseResult>();
+        var actualResults = new List<object?>();
+
+        LRUCache? cache = null;
+
+        for (int i = 0; i < testCaseCount; i++)
+        {
+            var operation = operations[i].GetString();
+            var testCaseSw = Stopwatch.StartNew();
+            object? result = null;
+            
+            try
+            {
+                if (operation == "LRUCache")
+                {
+                    var capacity = parameters[i].GetInt32();
+                    cache = new LRUCache(capacity);
+                    result = null;
+                }
+                else if (operation == "get")
+                {
+                    var key = parameters[i][0].GetInt32();
+                    result = cache!.Get(key);
+                }
+                else if (operation == "put")
+                {
+                    var key = parameters[i][0].GetInt32();
+                    var value = parameters[i][1].GetInt32();
+                    cache!.Put(key, value);
+                    result = null;
+                }
+                
+                testCaseSw.Stop();
+                actualResults.Add(result);
+                
+                object? expected = null;
+                if (i < expectedOutput.GetArrayLength())
+                {
+                    var expectedElement = expectedOutput[i];
+                    if (expectedElement.ValueKind == JsonValueKind.Number)
+                    {
+                        expected = expectedElement.GetInt32();
+                    }
+                    else if (expectedElement.ValueKind == JsonValueKind.Null)
+                    {
+                        expected = null;
+                    }
+                }
+                
+                bool passed = (result == null && expected == null) || 
+                             (result != null && expected != null && result.Equals(expected));
+
+                testCaseResults.Add(new TestCaseResult
+                {
+                    TestCaseIndex = i,
+                    Pass = passed,
+                    ErrorMessage = passed ? null : $"Expected {expected} but got {result}",
+                    ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
+                    Input = new { operation, parameters = i < parameters.GetArrayLength() ? (object?)parameters[i] : null },
+                    ExpectedOutput = expected,
+                    ActualOutput = result,
+                    IsHidden = false
+                });
+
+                if (passed)
+                {
+                    passedTestCases++;
+                }
+                else
+                {
+                    failedTestCases++;
+                }
+            }
+            catch (Exception ex)
+            {
+                testCaseSw.Stop();
+                testCaseResults.Add(new TestCaseResult
+                {
+                    TestCaseIndex = i,
+                    Pass = false,
+                    ErrorMessage = ex.Message,
+                    ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
+                    Input = new { operation, parameters = i < parameters.GetArrayLength() ? (object?)parameters[i] : null },
+                    ExpectedOutput = i < expectedOutput.GetArrayLength() ? (object?)expectedOutput[i] : null,
+                    ActualOutput = null,
+                    IsHidden = false
+                });
+                
+                failedTestCases++;
+            }
+        }
+
+        return new SubmissionResult
+        {
+            TestCaseCount = testCaseCount,
+            PassedTestCases = passedTestCases,
+            FailedTestCases = failedTestCases,
+            Pass = passedTestCases == testCaseCount,
+            TestCaseResults = testCaseResults
+        };
+    }
+}

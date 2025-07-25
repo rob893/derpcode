@@ -1,0 +1,100 @@
+using System;
+using System.Collections.Generic;
+
+public class LRUCache
+{
+    private readonly int capacity;
+    private readonly Dictionary<int, Node> cache;
+    private readonly Node head;
+    private readonly Node tail;
+
+    public LRUCache(int capacity)
+    {
+        this.capacity = capacity;
+        this.cache = new Dictionary<int, Node>();
+        
+        // Create dummy head and tail nodes
+        this.head = new Node(-1, -1);
+        this.tail = new Node(-1, -1);
+        this.head.Next = this.tail;
+        this.tail.Prev = this.head;
+    }
+
+    public int Get(int key)
+    {
+        if (this.cache.ContainsKey(key))
+        {
+            Node node = this.cache[key];
+            // Move to head since it was accessed
+            this.MoveToHead(node);
+            return node.Value;
+        }
+        return -1;
+    }
+
+    public void Put(int key, int value)
+    {
+        if (this.cache.ContainsKey(key))
+        {
+            // Update existing key
+            Node node = this.cache[key];
+            node.Value = value;
+            this.MoveToHead(node);
+        }
+        else
+        {
+            Node newNode = new Node(key, value);
+            
+            if (this.cache.Count >= this.capacity)
+            {
+                // Remove least recently used item
+                Node tailNode = this.RemoveTail();
+                this.cache.Remove(tailNode.Key);
+            }
+            
+            this.cache[key] = newNode;
+            this.AddToHead(newNode);
+        }
+    }
+
+    private class Node
+    {
+        public int Key { get; set; }
+        public int Value { get; set; }
+        public Node? Prev { get; set; }
+        public Node? Next { get; set; }
+
+        public Node(int key, int value)
+        {
+            this.Key = key;
+            this.Value = value;
+        }
+    }
+
+    private void AddToHead(Node node)
+    {
+        node.Prev = this.head;
+        node.Next = this.head.Next;
+        this.head.Next!.Prev = node;
+        this.head.Next = node;
+    }
+
+    private void RemoveNode(Node node)
+    {
+        node.Prev!.Next = node.Next;
+        node.Next!.Prev = node.Prev;
+    }
+
+    private void MoveToHead(Node node)
+    {
+        this.RemoveNode(node);
+        this.AddToHead(node);
+    }
+
+    private Node RemoveTail()
+    {
+        Node lastNode = this.tail.Prev!;
+        this.RemoveNode(lastNode);
+        return lastNode;
+    }
+}

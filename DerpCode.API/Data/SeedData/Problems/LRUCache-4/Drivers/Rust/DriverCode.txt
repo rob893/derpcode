@@ -1,0 +1,218 @@
+mod solution;
+use solution::LRUCache;
+
+use std::env;
+use std::fs;
+use std::time::Instant;
+use serde::Serialize;
+use serde_json::{Value, json};
+
+#[derive(Serialize)]
+struct SubmissionResult {
+    pass: bool,
+    #[serde(rename = "testCaseCount")]
+    test_case_count: usize,
+    #[serde(rename = "passedTestCases")]
+    passed_test_cases: usize,
+    #[serde(rename = "failedTestCases")]
+    failed_test_cases: usize,
+    #[serde(rename = "errorMessage")]
+    error_message: String,
+    #[serde(rename = "executionTimeInMs")]
+    execution_time_in_ms: u128,
+    #[serde(rename = "testCaseResults")]
+    test_case_results: Vec<TestCaseResult>,
+}
+
+#[derive(Serialize)]
+struct TestCaseResult {
+    #[serde(rename = "testCaseIndex")]
+    test_case_index: usize,
+    pass: bool,
+    #[serde(rename = "errorMessage")]
+    error_message: Option<String>,
+    #[serde(rename = "executionTimeInMs")]
+    execution_time_in_ms: u128,
+    input: Value,
+    #[serde(rename = "expectedOutput")]
+    expected_output: Value,
+    #[serde(rename = "actualOutput")]
+    actual_output: Value,
+    #[serde(rename = "isHidden")]
+    is_hidden: bool,
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    
+    if args.len() < 4 {
+        eprintln!("Usage: cargo run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+        std::process::exit(1);
+    }
+
+    let input_path = &args[1];
+    let expected_path = &args[2];
+    let result_path = &args[3];
+
+    let mut result = SubmissionResult {
+        pass: false,
+        test_case_count: 0,
+        passed_test_cases: 0,
+        failed_test_cases: 0,
+        error_message: String::new(),
+        execution_time_in_ms: 0,
+        test_case_results: Vec::new(),
+    };
+
+    match run_tests_wrapper(input_path, expected_path) {
+        Ok((test_results, execution_time)) => {
+            result.pass = test_results.pass;
+            result.test_case_count = test_results.test_case_count;
+            result.passed_test_cases = test_results.passed_test_cases;
+            result.failed_test_cases = test_results.failed_test_cases;
+            result.test_case_results = test_results.test_case_results;
+            result.execution_time_in_ms = execution_time;
+        }
+        Err(err) => {
+            eprintln!("Error reading files: {}", err);
+            result.error_message = err.to_string();
+        }
+    }
+
+    let json = serde_json::to_string_pretty(&result).unwrap();
+    fs::write(result_path, json).unwrap();
+}
+
+fn run_tests_wrapper(input_path: &str, expected_path: &str) -> Result<(SubmissionResult, u128), Box<dyn std::error::Error>> {
+    let input = fs::read_to_string(input_path)?;
+    let expected_output = fs::read_to_string(expected_path)?;
+    
+    let start = Instant::now();
+    let test_results = run_tests(&input, &expected_output)?;
+    let execution_time = start.elapsed().as_millis();
+    
+    Ok((test_results, execution_time))
+}
+
+fn run_tests(input_json_str: &str, expected_output_json_str: &str) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
+    let input: Vec<Value> = serde_json::from_str(input_json_str)?;
+    let expected_output: Vec<Value> = serde_json::from_str(expected_output_json_str)?;
+    
+    let operations: Vec<String> = serde_json::from_value(input[0].clone())?;
+    let parameters = &input[1];
+    
+    let test_case_count = operations.len();
+    let mut passed_test_cases = 0;
+    let mut failed_test_cases = 0;
+    let mut test_case_results = Vec::new();
+
+    let mut cache: Option<LRUCache> = None;
+
+    for i in 0..test_case_count {
+        let operation = &operations[i];
+        let test_case_start = Instant::now();
+        
+        let result: Result<Option<i32>, String> = (|| {
+            match operation.as_str() {
+                "LRUCache" => {
+                    let capacity = parameters[i].as_i64().unwrap() as i32;
+                    cache = Some(LRUCache::new(capacity));
+                    Ok(None)
+                }
+                "get" => {
+                    let key = parameters[i][0].as_i64().unwrap() as i32;
+                    Ok(Some(cache.as_mut().unwrap().get(key)))
+                }
+                "put" => {
+                    let key = parameters[i][0].as_i64().unwrap() as i32;
+                    let value = parameters[i][1].as_i64().unwrap() as i32;
+                    cache.as_mut().unwrap().put(key, value);
+                    Ok(None)
+                }
+                _ => Err("Unknown operation".to_string())
+            }
+        })();
+
+        let test_case_time = test_case_start.elapsed().as_millis();
+
+        match result {
+            Ok(actual_output) => {
+                let expected = if i < expected_output.len() {
+                    &expected_output[i]
+                } else {
+                    &Value::Null
+                };
+
+                let actual_value = match actual_output {
+                    Some(val) => json!(val),
+                    None => Value::Null,
+                };
+
+                let passed = actual_value == *expected;
+
+                test_case_results.push(TestCaseResult {
+                    test_case_index: i,
+                    pass: passed,
+                    error_message: if passed {
+                        None
+                    } else {
+                        Some(format!("Expected {} but got {}", expected, actual_value))
+                    },
+                    execution_time_in_ms: test_case_time,
+                    input: json!({
+                        "operation": operation,
+                        "parameters": if i < parameters.as_array().unwrap().len() {
+                            parameters[i].clone()
+                        } else {
+                            Value::Null
+                        }
+                    }),
+                    expected_output: expected.clone(),
+                    actual_output: actual_value,
+                    is_hidden: false,
+                });
+
+                if passed {
+                    passed_test_cases += 1;
+                } else {
+                    failed_test_cases += 1;
+                }
+            }
+            Err(err) => {
+                test_case_results.push(TestCaseResult {
+                    test_case_index: i,
+                    pass: false,
+                    error_message: Some(err),
+                    execution_time_in_ms: test_case_time,
+                    input: json!({
+                        "operation": operation,
+                        "parameters": if i < parameters.as_array().unwrap().len() {
+                            parameters[i].clone()
+                        } else {
+                            Value::Null
+                        }
+                    }),
+                    expected_output: if i < expected_output.len() {
+                        expected_output[i].clone()
+                    } else {
+                        Value::Null
+                    },
+                    actual_output: Value::Null,
+                    is_hidden: false,
+                });
+
+                failed_test_cases += 1;
+            }
+        }
+    }
+
+    Ok(SubmissionResult {
+        test_case_count,
+        passed_test_cases,
+        failed_test_cases,
+        pass: passed_test_cases == test_case_count,
+        error_message: String::new(),
+        execution_time_in_ms: 0,
+        test_case_results,
+    })
+}

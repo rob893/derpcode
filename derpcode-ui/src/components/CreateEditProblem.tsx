@@ -704,6 +704,53 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                 </div>
               ))}
             </div>
+
+            {/* Display failing test cases for each failed driver validation */}
+            {validationResult && !validationResult.isValid && (
+              <div className="mt-4 space-y-4">
+                {validationResult.driverValidations
+                  .filter(dv => !dv.isValid && dv.submissionResult?.testCaseResults?.length > 0)
+                  .map((dv, driverIndex) => {
+                    const failingTestCases = dv.submissionResult.testCaseResults.filter(tc => !tc.pass);
+                    if (failingTestCases.length === 0) return null;
+
+                    return (
+                      <div key={driverIndex} className="bg-danger/5 border border-danger/10 rounded-lg p-4">
+                        <h4 className="text-md font-semibold text-danger mb-3">{dv.language} - Failing Test Cases</h4>
+                        <div className="space-y-2">
+                          {failingTestCases.map((testCase, tcIndex) => (
+                            <div key={tcIndex} className="bg-danger/5 border border-danger/20 rounded p-3 text-sm">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div>
+                                  <span className="font-medium text-danger">Test Case {testCase.id}:</span>
+                                  <div className="text-default-600 mt-1">
+                                    <strong>Input:</strong> {JSON.stringify(testCase.input)}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-default-600">
+                                    <strong>Expected:</strong> {JSON.stringify(testCase.expectedOutput)}
+                                  </div>
+                                  <div className="text-default-600 mt-1">
+                                    <strong>Actual:</strong> {JSON.stringify(testCase.actualOutput)}
+                                  </div>
+                                </div>
+                                <div>
+                                  {testCase.errorMessage && (
+                                    <div className="text-danger">
+                                      <strong>Error:</strong> {testCase.errorMessage}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </CardBody>
         </Card>
       )}
