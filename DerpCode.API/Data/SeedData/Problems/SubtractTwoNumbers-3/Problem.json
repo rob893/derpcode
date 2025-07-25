@@ -21,19 +21,9 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [
-    4,
-    2
-  ],
-  "Input": [
-    5,
-    1,
-    6,
-    4
-  ],
-  "Hints": [
-    "Use the \u0027-\u0027 operator"
-  ],
+  "ExpectedOutput": [4, 2],
+  "Input": [5, 1, 6, 4],
+  "Hints": ["Use the \u0027-\u0027 operator"],
   "Tags": [
     {
       "Id": 1,
@@ -83,6 +73,15 @@
       "Language": "Python",
       "UITemplate": "",
       "Image": "code-executor-python",
+      "DriverCode": "",
+      "Answer": ""
+    },
+    {
+      "Id": 21,
+      "ProblemId": 3,
+      "Language": "Java",
+      "UITemplate": "",
+      "Image": "code-executor-java",
       "DriverCode": "",
       "Answer": ""
     }

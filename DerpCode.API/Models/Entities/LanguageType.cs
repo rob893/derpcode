@@ -6,5 +6,6 @@ public enum LanguageType
     JavaScript,
     TypeScript,
     Rust,
-    Python
+    Python,
+    Java
 }

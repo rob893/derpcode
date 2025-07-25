@@ -38,7 +38,8 @@ export enum Language {
   JavaScript = 'JavaScript',
   TypeScript = 'TypeScript',
   Rust = 'Rust',
-  Python = 'Python'
+  Python = 'Python',
+  Java = 'Java'
 }
 
 export enum ProblemDifficulty {

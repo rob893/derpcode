@@ -45,6 +45,8 @@ export const CodeEditor = ({
         return 'rust';
       case Language.Python:
         return 'python';
+      case Language.Java:
+        return 'java';
       default:
         return 'javascript';
     }

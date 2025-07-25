@@ -1,0 +1,165 @@
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
+
+public class Program {
+    private static class SubmissionResult {
+        private boolean pass;
+        @SerializedName("testCaseCount")
+        private int testCaseCount;
+        @SerializedName("passedTestCases")
+        private int passedTestCases;
+        @SerializedName("failedTestCases")
+        private int failedTestCases;
+        @SerializedName("errorMessage")
+        private String errorMessage = "";
+        @SerializedName("executionTimeInMs")
+        private long executionTimeInMs;
+        @SerializedName("testCaseResults")
+        private List<TestCaseResult> testCaseResults = new ArrayList<>();
+
+        // Getters and setters
+        public boolean isPass() { return pass; }
+        public void setPass(boolean pass) { this.pass = pass; }
+        public int getTestCaseCount() { return testCaseCount; }
+        public void setTestCaseCount(int testCaseCount) { this.testCaseCount = testCaseCount; }
+        public int getPassedTestCases() { return passedTestCases; }
+        public void setPassedTestCases(int passedTestCases) { this.passedTestCases = passedTestCases; }
+        public int getFailedTestCases() { return failedTestCases; }
+        public void setFailedTestCases(int failedTestCases) { this.failedTestCases = failedTestCases; }
+        public String getErrorMessage() { return errorMessage; }
+        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+        public long getExecutionTimeInMs() { return executionTimeInMs; }
+        public void setExecutionTimeInMs(long executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
+        public List<TestCaseResult> getTestCaseResults() { return testCaseResults; }
+        public void setTestCaseResults(List<TestCaseResult> testCaseResults) { this.testCaseResults = testCaseResults; }
+    }
+
+    private static class TestCaseResult {
+        @SerializedName("testCaseIndex")
+        private int testCaseIndex;
+        private boolean pass;
+        @SerializedName("errorMessage")
+        private String errorMessage;
+        @SerializedName("executionTimeInMs")
+        private int executionTimeInMs;
+        private Object input;
+        @SerializedName("expectedOutput")
+        private Object expectedOutput;
+        @SerializedName("actualOutput")
+        private Object actualOutput;
+        @SerializedName("isHidden")
+        private boolean isHidden;
+
+        // Getters and setters
+        public int getTestCaseIndex() { return testCaseIndex; }
+        public void setTestCaseIndex(int testCaseIndex) { this.testCaseIndex = testCaseIndex; }
+        public boolean isPass() { return pass; }
+        public void setPass(boolean pass) { this.pass = pass; }
+        public String getErrorMessage() { return errorMessage; }
+        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+        public int getExecutionTimeInMs() { return executionTimeInMs; }
+        public void setExecutionTimeInMs(int executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
+        public Object getInput() { return input; }
+        public void setInput(Object input) { this.input = input; }
+        public Object getExpectedOutput() { return expectedOutput; }
+        public void setExpectedOutput(Object expectedOutput) { this.expectedOutput = expectedOutput; }
+        public Object getActualOutput() { return actualOutput; }
+        public void setActualOutput(Object actualOutput) { this.actualOutput = actualOutput; }
+        public boolean isHidden() { return isHidden; }
+        public void setHidden(boolean hidden) { isHidden = hidden; }
+    }
+
+    public static void main(String[] args) {
+        if (args.length < 3) {
+            System.err.println("Usage: java Program <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+            System.exit(1);
+        }
+
+        String inputPath = args[0];
+        String expectedPath = args[1];
+        String resultPath = args[2];
+
+        try {
+            String input = Files.readString(Paths.get(inputPath));
+            String expectedOutput = Files.readString(Paths.get(expectedPath));
+            long startTime = System.currentTimeMillis();
+
+            SubmissionResult results = runTests(input, expectedOutput);
+            results.setExecutionTimeInMs(System.currentTimeMillis() - startTime);
+
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
+
+            Files.writeString(Paths.get(resultPath), gson.toJson(results));
+        } catch (Exception ex) {
+            System.err.println("Error reading files: " + ex.getMessage());
+
+            SubmissionResult results = new SubmissionResult();
+            results.setErrorMessage(ex.getMessage());
+
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
+
+            try {
+                Files.writeString(Paths.get(resultPath), gson.toJson(results));
+            } catch (IOException e) {
+                System.err.println("Failed to write error result: " + e.getMessage());
+            }
+            System.exit(1);
+        }
+    }
+
+    private static SubmissionResult runTests(String inputJsonStr, String expectedOutputJsonStr) {
+        Gson gson = new Gson();
+        int[] input = gson.fromJson(inputJsonStr, int[].class);
+        String[] expectedOutput = gson.fromJson(expectedOutputJsonStr, String[].class);
+        
+        int testCaseCount = input.length;
+        int passedTestCases = 0;
+        int failedTestCases = 0;
+        List<TestCaseResult> testCaseResults = new ArrayList<>();
+
+        for (int i = 0; i < input.length; i++) {
+            int number = input[i];
+            
+            long testCaseStart = System.currentTimeMillis();
+            String result = Solution.fizzBuzz(number);
+            long testCaseEnd = System.currentTimeMillis();
+            
+            String expected = expectedOutput[i];
+            boolean passed = Objects.equals(result, expected);
+
+            TestCaseResult testCaseResult = new TestCaseResult();
+            testCaseResult.setTestCaseIndex(i);
+            testCaseResult.setPass(passed);
+            testCaseResult.setErrorMessage(passed ? null : "Expected '" + expected + "' but got '" + result + "'");
+            testCaseResult.setExecutionTimeInMs((int)(testCaseEnd - testCaseStart));
+            testCaseResult.setInput(number);
+            testCaseResult.setExpectedOutput(expected);
+            testCaseResult.setActualOutput(result);
+            testCaseResult.setHidden(false);
+            
+            testCaseResults.add(testCaseResult);
+
+            if (passed) {
+                passedTestCases++;
+            } else {
+                failedTestCases++;
+            }
+        }
+
+        SubmissionResult submissionResult = new SubmissionResult();
+        submissionResult.setTestCaseCount(testCaseCount);
+        submissionResult.setPassedTestCases(passedTestCases);
+        submissionResult.setFailedTestCases(failedTestCases);
+        submissionResult.setPass(passedTestCases == testCaseCount);
+        submissionResult.setTestCaseResults(testCaseResults);
+        
+        return submissionResult;
+    }
+}

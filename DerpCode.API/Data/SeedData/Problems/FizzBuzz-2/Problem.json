@@ -21,23 +21,9 @@
     ]
   },
   "Difficulty": "Easy",
-  "ExpectedOutput": [
-    "buzz",
-    "",
-    "fizz",
-    "",
-    "fizzbuzz"
-  ],
-  "Input": [
-    5,
-    1,
-    3,
-    4,
-    15
-  ],
-  "Hints": [
-    "Use the modulo operator \u0027%\u0027 to check divisibility."
-  ],
+  "ExpectedOutput": ["buzz", "", "fizz", "", "fizzbuzz"],
+  "Input": [5, 1, 3, 4, 15],
+  "Hints": ["Use the modulo operator \u0027%\u0027 to check divisibility."],
   "Tags": [
     {
       "Id": 1,
@@ -87,6 +73,15 @@
       "Language": "Python",
       "UITemplate": "",
       "Image": "code-executor-python",
+      "DriverCode": "",
+      "Answer": ""
+    },
+    {
+      "Id": 20,
+      "ProblemId": 2,
+      "Language": "Java",
+      "UITemplate": "",
+      "Image": "code-executor-java",
       "DriverCode": "",
       "Answer": ""
     }
