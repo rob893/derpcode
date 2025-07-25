@@ -9,8 +9,8 @@
     "Content": "",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-07-20T06:01:58.149605+00:00",
-    "UpdatedAt": "2025-07-21T01:55:37.612126+00:00",
+    "CreatedAt": "2025-07-25T02:12:36.816403+00:00",
+    "UpdatedAt": "2025-07-25T02:12:36.816404+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -21,9 +21,19 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [4, 2],
-  "Input": [5, 1, 6, 4],
-  "Hints": ["Use the \u0027-\u0027 operator"],
+  "ExpectedOutput": [
+    4,
+    2
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027-\u0027 operator"
+  ],
   "Tags": [
     {
       "Id": 1,
@@ -32,7 +42,7 @@
   ],
   "Drivers": [
     {
-      "Id": 9,
+      "Id": 13,
       "ProblemId": 3,
       "Language": "CSharp",
       "UITemplate": "",
@@ -41,7 +51,7 @@
       "Answer": ""
     },
     {
-      "Id": 10,
+      "Id": 14,
       "ProblemId": 3,
       "Language": "JavaScript",
       "UITemplate": "",
@@ -50,7 +60,7 @@
       "Answer": ""
     },
     {
-      "Id": 11,
+      "Id": 15,
       "ProblemId": 3,
       "Language": "Rust",
       "UITemplate": "",
@@ -59,7 +69,7 @@
       "Answer": ""
     },
     {
-      "Id": 12,
+      "Id": 16,
       "ProblemId": 3,
       "Language": "TypeScript",
       "UITemplate": "",
@@ -68,7 +78,7 @@
       "Answer": ""
     },
     {
-      "Id": 19,
+      "Id": 17,
       "ProblemId": 3,
       "Language": "Python",
       "UITemplate": "",
@@ -77,7 +87,7 @@
       "Answer": ""
     },
     {
-      "Id": 21,
+      "Id": 18,
       "ProblemId": 3,
       "Language": "Java",
       "UITemplate": "",
