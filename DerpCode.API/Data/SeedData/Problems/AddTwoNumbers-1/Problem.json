@@ -9,8 +9,8 @@
     "Content": "",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-07-20T06:01:57.773043+00:00",
-    "UpdatedAt": "2025-07-21T01:55:37.583988+00:00",
+    "CreatedAt": "2025-07-25T02:12:36.376411+00:00",
+    "UpdatedAt": "2025-07-25T02:12:36.376411+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -25,9 +25,19 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [6, 10],
-  "Input": [5, 1, 6, 4],
-  "Hints": ["Use the \u0027\u002B\u0027 operator to add two numbers.."],
+  "ExpectedOutput": [
+    6,
+    10
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027\u002B\u0027 operator to add two numbers.."
+  ],
   "Tags": [
     {
       "Id": 1,
@@ -76,7 +86,7 @@
       "Answer": ""
     },
     {
-      "Id": 18,
+      "Id": 5,
       "ProblemId": 1,
       "Language": "Python",
       "UITemplate": "",
@@ -85,7 +95,7 @@
       "Answer": ""
     },
     {
-      "Id": 19,
+      "Id": 6,
       "ProblemId": 1,
       "Language": "Java",
       "UITemplate": "",
