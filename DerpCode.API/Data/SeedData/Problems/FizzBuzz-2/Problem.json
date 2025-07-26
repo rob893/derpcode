@@ -1,16 +1,16 @@
 {
   "Id": 2,
   "Name": "FizzBuzz",
-  "Description": "Given a number, return \u0022fizz\u0022 if it is divisible by 3, \u0022buzz\u0022 if it is divisible by 5, and \u0022fizzbuzz\u0022 if it is divisible by both.",
+  "Description": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Description.md",
   "ExplanationArticle": {
     "Id": 2,
     "UserId": 1,
     "Title": "FizzBuzz Explanation",
-    "Content": "",
+    "Content": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-07-25T02:12:36.630277+00:00",
-    "UpdatedAt": "2025-07-25T02:12:36.630278+00:00",
+    "CreatedAt": "2025-07-25T01:56:33.477136+00:00",
+    "UpdatedAt": "2025-07-26T17:32:31.907323+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -49,55 +49,55 @@
       "Id": 7,
       "ProblemId": 2,
       "Language": "TypeScript",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\TypeScript\\UITemplate.txt",
       "Image": "code-executor-typescript",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\TypeScript\\DriverCode.txt",
+      "Answer": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\TypeScript\\Answer.txt"
     },
     {
       "Id": 8,
       "ProblemId": 2,
       "Language": "CSharp",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\CSharp\\UITemplate.txt",
       "Image": "code-executor-csharp",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\CSharp\\DriverCode.txt",
+      "Answer": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\CSharp\\Answer.txt"
     },
     {
       "Id": 9,
       "ProblemId": 2,
       "Language": "JavaScript",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\JavaScript\\UITemplate.txt",
       "Image": "code-executor-javascript",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\JavaScript\\DriverCode.txt",
+      "Answer": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\JavaScript\\Answer.txt"
     },
     {
       "Id": 10,
       "ProblemId": 2,
       "Language": "Rust",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Rust\\UITemplate.txt",
       "Image": "code-executor-rust",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Rust\\DriverCode.txt",
+      "Answer": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Rust\\Answer.txt"
     },
     {
       "Id": 11,
       "ProblemId": 2,
       "Language": "Python",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Python\\UITemplate.txt",
       "Image": "code-executor-python",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Python\\DriverCode.txt",
+      "Answer": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Python\\Answer.txt"
     },
     {
       "Id": 12,
       "ProblemId": 2,
       "Language": "Java",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Java\\UITemplate.txt",
       "Image": "code-executor-java",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Java\\DriverCode.txt",
+      "Answer": "DerpCode.API\\Data\\SeedData\\Problems\\FizzBuzz-2\\Drivers\\Java\\Answer.txt"
     }
   ]
 }
