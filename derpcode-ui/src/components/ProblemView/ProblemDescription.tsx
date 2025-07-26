@@ -254,7 +254,14 @@ export const ProblemDescription = ({
 
           <Tab key="explanation" title="Explanation">
             <div className="space-y-4 mt-4">
-              {problem.explanationArticle ? (
+              {!user ? (
+                <div className="text-center py-8">
+                  <p className="text-default-500 text-lg">Sign In Required</p>
+                  <p className="text-default-400 text-sm mt-2">
+                    You must be logged in to view the explanation for this problem.
+                  </p>
+                </div>
+              ) : problem.explanationArticle ? (
                 <div className="space-y-8">
                   <div>
                     <MarkdownRenderer content={problem.explanationArticle.content} />
@@ -280,12 +287,21 @@ export const ProblemDescription = ({
 
           <Tab key="solutions" title="Solutions">
             <div className="space-y-4 mt-4">
-              <div className="text-center py-8">
-                <p className="text-default-500 text-lg">Coming Soon</p>
-                <p className="text-default-400 text-sm mt-2">
-                  Sample solutions in different programming languages will be available here.
-                </p>
-              </div>
+              {!user ? (
+                <div className="text-center py-8">
+                  <p className="text-default-500 text-lg">Sign In Required</p>
+                  <p className="text-default-400 text-sm mt-2">
+                    You must be logged in to view solutions for this problem.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-default-500 text-lg">Coming Soon</p>
+                  <p className="text-default-400 text-sm mt-2">
+                    Sample solutions in different programming languages will be available here.
+                  </p>
+                </div>
+              )}
             </div>
           </Tab>
 
