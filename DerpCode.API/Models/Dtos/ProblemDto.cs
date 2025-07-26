@@ -37,10 +37,10 @@ public sealed record ProblemDto : IIdentifiable<int>
             Name = problem.Name,
             Description = problem.Description,
             Difficulty = problem.Difficulty,
-            ExpectedOutput = problem.ExpectedOutput,
-            ExplanationArticle = isCurrentUserAdmin || isCurrentUserPremium ? ArticleDto.FromEntity(problem.ExplanationArticle) : null,
+            ExpectedOutput = isCurrentUserAdmin || isCurrentUserPremium ? problem.ExpectedOutput : [],
+            ExplanationArticle = ArticleDto.FromEntity(problem.ExplanationArticle),
             Hints = [.. problem.Hints],
-            Input = problem.Input,
+            Input = isCurrentUserAdmin || isCurrentUserPremium ? problem.Input : [],
             Tags = [.. problem.Tags.Select(TagDto.FromEntity)],
             Drivers = [.. problem.Drivers.Select(x => ProblemDriverDto.FromEntity(x, isCurrentUserAdmin))]
         };

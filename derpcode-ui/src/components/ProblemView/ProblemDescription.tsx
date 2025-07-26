@@ -1,13 +1,6 @@
 import { useState } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Divider, Code as CodeBlock, Tabs, Tab } from '@heroui/react';
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  PencilIcon,
-  TrashIcon,
-  DocumentDuplicateIcon,
-  LockClosedIcon
-} from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../../types/models';
 import type { Problem, ProblemSubmission } from '../../types/models';
 import type { User } from '../../types/auth';
@@ -154,13 +147,43 @@ export const ProblemDescription = ({
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-foreground">Input</h3>
-                  <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.input)}</CodeBlock>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-semibold text-foreground">Input</h3>
+                  </div>
+                  {hasPremiumUserRole(user) ? (
+                    <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.input)}</CodeBlock>
+                  ) : (
+                    <div className="relative">
+                      <CodeBlock className="w-full overflow-x-auto filter blur-sm">
+                        {formatValue(problem.input)}
+                      </CodeBlock>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                        <div className="text-center">
+                          <p className="text-warning font-medium">Premium Feature</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-foreground">Expected Output</h3>
-                  <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.expectedOutput)}</CodeBlock>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-semibold text-foreground">Expected Output</h3>
+                  </div>
+                  {hasPremiumUserRole(user) ? (
+                    <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.expectedOutput)}</CodeBlock>
+                  ) : (
+                    <div className="relative">
+                      <CodeBlock className="w-full overflow-x-auto filter blur-sm">
+                        {formatValue(problem.expectedOutput)}
+                      </CodeBlock>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                        <div className="text-center">
+                          <p className="text-warning font-medium">Premium Feature</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {problem.hints && problem.hints.length > 0 && (
@@ -231,53 +254,25 @@ export const ProblemDescription = ({
 
           <Tab key="explanation" title="Explanation">
             <div className="space-y-4 mt-4">
-              {hasPremiumUserRole(user) ? (
-                // Premium user - show explanation
-                problem.explanationArticle ? (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2 text-foreground">{problem.explanationArticle.title}</h3>
-                      <MarkdownRenderer content={problem.explanationArticle.content} />
-                    </div>
-
-                    <Divider />
-
-                    {/* Article Comments Section */}
-                    <div>
-                      <ArticleComments articleId={problem.explanationArticle.id} user={user} />
-                    </div>
+              {problem.explanationArticle ? (
+                <div className="space-y-8">
+                  <div>
+                    <MarkdownRenderer content={problem.explanationArticle.content} />
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-default-500 text-lg">No Explanation Available</p>
-                    <p className="text-default-400 text-sm mt-2">
-                      The author hasn't provided an explanation for this problem yet.
-                    </p>
+
+                  <Divider />
+
+                  {/* Article Comments Section */}
+                  <div>
+                    <ArticleComments articleId={problem.explanationArticle.id} user={user} />
                   </div>
-                )
+                </div>
               ) : (
-                // Non-premium user - show locked content
-                <div className="text-center py-12">
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="bg-warning-100 dark:bg-warning-900/20 p-4 rounded-full">
-                      <LockClosedIcon className="w-12 h-12 text-warning-600 dark:text-warning-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground">Premium Feature</h3>
-                    <p className="text-default-600 text-center max-w-md">
-                      Solution explanations are available for premium subscribers only.
-                    </p>
-                    <Button
-                      color="primary"
-                      size="lg"
-                      className="mt-4"
-                      onPress={() => {
-                        // TODO: Navigate to subscription page or open subscription modal
-                        console.log('Navigate to subscription');
-                      }}
-                    >
-                      Subscribe Now
-                    </Button>
-                  </div>
+                <div className="text-center py-8">
+                  <p className="text-default-500 text-lg">No Explanation Available</p>
+                  <p className="text-default-400 text-sm mt-2">
+                    The author hasn't provided an explanation for this problem yet.
+                  </p>
                 </div>
               )}
             </div>
