@@ -76,6 +76,7 @@ public sealed partial class ProblemSeedDataService : IProblemSeedDataService
     {
         var problemJsonPath = this.fileSystemService.CombinePaths(problemDirectory, "Problem.json");
         var explanationPath = this.fileSystemService.CombinePaths(problemDirectory, "Explanation.md");
+        var descriptionPath = this.fileSystemService.CombinePaths(problemDirectory, "Description.md");
         var driversPath = this.fileSystemService.CombinePaths(problemDirectory, "Drivers");
 
         if (!this.fileSystemService.FileExists(problemJsonPath))
@@ -101,6 +102,14 @@ public sealed partial class ProblemSeedDataService : IProblemSeedDataService
 
         var explanationContent = await this.fileSystemService.ReadAllTextAsync(explanationPath, cancellationToken);
         problem.ExplanationArticle.Content = explanationContent;
+
+        if (!this.fileSystemService.FileExists(descriptionPath))
+        {
+            throw new InvalidOperationException($"No file for ${descriptionPath}. Problems must have a description.");
+        }
+
+        var descriptionContent = await this.fileSystemService.ReadAllTextAsync(descriptionPath, cancellationToken);
+        problem.Description = descriptionContent;
 
         if (!this.fileSystemService.DirectoryExists(driversPath))
         {
@@ -201,18 +210,28 @@ public sealed partial class ProblemSeedDataService : IProblemSeedDataService
         {
             var driverPath = this.fileSystemService.CombinePaths(problemPath, "Drivers", driver.Language.ToString());
 
-            seedDataFiles[this.fileSystemService.CombinePaths(driverPath, "Answer.txt")] = driver.Answer;
-            seedDataFiles[this.fileSystemService.CombinePaths(driverPath, "DriverCode.txt")] = driver.DriverCode;
-            seedDataFiles[this.fileSystemService.CombinePaths(driverPath, "UITemplate.txt")] = driver.UITemplate;
+            var answerPath = this.fileSystemService.CombinePaths(driverPath, "Answer.txt");
+            var driverCodePath = this.fileSystemService.CombinePaths(driverPath, "DriverCode.txt");
+            var uiTemplatePath = this.fileSystemService.CombinePaths(driverPath, "UITemplate.txt");
 
-            driver.Answer = string.Empty;
-            driver.DriverCode = string.Empty;
-            driver.UITemplate = string.Empty;
+            seedDataFiles[answerPath] = driver.Answer;
+            seedDataFiles[driverCodePath] = driver.DriverCode;
+            seedDataFiles[uiTemplatePath] = driver.UITemplate;
+
+            driver.Answer = answerPath;
+            driver.DriverCode = driverCodePath;
+            driver.UITemplate = uiTemplatePath;
         }
 
-        seedDataFiles[this.fileSystemService.CombinePaths(problemPath, "Explanation.md")] = problem.ExplanationArticle.Content;
+        var explanationPath = this.fileSystemService.CombinePaths(problemPath, "Explanation.md");
+        seedDataFiles[explanationPath] = problem.ExplanationArticle.Content;
 
-        problem.ExplanationArticle.Content = string.Empty;
+        problem.ExplanationArticle.Content = explanationPath;
+
+        var descriptionPath = this.fileSystemService.CombinePaths(problemPath, "Description.md");
+        seedDataFiles[descriptionPath] = problem.Description;
+
+        problem.Description = descriptionPath;
 
         seedDataFiles[this.fileSystemService.CombinePaths(problemPath, "Problem.json")] = ProblemDto.FromEntity(problem, true, true).ToJson(jsonOptions);
 

@@ -1,7 +1,7 @@
 {
   "Id": 1,
   "Name": "Add Two Numbers",
-  "Description": "Given two numbers, return their sum. Adding some more stuff.",
+  "Description": "",
   "ExplanationArticle": {
     "Id": 1,
     "UserId": 1,
@@ -25,19 +25,9 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [
-    6,
-    10
-  ],
-  "Input": [
-    5,
-    1,
-    6,
-    4
-  ],
-  "Hints": [
-    "Use the \u0027\u002B\u0027 operator to add two numbers.."
-  ],
+  "ExpectedOutput": [6, 10],
+  "Input": [5, 1, 6, 4],
+  "Hints": ["Use the \u0027\u002B\u0027 operator to add two numbers.."],
   "Tags": [
     {
       "Id": 1,

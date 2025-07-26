@@ -1,7 +1,7 @@
 {
   "Id": 3,
   "Name": "Subtract Two Numbers",
-  "Description": "Given two numbers, return their difference.",
+  "Description": "",
   "ExplanationArticle": {
     "Id": 3,
     "UserId": 1,
@@ -21,19 +21,9 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [
-    4,
-    2
-  ],
-  "Input": [
-    5,
-    1,
-    6,
-    4
-  ],
-  "Hints": [
-    "Use the \u0027-\u0027 operator"
-  ],
+  "ExpectedOutput": [4, 2],
+  "Input": [5, 1, 6, 4],
+  "Hints": ["Use the \u0027-\u0027 operator"],
   "Tags": [
     {
       "Id": 1,
