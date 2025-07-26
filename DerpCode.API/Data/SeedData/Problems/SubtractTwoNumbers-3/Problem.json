@@ -1,16 +1,16 @@
 {
   "Id": 3,
   "Name": "Subtract Two Numbers",
-  "Description": "",
+  "Description": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Description.md",
   "ExplanationArticle": {
     "Id": 3,
     "UserId": 1,
     "Title": "Subtract Two Numbers Explanation",
-    "Content": "",
+    "Content": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
     "CreatedAt": "2025-07-25T02:12:36.816403+00:00",
-    "UpdatedAt": "2025-07-25T02:12:36.816404+00:00",
+    "UpdatedAt": "2025-07-26T17:40:25.56509+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -21,9 +21,19 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [4, 2],
-  "Input": [5, 1, 6, 4],
-  "Hints": ["Use the \u0027-\u0027 operator"],
+  "ExpectedOutput": [
+    4,
+    2
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027-\u0027 operator"
+  ],
   "Tags": [
     {
       "Id": 1,
@@ -35,55 +45,55 @@
       "Id": 13,
       "ProblemId": 3,
       "Language": "CSharp",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/CSharp/UITemplate.txt",
       "Image": "code-executor-csharp",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/CSharp/Answer.txt"
     },
     {
       "Id": 14,
       "ProblemId": 3,
       "Language": "JavaScript",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/JavaScript/UITemplate.txt",
       "Image": "code-executor-javascript",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/JavaScript/Answer.txt"
     },
     {
       "Id": 15,
       "ProblemId": 3,
       "Language": "Rust",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Rust/UITemplate.txt",
       "Image": "code-executor-rust",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Rust/Answer.txt"
     },
     {
       "Id": 16,
       "ProblemId": 3,
       "Language": "TypeScript",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/TypeScript/UITemplate.txt",
       "Image": "code-executor-typescript",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/TypeScript/Answer.txt"
     },
     {
       "Id": 17,
       "ProblemId": 3,
       "Language": "Python",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Python/UITemplate.txt",
       "Image": "code-executor-python",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Python/Answer.txt"
     },
     {
       "Id": 18,
       "ProblemId": 3,
       "Language": "Java",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Java/UITemplate.txt",
       "Image": "code-executor-java",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Java/Answer.txt"
     }
   ]
 }

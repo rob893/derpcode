@@ -1,16 +1,16 @@
 {
   "Id": 4,
   "Name": "LRU Cache",
-  "Description": "",
+  "Description": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Description.md",
   "ExplanationArticle": {
     "Id": 4,
     "UserId": 1,
     "Title": "LRU Cache Explanation",
-    "Content": "",
+    "Content": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-07-25T12:00:00.000000+00:00",
-    "UpdatedAt": "2025-07-25T12:00:00.000000+00:00",
+    "CreatedAt": "2025-07-25T05:07:47.295214+00:00",
+    "UpdatedAt": "2025-07-26T17:40:25.505633+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -33,10 +33,65 @@
     ]
   },
   "Difficulty": "Medium",
-  "ExpectedOutput": [null, null, null, 1, null, -1, null, -1, 3, 4],
+  "ExpectedOutput": [
+    null,
+    null,
+    null,
+    1,
+    null,
+    -1,
+    null,
+    -1,
+    3,
+    4
+  ],
   "Input": [
-    ["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"],
-    [2, [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]
+    [
+      "LRUCache",
+      "put",
+      "put",
+      "get",
+      "put",
+      "get",
+      "put",
+      "get",
+      "get",
+      "get"
+    ],
+    [
+      2,
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        1
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        2
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        1
+      ],
+      [
+        3
+      ],
+      [
+        4
+      ]
+    ]
   ],
   "Hints": [
     "Think about combining a hash table with a doubly linked list.",
@@ -64,58 +119,58 @@
   ],
   "Drivers": [
     {
-      "Id": 20,
+      "Id": 19,
       "ProblemId": 4,
       "Language": "CSharp",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/CSharp/UITemplate.txt",
       "Image": "code-executor-csharp",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 20,
+      "ProblemId": 4,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/JavaScript/Answer.txt"
     },
     {
       "Id": 21,
       "ProblemId": 4,
-      "Language": "JavaScript",
-      "UITemplate": "",
-      "Image": "code-executor-javascript",
-      "DriverCode": "",
-      "Answer": ""
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/TypeScript/Answer.txt"
     },
     {
       "Id": 22,
       "ProblemId": 4,
-      "Language": "TypeScript",
-      "UITemplate": "",
-      "Image": "code-executor-typescript",
-      "DriverCode": "",
-      "Answer": ""
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Rust/Answer.txt"
     },
     {
       "Id": 23,
       "ProblemId": 4,
-      "Language": "Rust",
-      "UITemplate": "",
-      "Image": "code-executor-rust",
-      "DriverCode": "",
-      "Answer": ""
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Python/Answer.txt"
     },
     {
       "Id": 24,
       "ProblemId": 4,
-      "Language": "Python",
-      "UITemplate": "",
-      "Image": "code-executor-python",
-      "DriverCode": "",
-      "Answer": ""
-    },
-    {
-      "Id": 25,
-      "ProblemId": 4,
       "Language": "Java",
-      "UITemplate": "",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Java/UITemplate.txt",
       "Image": "code-executor-java",
-      "DriverCode": "",
-      "Answer": ""
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Java/Answer.txt"
     }
   ]
 }
