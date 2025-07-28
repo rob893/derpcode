@@ -22,13 +22,13 @@ export function LandingPage() {
       <main className="flex-1 container mx-auto px-6 py-12">
         <section className="text-center mb-20">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent leading-tight pb-2">
+            <h2 className="text-5xl font-bold mb-6 bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent leading-tight pb-2">
               Practice Coding with DerpCode
             </h2>
             <p className="text-xl text-foreground/80 mb-8 leading-relaxed">
               Tired of working at Wendy's (or the dumpster behind it)? Tired of being poor because you lost all your
               money following advice from r/WallStreetBets? Sharpen your programming skills with{' '}
-              <span className="font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+              <span className="font-bold mb-6 bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
                 DerpCode
               </span>{' '}
               and land that FAANG job you've always dreamed of!{' '}

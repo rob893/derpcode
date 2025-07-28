@@ -85,7 +85,7 @@ export const ProblemCodeEditor = ({
                     const newLanguage = Array.from(keys)[0] as Language;
                     handleLanguageChange(newLanguage);
                   }}
-                  className="w-32 flex-shrink-0"
+                  className="w-32 shrink-0"
                   size="sm"
                 >
                   {problem.drivers.map(driver => (
@@ -110,7 +110,7 @@ export const ProblemCodeEditor = ({
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               {selectedSubmission && onReturnToWorkingCode && (
                 <Button
                   color="primary"
@@ -128,7 +128,7 @@ export const ProblemCodeEditor = ({
                 size="md"
                 onPress={onSettingsOpen}
                 aria-label="Settings"
-                className="flex-shrink-0"
+                className="shrink-0"
               >
                 <Cog6ToothIcon className="h-5 w-5" />
               </Button>
@@ -139,7 +139,7 @@ export const ProblemCodeEditor = ({
           <div className="px-6 pb-3">
             <div className="bg-danger/10 border border-danger/20 rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <ExclamationTriangleIcon className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
+                <ExclamationTriangleIcon className="h-5 w-5 text-danger shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-medium text-danger mb-1">Execution Error</h4>
                   <p className="text-sm text-danger/80">{selectedSubmission.errorMessage}</p>

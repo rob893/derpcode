@@ -91,7 +91,7 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-content1 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-background to-content1 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="flex flex-col items-center pb-6 pt-8">
           <h1 className="text-4xl font-bold text-primary mb-2">DerpCode</h1>
@@ -173,7 +173,7 @@ export function RegisterPage() {
               type="submit"
               color="primary"
               size="lg"
-              className="w-full font-semibold mt-6"
+              className="w-full font-semibold"
               isLoading={isLoading}
               isDisabled={
                 !formData.userName ||
@@ -192,7 +192,7 @@ export function RegisterPage() {
 
           <div className="space-y-4">
             <div className="text-center">
-              <p className="text-sm text-default-500 mb-4">or you can</p>
+              <p className="text-sm text-default-500 mb-8">or you can</p>
             </div>
             <Button
               onPress={handleGoogleLogin}

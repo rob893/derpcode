@@ -33,7 +33,7 @@ export function ApiErrorDisplay({ error, title = 'Error', className = '', showDe
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-danger">Additional Details:</h4>
               {error.allErrors.slice(1).map((errorMsg, index) => (
-                <div key={index} className="p-2 bg-danger/5 border border-danger/10 rounded text-sm text-danger">
+                <div key={index} className="p-2 bg-danger/5 border border-danger/10 rounded-sm text-sm text-danger">
                   {errorMsg}
                 </div>
               ))}

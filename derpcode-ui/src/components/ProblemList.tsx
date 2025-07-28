@@ -166,7 +166,7 @@ export const ProblemList = () => {
             onPress={selectRandomProblem}
             isDisabled={filteredProblems.length === 0}
             startContent={<ArrowPathIcon className="w-4 h-4" />}
-            className="font-semibold flex-shrink-0"
+            className="font-semibold shrink-0"
           >
             Random Problem
           </Button>
@@ -188,7 +188,7 @@ export const ProblemList = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           {/* Sort selector */}
           <div className="flex items-center gap-2">
             <span className="text-md text-default-600">Sort by:</span>

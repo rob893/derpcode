@@ -72,14 +72,14 @@ export const ResizableSplitter = ({
   return (
     <div ref={containerRef} className={`flex h-full w-full ${className}`}>
       {/* Left Panel */}
-      <div style={{ width: `${leftWidth}%` }} className="flex-shrink-0 overflow-hidden h-full">
+      <div style={{ width: `${leftWidth}%` }} className="shrink-0 overflow-hidden h-full">
         {leftPanel}
       </div>
 
       {/* Resizable Divider */}
       <div
         className={`
-          w-1 bg-divider hover:bg-primary/50 cursor-col-resize flex-shrink-0 relative
+          w-1 bg-divider hover:bg-primary/50 cursor-col-resize shrink-0 relative
           transition-colors duration-200
           ${isDragging ? 'bg-primary/70' : ''}
         `}
@@ -96,7 +96,7 @@ export const ResizableSplitter = ({
       </div>
 
       {/* Right Panel */}
-      <div style={{ width: `${100 - leftWidth}%` }} className="flex-shrink-0 overflow-hidden h-full">
+      <div style={{ width: `${100 - leftWidth}%` }} className="shrink-0 overflow-hidden h-full">
         {rightPanel}
       </div>
     </div>

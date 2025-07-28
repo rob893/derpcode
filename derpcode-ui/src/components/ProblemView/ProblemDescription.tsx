@@ -154,7 +154,7 @@ export const ProblemDescription = ({
                     <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.input)}</CodeBlock>
                   ) : (
                     <div className="relative">
-                      <CodeBlock className="w-full overflow-x-auto filter blur-sm">
+                      <CodeBlock className="w-full overflow-x-auto filter blur-xs">
                         {formatValue(problem.input)}
                       </CodeBlock>
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
@@ -174,7 +174,7 @@ export const ProblemDescription = ({
                     <CodeBlock className="w-full overflow-x-auto">{formatValue(problem.expectedOutput)}</CodeBlock>
                   ) : (
                     <div className="relative">
-                      <CodeBlock className="w-full overflow-x-auto filter blur-sm">
+                      <CodeBlock className="w-full overflow-x-auto filter blur-xs">
                         {formatValue(problem.expectedOutput)}
                       </CodeBlock>
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">

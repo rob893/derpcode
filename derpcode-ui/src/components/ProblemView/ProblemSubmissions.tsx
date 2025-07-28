@@ -208,7 +208,7 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
         classNames={{
           wrapper: 'rounded-lg',
           table: 'min-h-[200px]',
-          thead: '[&>tr]:first:rounded-lg',
+          thead: 'first:[&>tr]:rounded-lg',
           tbody: '[&>tr:hover]:bg-default-100 cursor-pointer'
         }}
       >

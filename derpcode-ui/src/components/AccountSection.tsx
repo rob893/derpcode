@@ -320,7 +320,7 @@ export function AccountSection({ user }: AccountSectionProps) {
           {/* Email confirmation warning - only show if email is not verified */}
           {!user.emailConfirmed && (
             <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 flex items-start gap-3">
-              <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 mt-0.5 flex-shrink-0" />
+              <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 mt-0.5 shrink-0" />
               <div className="flex-1">
                 <p className="text-warning-800 font-medium text-sm">Email not verified</p>
                 <p className="text-warning-700 text-sm mt-1">
@@ -425,7 +425,7 @@ export function AccountSection({ user }: AccountSectionProps) {
                   className="flex items-center justify-between p-3 border border-default-200 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0">{getLinkedAccountIcon(account.linkedAccountType)}</div>
+                    <div className="shrink-0">{getLinkedAccountIcon(account.linkedAccountType)}</div>
                     <div>
                       <p className="font-medium">{account.linkedAccountType}</p>
                       <p className="text-sm text-default-500">Connected</p>
@@ -472,7 +472,7 @@ export function AccountSection({ user }: AccountSectionProps) {
               {!user.emailConfirmed ? (
                 <div className="mt-2 p-2 bg-warning-50 border border-warning-200 rounded-md">
                   <div className="flex items-start gap-2">
-                    <ExclamationTriangleIcon className="w-4 h-4 text-warning-600 mt-0.5 flex-shrink-0" />
+                    <ExclamationTriangleIcon className="w-4 h-4 text-warning-600 mt-0.5 shrink-0" />
                     <p className="text-warning-700 text-xs">Email verification required to reset password</p>
                   </div>
                 </div>

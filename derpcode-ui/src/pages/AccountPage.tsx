@@ -28,7 +28,7 @@ export function AccountPage() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left sidebar navigation */}
-        <div className="lg:w-64 flex-shrink-0">
+        <div className="lg:w-64 shrink-0">
           <Card>
             <CardBody className="p-0">
               <nav className="space-y-1">

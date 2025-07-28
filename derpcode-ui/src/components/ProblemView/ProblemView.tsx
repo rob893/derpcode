@@ -256,7 +256,7 @@ export const ProblemView = () => {
         color="primary"
         startContent={<ArrowLeftIcon className="h-4 w-4" />}
         onPress={() => navigate('/problems')}
-        className="mb-4"
+        className="mb-10"
       >
         Back to Problems
       </Button>

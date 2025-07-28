@@ -47,7 +47,7 @@ export function ConfirmEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-content1 to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-background via-content1 to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-divider">
         <CardHeader className="flex flex-col items-center pb-6 pt-8">
           {/* DerpCode Logo/Title */}

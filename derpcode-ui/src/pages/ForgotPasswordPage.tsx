@@ -31,7 +31,7 @@ export function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-content1 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-background to-content1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-2xl">
           <CardHeader className="flex flex-col items-center pb-6 pt-8">
             <div className="flex items-center gap-3 mb-6">
@@ -85,7 +85,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-content1 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-background to-content1 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="flex flex-col items-center pb-6 pt-8">
           <div className="flex items-center gap-3 mb-6">

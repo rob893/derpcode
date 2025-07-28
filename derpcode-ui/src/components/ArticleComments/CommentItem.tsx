@@ -126,7 +126,7 @@ export const CommentItem = ({
           )}
 
           <div className="flex items-start gap-3">
-            <Avatar size="sm" name={comment.userName} className="flex-shrink-0" />
+            <Avatar size="sm" name={comment.userName} className="shrink-0" />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-semibold text-sm">{comment.userName}</span>

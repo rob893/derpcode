@@ -523,6 +523,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                         color="primary"
                         minRows={27}
                         maxRows={27}
+                        className="mt-2"
                         classNames={{
                           input: 'font-mono text-sm'
                         }}
@@ -531,7 +532,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">Preview</label>
-                      <Card className="h-full">
+                      <Card className="h-full mt-2">
                         <CardBody className="p-4 overflow-y-auto">
                           {problem.description ? (
                             <MarkdownRenderer content={problem.description} className="h-full" />
@@ -590,6 +591,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                         color="primary"
                         minRows={27}
                         maxRows={27}
+                        className="mt-2"
                         classNames={{
                           input: 'font-mono text-sm'
                         }}
@@ -598,7 +600,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">Preview</label>
-                      <Card className="h-full">
+                      <Card className="h-full mt-2">
                         <CardBody className="p-4 overflow-y-auto">
                           {problem.explanationArticle?.content ? (
                             <MarkdownRenderer content={problem.explanationArticle.content} className="h-full" />
@@ -719,7 +721,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                         <h4 className="text-md font-semibold text-danger mb-3">{dv.language} - Failing Test Cases</h4>
                         <div className="space-y-2">
                           {failingTestCases.map((testCase, tcIndex) => (
-                            <div key={tcIndex} className="bg-danger/5 border border-danger/20 rounded p-3 text-sm">
+                            <div key={tcIndex} className="bg-danger/5 border border-danger/20 rounded-sm p-3 text-sm">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                 <div>
                                   <span className="font-medium text-danger">Test Case {testCase.id}:</span>

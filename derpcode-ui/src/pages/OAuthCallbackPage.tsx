@@ -176,7 +176,7 @@ export function OAuthCallbackPage({ provider }: { provider: OAuthProvider }) {
 
   if (!providerConfig) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-content1 to-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-background via-content1 to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-2xl border-divider">
           <CardBody className="px-8 py-8 text-center">
             <XCircleIcon className="w-16 h-16 text-danger mx-auto mb-4" />
@@ -198,7 +198,7 @@ export function OAuthCallbackPage({ provider }: { provider: OAuthProvider }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-content1 to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-background via-content1 to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-divider">
         <CardHeader className="flex flex-col items-center pb-6 pt-8">
           {/* DerpCode Logo/Title */}

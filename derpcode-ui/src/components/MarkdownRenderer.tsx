@@ -36,7 +36,7 @@ export const MarkdownRenderer = ({ content, className = '' }: MarkdownRendererPr
             if (isInline) {
               return (
                 <code
-                  className="bg-default-100 dark:bg-default-200/20 px-1.5 py-0.5 rounded text-sm font-mono text-primary"
+                  className="bg-default-100 dark:bg-default-200/20 px-1.5 py-0.5 rounded-sm text-sm font-mono text-primary"
                   {...props}
                 >
                   {children}

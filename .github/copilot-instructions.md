@@ -14,6 +14,8 @@ The project is broken down into these folders:
 ./DerpCode.API.Tests - this is where the server tests code goes
 ./derpcode-ui - This is where the react SPA code goes
 
+Note that the UI uses tailwind v4 (not 3). You can find breaking changes https://tailwindcss.com/docs/upgrade-guide#changes-from-v3
+
 C# best practices:
 
 - follow the conventions in the .editorconfig file at root of the project
