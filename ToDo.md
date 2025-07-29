@@ -9,5 +9,4 @@
 - Add change tracking to problems (created by, updated by, dates, etc)
 - Keep refactoring controllers out into services (auth)
 - add dynamic cursor for ordering pages
-- add java, php, and python support
-- seeding for problems only. Should be smart and read all problems and add only new ones. Move problems to json files. ONe problem per file. On problem CRUD operations, API should commit and push changes to github.
+- add 'Published' property to questions that only admins can change. Non-admins should filter out non-published
