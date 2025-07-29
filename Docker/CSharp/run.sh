@@ -13,6 +13,6 @@ cp /home/runner/submission/expectedOutput.json /home/runner/expectedOutput.json
 
 cd /home/runner/App
 
-timeout 20s dotnet run /home/runner/input.json /home/runner/expectedOutput.json /home/runner/submission/results.json >> /home/runner/submission/output.txt 2>> /home/runner/submission/error.txt
+timeout 20s dotnet run /home/runner/input.json /home/runner/expectedOutput.json /home/runner/submission/results.json -v:q >> /home/runner/submission/output.txt 2>> /home/runner/submission/error.txt
 
 echo "Done"

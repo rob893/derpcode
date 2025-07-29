@@ -24,7 +24,8 @@ export function useAutoSave(
     if (code && code !== lastSavedCodeRef.current) {
       saveCodeToLocalStorage(userId, problemId, language, code);
       lastSavedCodeRef.current = code;
-      console.log('Code auto-saved to local storage');
+      // TODO: Implement logger and move to that
+      // console.log('Code auto-saved to local storage');
     }
   }, [code, userId, problemId, language]);
 
