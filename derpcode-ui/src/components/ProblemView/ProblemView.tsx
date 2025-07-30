@@ -14,7 +14,11 @@ import { useDeleteProblem, useProblem, useSubmitSolution, useRunSolution, useClo
 import { useAuth } from '../../hooks/useAuth';
 import { useCurrentUser } from '../../hooks/useUser';
 import { useAutoSave } from '../../hooks/useAutoSave';
-import { loadCodeWithPriority, cleanupOldAutoSaveData } from '../../utils/localStorageUtils';
+import {
+  loadCodeWithPriority,
+  cleanupOldAutoSaveData,
+  loadRecentLanguageFromLocalStorage
+} from '../../utils/localStorageUtils';
 
 export const ProblemView = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,8 +61,10 @@ export const ProblemView = () => {
   // Set initial language and template when problem data is loaded
   useEffect(() => {
     if (problem && problem.drivers.length > 0) {
-      // Default to JavaScript if available, otherwise use the first driver
-      const initialDriver = problem.drivers.find(d => d.language === Language.JavaScript) || problem.drivers[0];
+      const recentLang = loadRecentLanguageFromLocalStorage(user?.id || null);
+      // Default to most recent user lang or JavaScript if available, otherwise use the first driver
+      const initialDriver =
+        problem.drivers.find(d => d.language === (recentLang ?? Language.JavaScript)) || problem.drivers[0];
       setSelectedLanguage(initialDriver.language);
 
       // Try to restore saved code with priority logic
@@ -283,7 +289,7 @@ export const ProblemView = () => {
               />
             )}
 
-            {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} />}
+            {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} user={user} />}
           </div>
 
           <div>
@@ -328,7 +334,7 @@ export const ProblemView = () => {
                   />
                 )}
 
-                {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} />}
+                {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} user={user} />}
               </div>
             }
             rightPanel={

@@ -61,7 +61,7 @@ public sealed class UserSubmissionService : IUserSubmissionService
 
         var submissions = await this.problemSubmissionRepository.SearchAsync(problemSearchParams, track: false, cancellationToken);
         var mapped = submissions
-            .Select(ProblemSubmissionDto.FromEntity)
+            .Select(x => ProblemSubmissionDto.FromEntity(x, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser))
             .ToList();
 
         return Result<CursorPaginatedList<ProblemSubmissionDto, long>>.Success(new CursorPaginatedList<ProblemSubmissionDto, long>(mapped, submissions.HasNextPage, submissions.HasPreviousPage, submissions.StartCursor, submissions.EndCursor, submissions.TotalCount));

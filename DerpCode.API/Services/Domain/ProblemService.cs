@@ -314,7 +314,7 @@ public sealed class ProblemService : IProblemService
                     ErrorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage) ?
                         result.Pass ? null : "Supplied driver answer did not pass supplied test cases." :
                         result.ErrorMessage,
-                    SubmissionResult = ProblemSubmissionDto.FromEntity(result)
+                    SubmissionResult = ProblemSubmissionDto.FromEntity(result, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser)
                 });
             }
             catch (Exception ex)

@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { Language } from '../types/models';
+import { shikiToMonaco } from '@shikijs/monaco';
+import { createHighlighter, type Highlighter } from 'shiki';
 
 interface CodeEditorProps {
   language: Language;
@@ -19,6 +21,28 @@ interface FlameParticle {
   size: number;
   velocity: { x: number; y: number };
 }
+
+// Create a singleton highlighter instance that persists across component mounts
+let highlighterInstance: Highlighter | null = null;
+let highlighterPromise: Promise<Highlighter> | null = null;
+
+const getHighlighter = async (): Promise<Highlighter> => {
+  if (highlighterInstance) {
+    return highlighterInstance;
+  }
+
+  if (highlighterPromise) {
+    return highlighterPromise;
+  }
+
+  highlighterPromise = createHighlighter({
+    themes: ['dark-plus'],
+    langs: ['csharp', 'javascript', 'typescript', 'rust', 'python', 'java']
+  });
+
+  highlighterInstance = await highlighterPromise;
+  return highlighterInstance;
+};
 
 export const CodeEditor = ({
   language,
@@ -159,10 +183,19 @@ export const CodeEditor = ({
         language={getMonacoLanguage(language)}
         value={code || uiTemplate}
         onChange={handleEditorChange}
+        beforeMount={async monaco => {
+          try {
+            const highlighter = await getHighlighter();
+            shikiToMonaco(highlighter, monaco);
+          } catch (error) {
+            console.error('Failed to apply Shiki highlighting:', error);
+            // Editor will fall back to Monaco's default highlighting
+          }
+        }}
         onMount={editor => {
           editorRef.current = editor;
         }}
-        theme="vs-dark"
+        theme="dark-plus"
         options={{
           minimap: { enabled: false },
           fontSize: 14,

@@ -66,7 +66,7 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
             return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Forbidden, "You can only see your own submissions.");
         }
 
-        return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(submission));
+        return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(submission, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser));
     }
 
     /// <inheritdoc />
@@ -114,7 +114,7 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
                 return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Unknown, "Failed to save submission. Please try again later.");
             }
 
-            return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(result));
+            return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(result, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser));
         }
         catch (Exception ex)
         {
@@ -152,7 +152,7 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
         try
         {
             var result = await this.codeExecutionService.RunCodeAsync(this.currentUserService.UserId, request.UserCode, request.Language, problem, cancellationToken);
-            return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(result));
+            return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(result, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser));
         }
         catch (Exception ex)
         {

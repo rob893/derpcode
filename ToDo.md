@@ -10,3 +10,4 @@
 - Keep refactoring controllers out into services (auth)
 - add dynamic cursor for ordering pages
 - add 'Published' property to questions that only admins can change. Non-admins should filter out non-published
+- add stdout to problem submission

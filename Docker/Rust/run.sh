@@ -10,7 +10,7 @@ cp /home/runner/submission/expectedOutput.json /home/runner/expectedOutput.json
 cd /home/runner
 
 echo "Building..."
-cargo build --release --quiet 2>> /home/runner/submission/error.txt
+RUSTFLAGS="-Awarnings" cargo build --release --quiet 2>> /home/runner/submission/error.txt
 
 echo "Running..."
 timeout 20s ./target/release/rust_runner /home/runner/input.json /home/runner/expectedOutput.json /home/runner/submission/results.json \

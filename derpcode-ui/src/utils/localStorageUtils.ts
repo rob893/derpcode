@@ -1,7 +1,10 @@
 import { Language } from '../types/models';
+import { isLanguage } from './typeGuards';
 
 // Constants for local storage operations
-const LOCAL_STORAGE_PREFIX = 'derpcode_autosave';
+const LOCAL_STORAGE_AUTOSAVE_PREFIX = 'derpcode_autosave';
+
+const LOCAL_STORAGE_RECENT_LANG_PREFIX = 'derpcode_recent_language';
 
 // Interface for auto-save data
 export interface AutoSaveData {
@@ -18,9 +21,32 @@ export interface AutoSaveData {
  * @param language - Programming language
  * @returns Formatted local storage key
  */
-export function generateStorageKey(userId: number | string | null, problemId: number, language: Language): string {
+export function generateProblemCodeStorageKey(
+  userId: number | string | null,
+  problemId: number,
+  language: Language
+): string {
   const userIdStr = userId?.toString() || '';
-  return `${LOCAL_STORAGE_PREFIX}:${userIdStr}:${problemId}:${language}`;
+  return `${LOCAL_STORAGE_AUTOSAVE_PREFIX}:${userIdStr}:${problemId}:${language}`;
+}
+
+export function generateRecentLanguageStorageKey(userId: number | string | null): string {
+  const userIdStr = userId?.toString() || '';
+  return `${LOCAL_STORAGE_RECENT_LANG_PREFIX}:${userIdStr}`;
+}
+
+export function loadRecentLanguageFromLocalStorage(userId: number | string | null): Language | null {
+  try {
+    const key = generateRecentLanguageStorageKey(userId);
+    const stored = localStorage.getItem(key);
+
+    if (!stored) return null;
+
+    return isLanguage(stored) ? stored : null;
+  } catch (error) {
+    console.warn('Failed to load code from local storage:', error);
+    return null;
+  }
 }
 
 /**
@@ -37,13 +63,15 @@ export function saveCodeToLocalStorage(
   code: string
 ): void {
   try {
-    const key = generateStorageKey(userId, problemId, language);
+    const key = generateProblemCodeStorageKey(userId, problemId, language);
     const data: AutoSaveData = {
       code,
       timestamp: Date.now(),
       language
     };
     localStorage.setItem(key, JSON.stringify(data));
+    const recentLangKey = generateRecentLanguageStorageKey(userId);
+    localStorage.setItem(recentLangKey, language);
   } catch (error) {
     console.warn('Failed to save code to local storage:', error);
   }
@@ -62,7 +90,7 @@ export function loadCodeFromLocalStorage(
   language: Language
 ): string | null {
   try {
-    const key = generateStorageKey(userId, problemId, language);
+    const key = generateProblemCodeStorageKey(userId, problemId, language);
     const stored = localStorage.getItem(key);
     if (!stored) return null;
 
@@ -113,7 +141,7 @@ export function removeCodeFromLocalStorage(
   language: Language
 ): void {
   try {
-    const key = generateStorageKey(userId, problemId, language);
+    const key = generateProblemCodeStorageKey(userId, problemId, language);
     localStorage.removeItem(key);
   } catch (error) {
     console.warn('Failed to remove code from local storage:', error);
@@ -130,7 +158,7 @@ export function getAutoSaveKeysForProblem(problemId: number): string[] {
     const keys: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(`${LOCAL_STORAGE_PREFIX}:`) && key.includes(`:${problemId}:`)) {
+      if (key && key.startsWith(`${LOCAL_STORAGE_AUTOSAVE_PREFIX}:`) && key.includes(`:${problemId}:`)) {
         keys.push(key);
       }
     }
@@ -152,7 +180,7 @@ export function cleanupOldAutoSaveData(daysToKeep: number = 30): void {
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(`${LOCAL_STORAGE_PREFIX}:`)) {
+      if (key && key.startsWith(`${LOCAL_STORAGE_AUTOSAVE_PREFIX}:`)) {
         try {
           const stored = localStorage.getItem(key);
           if (stored) {

@@ -33,7 +33,7 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
 
     public required List<TestCaseResultDto> TestCaseResults { get; init; }
 
-    public static ProblemSubmissionDto FromEntity(ProblemSubmission submission)
+    public static ProblemSubmissionDto FromEntity(ProblemSubmission submission, bool showPremiumContent)
     {
         ArgumentNullException.ThrowIfNull(submission);
 
@@ -51,7 +51,7 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
             FailedTestCases = submission.FailedTestCases,
             ErrorMessage = submission.ErrorMessage ?? string.Empty,
             ExecutionTimeInMs = submission.ExecutionTimeInMs,
-            TestCaseResults = [.. submission.TestCaseResults.Select(TestCaseResultDto.FromEntity)]
+            TestCaseResults = showPremiumContent ? [.. submission.TestCaseResults.Select(TestCaseResultDto.FromEntity)] : []
         };
     }
 }
