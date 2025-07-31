@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
+import { Spinner } from '@heroui/react';
 import { Language } from '../types/models';
 import { shikiToMonaco } from '@shikijs/monaco';
 import { createHighlighter, type Highlighter } from 'shiki';
@@ -11,6 +12,7 @@ interface CodeEditorProps {
   onChange(value: string | undefined): void;
   flamesEnabled?: boolean;
   readOnly?: boolean;
+  editorHeight?: string;
 }
 
 interface FlameParticle {
@@ -49,6 +51,7 @@ export const CodeEditor = ({
   code,
   onChange,
   uiTemplate,
+  editorHeight,
   flamesEnabled = true,
   readOnly = false
 }: CodeEditorProps) => {
@@ -179,10 +182,15 @@ export const CodeEditor = ({
   return (
     <div ref={containerRef} className="relative rounded-lg overflow-hidden border border-divider bg-content1">
       <Editor
-        height="70vh"
+        height={editorHeight ?? '70vh'}
         language={getMonacoLanguage(language)}
         value={code || uiTemplate}
         onChange={handleEditorChange}
+        loading={
+          <div className="flex justify-center items-center h-full">
+            <Spinner size="lg" color="primary" label="Loading editor..." />
+          </div>
+        }
         beforeMount={async monaco => {
           try {
             const highlighter = await getHighlighter();

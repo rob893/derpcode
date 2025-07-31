@@ -13,7 +13,8 @@ import {
 import { ClockIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { useUserSubmissionsForProblem } from '../../hooks/api';
 import { useAuth } from '../../hooks/useAuth';
-import type { ProblemSubmission, Language } from '../../types/models';
+import type { ProblemSubmission } from '../../types/models';
+import { getLanguageLabel } from '../../utils/utilities';
 
 interface ProblemSubmissionsProps {
   problemId: number;
@@ -66,19 +67,6 @@ export const ProblemSubmissions = ({ problemId, onSubmissionSelect }: ProblemSub
 
     return sorted;
   }, [submissionsResponse, sortDescriptor]);
-
-  const getLanguageLabel = (language: Language): string => {
-    switch (language) {
-      case 'CSharp':
-        return 'C#';
-      case 'JavaScript':
-        return 'JavaScript';
-      case 'TypeScript':
-        return 'TypeScript';
-      default:
-        return language;
-    }
-  };
 
   const getStatusColor = (pass: boolean) => {
     return pass ? 'success' : 'danger';

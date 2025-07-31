@@ -4,7 +4,7 @@ Write a function that takes two integers and returns their difference.
 
 Implement a function with the following signature:
 
-- `int subtract(int a, int b)` - Return the difference of the two input integers (a - b)
+- `int subtract(int a, int b)` - Return the difference of the two input integers
 
 ## Examples
 

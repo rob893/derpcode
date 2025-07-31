@@ -20,6 +20,7 @@ import type { Problem, ProblemSubmission } from '../../types/models';
 import type { User } from '../../types/auth';
 import { CodeEditor } from '../CodeEditor';
 import { loadCodeWithPriority } from '../../utils/localStorageUtils';
+import { getLanguageLabel } from '../../utils/utilities';
 
 interface ProblemCodeEditorProps {
   problem: Problem;
@@ -89,7 +90,7 @@ export const ProblemCodeEditor = ({
                   size="sm"
                 >
                   {problem.drivers.map(driver => (
-                    <SelectItem key={driver.language}>{driver.language}</SelectItem>
+                    <SelectItem key={driver.language}>{getLanguageLabel(driver.language)}</SelectItem>
                   ))}
                 </Select>
               )}
@@ -157,6 +158,7 @@ export const ProblemCodeEditor = ({
               uiTemplate={problem.drivers.find(d => d.language === selectedLanguage)?.uiTemplate ?? ''}
               flamesEnabled={flamesEnabled && !selectedSubmission}
               readOnly={!!selectedSubmission}
+              editorHeight="50vh"
             />
 
             {!selectedSubmission && (
