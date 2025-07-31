@@ -57,9 +57,11 @@ function runTests(inputJsonStr, expectedOutputJsonStr) {
         const a = input[i];
         const b = input[i + 1];
         
+        console.log(`|derpcode-start-test-${j}|`);
         const testCaseStart = Date.now();
         const result = add(a, b);           // your test function
         const testCaseEnd = Date.now();
+        console.log(`|derpcode-end-test-${j}|`);
         
         const expected = expectedOutput[j];
         const passed = result === expected;

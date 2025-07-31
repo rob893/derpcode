@@ -856,7 +856,7 @@ public sealed class ProblemServiceTests
 
         this.mockCodeExecutionService
             .Setup(x => x.RunCodeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<LanguageType>(), It.IsAny<Problem>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(submissionResult);
+            .ReturnsAsync((submissionResult, "Test output"));
 
         // Act
         var result = await this.problemService.ValidateCreateProblemAsync(request, CancellationToken.None);
@@ -880,7 +880,7 @@ public sealed class ProblemServiceTests
 
         this.mockCodeExecutionService
             .Setup(x => x.RunCodeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<LanguageType>(), It.IsAny<Problem>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(submissionResult);
+            .ReturnsAsync((submissionResult, "Test output"));
 
         // Act
         var result = await this.problemService.ValidateCreateProblemAsync(request, CancellationToken.None);
@@ -936,7 +936,7 @@ public sealed class ProblemServiceTests
 
         this.mockCodeExecutionService
             .Setup(x => x.RunCodeAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<LanguageType>(), It.IsAny<Problem>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(submissionResult);
+            .ReturnsAsync((submissionResult, "Test output"));
 
         // Act
         var result = await this.problemService.ValidateCreateProblemAsync(request, CancellationToken.None);

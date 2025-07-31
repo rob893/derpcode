@@ -39,6 +39,22 @@ public static class UtilityFunctions
         return typeName.Split(splitOn).First();
     }
 
+    public static string GetStringBetween(string source, string start, string end)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(start);
+        ArgumentNullException.ThrowIfNull(end);
+
+        int startIndex = source.IndexOf(start, StringComparison.Ordinal);
+        if (startIndex == -1) return string.Empty;
+        startIndex += start.Length;
+
+        int endIndex = source.IndexOf(end, startIndex, StringComparison.Ordinal);
+        if (endIndex == -1) return string.Empty;
+
+        return source[startIndex..endIndex];
+    }
+
     public static LogLevel LogLevelFromString(string logLevel)
     {
         ArgumentNullException.ThrowIfNull(logLevel);

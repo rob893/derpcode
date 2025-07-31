@@ -75,9 +75,11 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string): Submissi
   for (let i = 0; i < input.length; i++) {
     const a = input[i];
     
+    console.log(`|derpcode-start-test-${i}|`);
     const testCaseStart = Date.now();
     const result = fizzBuzz(a);
     const testCaseEnd = Date.now();
+    console.log(`|derpcode-end-test-${i}|`);
     
     const expected = expectedOutput[i];
     const passed = result === expected;

@@ -72,6 +72,11 @@ export function TestCaseDetails({ testCases }: TestCaseDetailsProps) {
               </CodeBlock>
             </div>
 
+            <div>
+              <label className="text-sm font-medium text-default-600 mb-1 block">Stdout:</label>
+              <CodeBlock className="w-full text-sm">{formatValue(testCase.stdOut)}</CodeBlock>
+            </div>
+
             {testCase.errorMessage && (
               <div>
                 <label className="text-sm font-medium text-danger mb-1 block">Error:</label>

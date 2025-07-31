@@ -62,6 +62,7 @@ def run_tests(input_json_str, expected_output_json_str):
 
     for i in range(test_case_count):
         operation = operations[i]
+        print(f"|derpcode-start-test-{i}|")
         start_time = time.time()
         result = None
 
@@ -80,6 +81,7 @@ def run_tests(input_json_str, expected_output_json_str):
                 result = None
 
             actual_results.append(result)
+            print(f"|derpcode-end-test-{i}|")
             
             expected = expected_output[i] if i < len(expected_output) else None
             passed = (result is None and expected is None) or (result is not None and expected is not None and result == expected)

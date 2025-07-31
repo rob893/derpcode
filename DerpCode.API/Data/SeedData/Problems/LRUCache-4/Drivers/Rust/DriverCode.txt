@@ -110,6 +110,7 @@ fn run_tests(input_json_str: &str, expected_output_json_str: &str) -> Result<Sub
 
     for i in 0..test_case_count {
         let operation = &operations[i];
+        println!("|derpcode-start-test-{}|", i);
         let test_case_start = Instant::now();
         
         let result: Result<Option<i32>, String> = (|| {
@@ -134,6 +135,7 @@ fn run_tests(input_json_str: &str, expected_output_json_str: &str) -> Result<Sub
         })();
 
         let test_case_time = test_case_start.elapsed().as_millis();
+        println!("|derpcode-end-test-{}|", i);
 
         match result {
             Ok(actual_output) => {

@@ -91,9 +91,11 @@ public class Program
             var a = input[i];
             var b = input[i + 1];
             
+            Console.WriteLine($"|derpcode-start-test-{j}|");
             var testCaseSw = Stopwatch.StartNew();
             var result = Solution.Add(a, b);
             testCaseSw.Stop();
+            Console.WriteLine($"|derpcode-end-test-{j}|");
             
             int expected = expectedOutput[j];
             bool passed = result == expected;

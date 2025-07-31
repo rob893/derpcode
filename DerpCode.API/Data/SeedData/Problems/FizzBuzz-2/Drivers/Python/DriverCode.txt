@@ -97,9 +97,11 @@ def run_tests(input_json_str: str, expected_output_json_str: str) -> SubmissionR
     for i in range(len(input_data)):
         number = input_data[i]
         
+        print(f"|derpcode-start-test-{i}|")
         test_case_start = time.time()
         result = Solution.fizz_buzz(number)
         test_case_end = time.time()
+        print(f"|derpcode-end-test-{i}|")
         
         expected = expected_output[i]
         passed = result == expected

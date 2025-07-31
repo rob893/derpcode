@@ -305,7 +305,7 @@ public sealed class ProblemService : IProblemService
         {
             try
             {
-                var result = await this.codeExecutionService.RunCodeAsync(this.currentUserService.UserId, driver.Answer, driver.Language, newProblem, cancellationToken);
+                var (result, stdOut) = await this.codeExecutionService.RunCodeAsync(this.currentUserService.UserId, driver.Answer, driver.Language, newProblem, cancellationToken);
                 driverValidations.Add(new CreateProblemDriverValidationResponse
                 {
                     Language = driver.Language,
@@ -314,7 +314,7 @@ public sealed class ProblemService : IProblemService
                     ErrorMessage = string.IsNullOrWhiteSpace(result.ErrorMessage) ?
                         result.Pass ? null : "Supplied driver answer did not pass supplied test cases." :
                         result.ErrorMessage,
-                    SubmissionResult = ProblemSubmissionDto.FromEntity(result, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser)
+                    SubmissionResult = ProblemSubmissionDto.FromEntity(result, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser, stdOut)
                 });
             }
             catch (Exception ex)

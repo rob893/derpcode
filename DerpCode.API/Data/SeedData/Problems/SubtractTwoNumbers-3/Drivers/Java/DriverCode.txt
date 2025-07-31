@@ -141,9 +141,11 @@ public class Program {
             int a = input[i];
             int b = input[i + 1];
             
+            System.out.println("|derpcode-start-test-" + j + "|");
             long testCaseStart = System.currentTimeMillis();
             int result = Solution.subtract(a, b);
             long testCaseEnd = System.currentTimeMillis();
+            System.out.println("|derpcode-end-test-" + j + "|");
             
             int expected = expectedOutput[j];
             boolean passed = result == expected;

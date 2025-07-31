@@ -127,9 +127,11 @@ public class Program {
         for (int i = 0; i < input.length; i++) {
             int number = input[i];
             
+            System.out.println("|derpcode-start-test-" + i + "|");
             long testCaseStart = System.currentTimeMillis();
             String result = Solution.fizzBuzz(number);
             long testCaseEnd = System.currentTimeMillis();
+            System.out.println("|derpcode-end-test-" + i + "|");
             
             String expected = expectedOutput[i];
             boolean passed = Objects.equals(result, expected);

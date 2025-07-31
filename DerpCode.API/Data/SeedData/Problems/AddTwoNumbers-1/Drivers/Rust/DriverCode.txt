@@ -86,9 +86,11 @@ fn run_test_harness(
         let a = pair[0];
         let b = pair[1];
 
+        println!("|derpcode-start-test-{}|", i);
         let t_start = Instant::now();
         let result = Solution::add(a, b);
         let duration = t_start.elapsed().as_millis();
+        println!("|derpcode-end-test-{}|", i);
 
         let expected_result = expected[i];
         let did_pass = result == expected_result;

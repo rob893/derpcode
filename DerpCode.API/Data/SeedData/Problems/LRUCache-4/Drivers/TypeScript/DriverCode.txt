@@ -82,6 +82,7 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string): Submissi
 
     for (let i = 0; i < testCaseCount; i++) {
         const operation = operations[i];
+        console.log(`|derpcode-start-test-${i}|`);
         const start = Date.now();
         let result: any = null;
 
@@ -101,6 +102,7 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string): Submissi
             }
 
             actualResults.push(result);
+            console.log(`|derpcode-end-test-${i}|`);
             
             const expected = i < expectedOutput.length ? expectedOutput[i] : null;
             const passed = (result === null && expected === null) || 

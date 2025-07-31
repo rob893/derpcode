@@ -79,9 +79,11 @@ fn run_test_harness(
     let mut test_results = vec![];
 
     for (i, &number) in input.iter().enumerate() {
+        println!("|derpcode-start-test-{}|", i);
         let t_start = Instant::now();
         let result = Solution::fizz_buzz(number);
         let duration = t_start.elapsed().as_millis();
+        println!("|derpcode-end-test-{}|", i);
 
         let expected_result = &expected[i];
         let did_pass = &result == expected_result;

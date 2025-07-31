@@ -129,6 +129,7 @@ public class Program {
 
         for (int i = 0; i < testCaseCount; i++) {
             String operation = operations[i];
+            System.out.println("|derpcode-start-test-" + i + "|");
             long testCaseStart = System.currentTimeMillis();
             Object result = null;
 
@@ -148,6 +149,8 @@ public class Program {
                     cache.put(key, value);
                     result = null;
                 }
+
+                System.out.println("|derpcode-end-test-" + i + "|");
 
                 Object expected = i < expectedOutput.length ? expectedOutput[i] : null;
                 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Button, Spinner, useDisclosure } from '@heroui/react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Spinner, useDisclosure } from '@heroui/react';
 import { Language } from '../../types/models';
 import type { ProblemSubmission } from '../../types/models';
 import { ApiErrorDisplay } from '../ApiErrorDisplay';
@@ -257,16 +256,6 @@ export const ProblemView = () => {
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        color="primary"
-        startContent={<ArrowLeftIcon className="h-4 w-4" />}
-        onPress={() => navigate('/problems')}
-        className="mb-10"
-      >
-        Back to Problems
-      </Button>
-
       <div className="min-h-[calc(100vh-12rem)]">
         {/* Mobile layout: stack vertically */}
         <div className="flex flex-col space-y-6 lg:hidden">

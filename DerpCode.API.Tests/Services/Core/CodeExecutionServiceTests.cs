@@ -135,13 +135,12 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.True(result.Pass);
-        Assert.Equal(5, result.TestCaseCount);
-        Assert.Equal(5, result.PassedTestCases);
-        Assert.Equal(0, result.FailedTestCases);
-        Assert.True(string.IsNullOrEmpty(result.ErrorMessage));
-        Assert.Equal(150, result.ExecutionTimeInMs);
+        Assert.True(result.Submission.Pass);
+        Assert.Equal(5, result.Submission.TestCaseCount);
+        Assert.Equal(5, result.Submission.PassedTestCases);
+        Assert.Equal(0, result.Submission.FailedTestCases);
+        Assert.True(string.IsNullOrEmpty(result.Submission.ErrorMessage));
+        Assert.Equal(150, result.Submission.ExecutionTimeInMs);
 
         // Verify Docker interactions
         this.mockContainerOperations.Verify(x => x.CreateContainerAsync(
@@ -182,13 +181,12 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.False(result.Pass);
-        Assert.Equal(5, result.TestCaseCount);
-        Assert.Equal(2, result.PassedTestCases);
-        Assert.Equal(3, result.FailedTestCases);
-        Assert.Equal("Test failed: Expected 10 but got 5", result.ErrorMessage);
-        Assert.Equal(200, result.ExecutionTimeInMs);
+        Assert.False(result.Submission.Pass);
+        Assert.Equal(5, result.Submission.TestCaseCount);
+        Assert.Equal(2, result.Submission.PassedTestCases);
+        Assert.Equal(3, result.Submission.FailedTestCases);
+        Assert.Equal("Test failed: Expected 10 but got 5", result.Submission.ErrorMessage);
+        Assert.Equal(200, result.Submission.ExecutionTimeInMs);
     }
 
     [Fact]
@@ -205,13 +203,12 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.False(result.Pass);
-        Assert.Equal(-1, result.TestCaseCount);
-        Assert.Equal(-1, result.PassedTestCases);
-        Assert.Equal(-1, result.FailedTestCases);
-        Assert.Contains("Compilation error: Syntax error on line 5", result.ErrorMessage);
-        Assert.Equal(-1, result.ExecutionTimeInMs);
+        Assert.False(result.Submission.Pass);
+        Assert.Equal(-1, result.Submission.TestCaseCount);
+        Assert.Equal(-1, result.Submission.PassedTestCases);
+        Assert.Equal(-1, result.Submission.FailedTestCases);
+        Assert.Contains("Compilation error: Syntax error on line 5", result.Submission.ErrorMessage);
+        Assert.Equal(-1, result.Submission.ExecutionTimeInMs);
     }
 
     [Fact]
@@ -229,13 +226,12 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.False(result.Pass);
-        Assert.Equal(-1, result.TestCaseCount);
-        Assert.Equal(-1, result.PassedTestCases);
-        Assert.Equal(-1, result.FailedTestCases);
-        Assert.Contains("Docker daemon error", result.ErrorMessage);
-        Assert.Equal(-1, result.ExecutionTimeInMs);
+        Assert.False(result.Submission.Pass);
+        Assert.Equal(-1, result.Submission.TestCaseCount);
+        Assert.Equal(-1, result.Submission.PassedTestCases);
+        Assert.Equal(-1, result.Submission.FailedTestCases);
+        Assert.Contains("Docker daemon error", result.Submission.ErrorMessage);
+        Assert.Equal(-1, result.Submission.ExecutionTimeInMs);
 
         // Verify error was logged
         this.VerifyLoggerWasCalled(LogLevel.Error, "Error executing code");
@@ -256,13 +252,12 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.False(result.Pass);
-        Assert.Equal(-1, result.TestCaseCount);
-        Assert.Equal(-1, result.PassedTestCases);
-        Assert.Equal(-1, result.FailedTestCases);
-        Assert.Equal("Unexpected error", result.ErrorMessage);
-        Assert.Equal(-1, result.ExecutionTimeInMs);
+        Assert.False(result.Submission.Pass);
+        Assert.Equal(-1, result.Submission.TestCaseCount);
+        Assert.Equal(-1, result.Submission.PassedTestCases);
+        Assert.Equal(-1, result.Submission.FailedTestCases);
+        Assert.Equal("Unexpected error", result.Submission.ErrorMessage);
+        Assert.Equal(-1, result.Submission.ExecutionTimeInMs);
 
         // Verify error was logged
         this.VerifyLoggerWasCalled(LogLevel.Error, "Error executing code");
@@ -372,9 +367,8 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.False(result.Pass);
-        Assert.Contains("Failed to deserialize results", result.ErrorMessage);
+        Assert.False(result.Submission.Pass);
+        Assert.Contains("Failed to deserialize results", result.Submission.ErrorMessage);
     }
 
     [Theory]
@@ -398,8 +392,7 @@ public sealed class CodeExecutionServiceTests
         var result = await this.codeExecutionService.RunCodeAsync(1, userCode, language, problem, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.True(result.Pass);
+        Assert.True(result.Submission.Pass);
     }
 
     #endregion

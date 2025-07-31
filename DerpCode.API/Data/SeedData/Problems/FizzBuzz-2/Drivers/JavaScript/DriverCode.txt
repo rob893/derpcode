@@ -56,9 +56,11 @@ function runTests(inputJsonStr, expectedOutputJsonStr) {
     for (let i = 0; i < input.length; i++) {
         const number = input[i];
         
+        console.log(`|derpcode-start-test-${i}|`);
         const testCaseStart = Date.now();
         const result = fizzBuzz(number);           // your test function
         const testCaseEnd = Date.now();
+        console.log(`|derpcode-end-test-${i}|`);
         
         const expected = expectedOutput[i];
         const passed = result === expected;

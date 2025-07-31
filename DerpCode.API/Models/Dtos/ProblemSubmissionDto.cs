@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DerpCode.API.Models.Entities;
+using DerpCode.API.Utilities;
 
 namespace DerpCode.API.Models.Dtos;
 
@@ -33,7 +34,7 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
 
     public required List<TestCaseResultDto> TestCaseResults { get; init; }
 
-    public static ProblemSubmissionDto FromEntity(ProblemSubmission submission, bool showPremiumContent)
+    public static ProblemSubmissionDto FromEntity(ProblemSubmission submission, bool showPremiumContent, string stdOut)
     {
         ArgumentNullException.ThrowIfNull(submission);
 
@@ -51,7 +52,14 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
             FailedTestCases = submission.FailedTestCases,
             ErrorMessage = submission.ErrorMessage ?? string.Empty,
             ExecutionTimeInMs = submission.ExecutionTimeInMs,
-            TestCaseResults = showPremiumContent ? [.. submission.TestCaseResults.Select(TestCaseResultDto.FromEntity)] : []
+            TestCaseResults = showPremiumContent ? [.. submission.TestCaseResults.Select(result =>
+            {
+                var startDeliminator = $"|derpcode-start-test-{result.TestCaseIndex}|";
+                var endDeliminator = $"|derpcode-end-test-{result.TestCaseIndex}|";
+                var stdIoForProblem = UtilityFunctions.GetStringBetween(stdOut, startDeliminator, endDeliminator);
+
+                return TestCaseResultDto.FromEntity(result, stdIoForProblem.Trim());
+            })] : []
         };
     }
 }

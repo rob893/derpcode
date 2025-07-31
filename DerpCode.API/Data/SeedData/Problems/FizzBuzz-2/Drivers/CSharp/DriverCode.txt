@@ -90,9 +90,11 @@ public class Program
         {
             var number = input[i];
             
+            Console.WriteLine($"|derpcode-start-test-{i}|");
             var testCaseSw = Stopwatch.StartNew();
             var result = Solution.FizzBuzz(number);
             testCaseSw.Stop();
+            Console.WriteLine($"|derpcode-end-test-{i}|");
             
             string expected = expectedOutput[i];
             bool passed = result == expected;

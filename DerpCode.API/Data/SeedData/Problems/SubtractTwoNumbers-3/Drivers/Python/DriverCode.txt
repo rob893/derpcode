@@ -99,9 +99,11 @@ def run_tests(input_json_str: str, expected_output_json_str: str) -> SubmissionR
         a = input_data[i]
         b = input_data[i + 1]
         
+        print(f"|derpcode-start-test-{j}|")
         test_case_start = time.time()
         result = Solution.subtract(a, b)
         test_case_end = time.time()
+        print(f"|derpcode-end-test-{j}|")
         
         expected = expected_output[j]
         passed = result == expected

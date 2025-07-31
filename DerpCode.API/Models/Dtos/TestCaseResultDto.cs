@@ -13,6 +13,8 @@ public sealed record TestCaseResultDto : IIdentifiable<string>
 
     public required bool Pass { get; init; }
 
+    public required string StdOut { get; init; }
+
     public required string? ErrorMessage { get; init; }
 
     public required int ExecutionTimeInMs { get; init; }
@@ -27,7 +29,7 @@ public sealed record TestCaseResultDto : IIdentifiable<string>
 
     public required bool IsHidden { get; init; }
 
-    public static TestCaseResultDto FromEntity(TestCaseResult result)
+    public static TestCaseResultDto FromEntity(TestCaseResult result, string stdOut)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -41,6 +43,7 @@ public sealed record TestCaseResultDto : IIdentifiable<string>
             ExecutionTimeInMs = result.ExecutionTimeInMs,
             MemoryKb = result.MemoryKb,
             Input = result.Input,
+            StdOut = stdOut,
             ExpectedOutput = result.ExpectedOutput,
             ActualOutput = result.ActualOutput,
             IsHidden = result.IsHidden

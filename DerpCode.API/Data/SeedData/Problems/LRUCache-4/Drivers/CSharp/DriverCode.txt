@@ -103,6 +103,7 @@ public class Program
         for (int i = 0; i < testCaseCount; i++)
         {
             var operation = operations[i].GetString();
+            Console.WriteLine($"|derpcode-start-test-{i}|");
             var testCaseSw = Stopwatch.StartNew();
             object? result = null;
             
@@ -128,6 +129,7 @@ public class Program
                 }
                 
                 testCaseSw.Stop();
+                Console.WriteLine($"|derpcode-end-test-{i}|");
                 actualResults.Add(result);
                 
                 object? expected = null;

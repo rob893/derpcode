@@ -31,7 +31,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
         this.fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
     }
 
-    public async Task<ProblemSubmission> RunCodeAsync(int userId, string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken)
+    public async Task<(ProblemSubmission Submission, string StdOut)> RunCodeAsync(int userId, string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(userCode);
         ArgumentNullException.ThrowIfNull(problem);
@@ -53,7 +53,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
         catch (Exception ex)
         {
             this.logger.LogError(ex, "Error executing code");
-            return new ProblemSubmission
+            return (new ProblemSubmission
             {
                 Pass = false,
                 ErrorMessage = ex.Message,
@@ -67,7 +67,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
                 TestCaseResults = [],
                 UserId = userId,
                 ProblemId = problem.Id,
-            };
+            }, string.Empty);
         }
         finally
         {
@@ -94,7 +94,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
         }
     }
 
-    private async Task<ProblemSubmission> ExecuteInContainerAsync(
+    private async Task<(ProblemSubmission Submission, string StdOut)> ExecuteInContainerAsync(
         int userId,
         string userCode,
         LanguageType language,
@@ -127,18 +127,18 @@ public sealed class CodeExecutionService : ICodeExecutionService
         var errorPath = this.fileSystemService.CombinePaths(tempDir, "error.txt");
         var outputPath = this.fileSystemService.CombinePaths(tempDir, "output.txt");
 
-        this.logger.LogInformation("Results path: {ResultsPath}", resultsPath);
+        this.logger.LogDebug("Results path: {ResultsPath}", resultsPath);
 
         var output = this.fileSystemService.FileExists(outputPath) ? await this.fileSystemService.ReadAllTextAsync(outputPath, cancellationToken) : string.Empty;
         var error = this.fileSystemService.FileExists(errorPath) ? await this.fileSystemService.ReadAllTextAsync(errorPath, cancellationToken) : string.Empty;
 
-        this.logger.LogInformation("Output: {OutPut}", string.IsNullOrWhiteSpace(output) ? "No output." : output);
+        this.logger.LogDebug("Output: {OutPut}", string.IsNullOrWhiteSpace(output) ? "No output." : output);
 
         if (!string.IsNullOrEmpty(error))
         {
             this.logger.LogError("Error executing code: {Error}", error);
 
-            return new ProblemSubmission
+            return (new ProblemSubmission
             {
                 Pass = false,
                 ErrorMessage = $"{error}\n{output}",
@@ -152,12 +152,12 @@ public sealed class CodeExecutionService : ICodeExecutionService
                 TestCaseResults = [],
                 UserId = userId,
                 ProblemId = problemId,
-            };
+            }, output);
         }
 
         if (!this.fileSystemService.FileExists(resultsPath))
         {
-            return new ProblemSubmission
+            return (new ProblemSubmission
             {
                 Pass = false,
                 ErrorMessage = "Failed to deserialize results",
@@ -171,7 +171,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
                 TestCaseResults = [],
                 UserId = userId,
                 ProblemId = problemId,
-            };
+            }, output);
         }
 
         var results = await this.fileSystemService.ReadAllTextAsync(resultsPath, cancellationToken).ConfigureAwait(false);
@@ -189,6 +189,6 @@ public sealed class CodeExecutionService : ICodeExecutionService
         submissionResult.UserId = userId;
         submissionResult.ProblemId = problemId;
 
-        return submissionResult;
+        return (submissionResult, output);
     }
 }

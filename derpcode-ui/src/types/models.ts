@@ -176,6 +176,7 @@ export interface TestCaseResult {
   input: any;
   expectedOutput: any;
   actualOutput: any;
+  stdOut: string;
   pass: boolean;
   errorMessage: string;
 }
