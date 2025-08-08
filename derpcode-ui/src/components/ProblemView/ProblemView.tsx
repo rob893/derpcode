@@ -314,10 +314,20 @@ export const ProblemView = () => {
                   isCloneLoading={cloneProblem.isPending}
                   onSubmissionSelect={handleSubmissionSelect}
                 />
+
+                {submissionError && (
+                  <ApiErrorDisplay
+                    error={submissionError}
+                    title={isRunResult ? 'Run Failed' : 'Submission Failed'}
+                    showDetails={true}
+                  />
+                )}
+
+                {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} user={user} />}
               </div>
             }
             rightPanel={
-              <div className="space-y-6 pl-6">
+              <div className="pl-6">
                 <ProblemCodeEditor
                   problem={problem}
                   user={user}
@@ -333,15 +343,6 @@ export const ProblemView = () => {
                   selectedSubmission={selectedSubmission}
                   onReturnToWorkingCode={handleReturnToWorkingCode}
                 />
-                {submissionError && (
-                  <ApiErrorDisplay
-                    error={submissionError}
-                    title={isRunResult ? 'Run Failed' : 'Submission Failed'}
-                    showDetails={true}
-                  />
-                )}
-
-                {result && <ProblemSubmissionResult result={result} isRunResult={isRunResult} user={user} />}
               </div>
             }
             defaultLeftWidth={50}
