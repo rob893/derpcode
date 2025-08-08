@@ -101,9 +101,11 @@ public static class DriverTemplateData
                         /*
                         for (int i = 0; i < testCaseCount; i++)
                         {
+                            Console.WriteLine($"|derpcode-start-test-{i}|");
                             var testCaseSw = System.Diagnostics.Stopwatch.StartNew();
                             var result = YourTestFunction(input[i]);
                             testCaseSw.Stop();
+                            Console.WriteLine($"|derpcode-end-test-{i}|");
                             
                             testCaseResults.Add(new TestCaseResult
                             {
@@ -198,9 +200,11 @@ public static class DriverTemplateData
                     // Example for measuring execution time:
                     /*
                     for (let i = 0; i < input.length; i++) {
+                        console.log(`|derpcode-start-test-${i}|`);
                         const testCaseStart = Date.now();
                         const result = yourTestFunction(input[i]);
                         const testCaseEnd = Date.now();
+                        console.log(`|derpcode-end-test-${i}|`);
                         
                         testCaseResults.push({
                             testCaseIndex: i,
@@ -318,9 +322,11 @@ public static class DriverTemplateData
                     // Example for measuring execution time:
                     /*
                     for (let i = 0; i < input.length; i++) {
+                        console.log(`|derpcode-start-test-${i}|`);
                         const testCaseStart = Date.now();
                         const result = yourTestFunction(input[i]);
                         const testCaseEnd = Date.now();
+                        console.log(`|derpcode-end-test-${i}|`);
                         
                         testCaseResults.push({
                             testCaseIndex: i,
@@ -452,9 +458,11 @@ public static class DriverTemplateData
                         let a = pair[0];
                         let b = pair[1];
 
+                        println!("|derpcode-start-test-{}|", i);
                         let t_start = Instant::now();
                         let result = Solution::add(a, b);
                         let duration = t_start.elapsed().as_millis();
+                        println!("|derpcode-end-test-{}|", i);
 
                         let expected_result = expected[i];
                         let did_pass = result == expected_result;
@@ -602,8 +610,10 @@ public static class DriverTemplateData
                 # Each test case should create a TestCaseResult with detailed information
                 test_case_results = []
 
+                print(f"|derpcode-start-test-{i}|")
                 # Implement your test logic here
                 raise NotImplementedError("Implement your test logic here and populate test_case_results.")
+                print(f"|derpcode-end-test-{i}|")
 
                 # return example:
                 return {
@@ -755,6 +765,8 @@ public static class DriverTemplateData
                     // Each test case should create a TestCaseResult with detailed information
                     List<TestCaseResult> testCaseResults = new ArrayList<>();
 
+                    System.out.println("|derpcode-start-test-" + i + "|");
+                    System.out.println("|derpcode-end-test-" + i + "|");
                     // Implement your test logic here
                     throw new UnsupportedOperationException("Implement your test logic here and populate testCaseResults.");
                 }
