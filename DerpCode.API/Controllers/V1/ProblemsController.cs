@@ -36,7 +36,7 @@ public sealed class ProblemsController : ServiceControllerBase
     [AllowAnonymous]
     [HttpGet(Name = nameof(GetProblemsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CursorPaginatedResponse<ProblemDto>>> GetProblemsAsync([FromQuery] CursorPaginationQueryParameters searchParams)
+    public async Task<ActionResult<CursorPaginatedResponse<ProblemDto>>> GetProblemsAsync([FromQuery] ProblemQueryParameters searchParams)
     {
         var problems = await this.problemService.GetProblemsAsync(searchParams, this.HttpContext.RequestAborted);
         var response = problems.ToCursorPaginatedResponse(searchParams);
@@ -143,9 +143,9 @@ public sealed class ProblemsController : ServiceControllerBase
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteProblemAsync([FromRoute] int problemId)
+    public async Task<ActionResult> DeleteProblemAsync([FromRoute] int problemId, [FromQuery] bool hardDelete = false)
     {
-        var deleteProblemResult = await this.problemService.DeleteProblemAsync(problemId, this.HttpContext.RequestAborted);
+        var deleteProblemResult = await this.problemService.DeleteProblemAsync(problemId, hardDelete, this.HttpContext.RequestAborted);
 
         if (!deleteProblemResult.IsSuccess)
         {

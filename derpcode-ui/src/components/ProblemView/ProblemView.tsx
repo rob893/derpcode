@@ -9,7 +9,14 @@ import { ProblemDescription } from './ProblemDescription';
 import { ProblemCodeEditor } from './ProblemCodeEditor';
 import { ProblemSubmissionResult } from './ProblemSubmissionResult';
 import { ProblemModals } from './ProblemModals';
-import { useDeleteProblem, useProblem, useSubmitSolution, useRunSolution, useCloneProblem } from '../../hooks/api';
+import {
+  useDeleteProblem,
+  useProblem,
+  useSubmitSolution,
+  useRunSolution,
+  useCloneProblem,
+  useToggleProblemPublished
+} from '../../hooks/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useCurrentUser } from '../../hooks/useUser';
 import { useAutoSave } from '../../hooks/useAutoSave';
@@ -29,6 +36,7 @@ export const ProblemView = () => {
   const runSolution = useRunSolution(problem?.id || 0);
   const deleteProblem = useDeleteProblem();
   const cloneProblem = useCloneProblem();
+  const togglePublished = useToggleProblemPublished();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure();
   const { isOpen: isResetOpen, onOpen: onResetOpen, onOpenChange: onResetOpenChange } = useDisclosure();
@@ -181,6 +189,16 @@ export const ProblemView = () => {
     }
   };
 
+  // Handle toggle published status
+  const handleTogglePublished = async (problemId: number, isPublished: boolean) => {
+    try {
+      await togglePublished.mutateAsync({ problemId, isPublished });
+    } catch (error) {
+      console.error('Failed to toggle published status:', error);
+      // Error handling could be enhanced with toast notifications
+    }
+  };
+
   // Handle reset code to template
   const handleResetCode = () => {
     if (!problem || !selectedLanguage) return;
@@ -266,7 +284,9 @@ export const ProblemView = () => {
               onEdit={() => navigate(`/problems/${problem.id}/edit`)}
               onClone={handleCloneProblem}
               onDelete={handleDeleteClick}
+              onTogglePublished={handleTogglePublished}
               isCloneLoading={cloneProblem.isPending}
+              isTogglePublishedLoading={togglePublished.isPending}
               onSubmissionSelect={handleSubmissionSelect}
             />
 
@@ -311,7 +331,9 @@ export const ProblemView = () => {
                   onEdit={() => navigate(`/problems/${problem.id}/edit`)}
                   onClone={handleCloneProblem}
                   onDelete={handleDeleteClick}
+                  onTogglePublished={handleTogglePublished}
                   isCloneLoading={cloneProblem.isPending}
+                  isTogglePublishedLoading={togglePublished.isPending}
                   onSubmissionSelect={handleSubmissionSelect}
                 />
 

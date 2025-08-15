@@ -2,6 +2,12 @@
   "Id": 3,
   "Name": "Subtract Two Numbers",
   "Description": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Description.md",
+  "IsPublished": true,
+  "IsDeleted": false,
+  "CreatedAt": "2025-07-25T02:12:36.376411+00:00",
+  "UpdatedAt": "2025-07-26T17:40:25.537498+00:00",
+  "LastEditedById": 1,
+  "CreatedById": 1,
   "ExplanationArticle": {
     "Id": 3,
     "UserId": 1,
@@ -21,19 +27,9 @@
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [
-    4,
-    2
-  ],
-  "Input": [
-    5,
-    1,
-    6,
-    4
-  ],
-  "Hints": [
-    "Use the \u0027-\u0027 operator"
-  ],
+  "ExpectedOutput": [4, 2],
+  "Input": [5, 1, 6, 4],
+  "Hints": ["Use the \u0027-\u0027 operator"],
   "Tags": [
     {
       "Id": 1,

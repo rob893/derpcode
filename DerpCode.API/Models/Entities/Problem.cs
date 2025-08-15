@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -32,4 +33,20 @@ public sealed class Problem : IIdentifiable<int>
     public List<ProblemDriver> Drivers { get; set; } = [];
 
     public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
+
+    public bool IsPublished { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    public int LastEditedById { get; set; }
+
+    public User LastEditedBy { get; set; } = default!;
+
+    public int CreatedById { get; set; }
+
+    public User CreatedBy { get; set; } = default!;
 }

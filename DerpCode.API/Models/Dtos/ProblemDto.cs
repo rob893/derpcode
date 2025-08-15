@@ -13,6 +13,8 @@ public sealed record ProblemDto : IIdentifiable<int>
 
     public required string Description { get; init; }
 
+    public required bool IsPublished { get; init; }
+
     public required ArticleDto? ExplanationArticle { get; init; }
 
     public required ProblemDifficulty Difficulty { get; init; }
@@ -37,6 +39,7 @@ public sealed record ProblemDto : IIdentifiable<int>
             Name = problem.Name,
             Description = problem.Description,
             Difficulty = problem.Difficulty,
+            IsPublished = problem.IsPublished,
             ExpectedOutput = isCurrentUserAdmin || isCurrentUserPremium ? problem.ExpectedOutput : [],
             ExplanationArticle = ArticleDto.FromEntity(problem.ExplanationArticle),
             Hints = [.. problem.Hints],

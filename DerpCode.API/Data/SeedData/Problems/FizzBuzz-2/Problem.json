@@ -2,6 +2,12 @@
   "Id": 2,
   "Name": "FizzBuzz",
   "Description": "DerpCode.API/Data/SeedData/Problems/FizzBuzz-2/Description.md",
+  "IsPublished": true,
+  "IsDeleted": false,
+  "CreatedAt": "2025-07-25T02:12:36.376411+00:00",
+  "UpdatedAt": "2025-07-26T17:40:25.537498+00:00",
+  "LastEditedById": 1,
+  "CreatedById": 1,
   "ExplanationArticle": {
     "Id": 2,
     "UserId": 1,
@@ -21,23 +27,9 @@
     ]
   },
   "Difficulty": "Easy",
-  "ExpectedOutput": [
-    "buzz",
-    "",
-    "fizz",
-    "",
-    "fizzbuzz"
-  ],
-  "Input": [
-    5,
-    1,
-    3,
-    4,
-    15
-  ],
-  "Hints": [
-    "Use the modulo operator \u0027%\u0027 to check divisibility."
-  ],
+  "ExpectedOutput": ["buzz", "", "fizz", "", "fizzbuzz"],
+  "Input": [5, 1, 3, 4, 15],
+  "Hints": ["Use the modulo operator \u0027%\u0027 to check divisibility."],
   "Tags": [
     {
       "Id": 1,

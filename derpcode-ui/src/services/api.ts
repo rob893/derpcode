@@ -7,15 +7,29 @@ import {
   type Language,
   type ProblemSubmission,
   type UserSubmissionQueryParameters,
+  type ProblemQueryParameters,
   type ArticleComment,
   type CreateArticleCommentRequest,
-  type ArticleCommentQueryParameters
+  type ArticleCommentQueryParameters,
+  type JsonPatchDocument
 } from '../types/models';
 import apiClient from './axiosConfig';
 
 export const problemsApi = {
-  async getProblems(): Promise<Problem[]> {
-    const response = await apiClient.get<CursorPaginatedResponse<Problem>>('/api/v1/problems');
+  async getProblems(queryParams?: Partial<ProblemQueryParameters>): Promise<Problem[]> {
+    const params = new URLSearchParams();
+
+    if (queryParams?.first) params.append('first', queryParams.first.toString());
+    if (queryParams?.last) params.append('last', queryParams.last.toString());
+    if (queryParams?.after) params.append('after', queryParams.after);
+    if (queryParams?.before) params.append('before', queryParams.before);
+    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
+    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
+    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+    if (queryParams?.includeUnpublished) params.append('includeUnpublished', queryParams.includeUnpublished.toString());
+
+    const url = params.toString() ? `/api/v1/problems?${params.toString()}` : '/api/v1/problems';
+    const response = await apiClient.get<CursorPaginatedResponse<Problem>>(url);
     return response.data.nodes || response.data.edges?.map(edge => edge.node) || [];
   },
 
@@ -36,6 +50,15 @@ export const problemsApi = {
 
   async updateProblem(problemId: number, problem: CreateProblemRequest): Promise<Problem> {
     const response = await apiClient.put<Problem>(`/api/v1/problems/${problemId}`, problem);
+    return response.data;
+  },
+
+  async patchProblem(problemId: number, patchDocument: JsonPatchDocument): Promise<Problem> {
+    const response = await apiClient.patch<Problem>(`/api/v1/problems/${problemId}`, patchDocument, {
+      headers: {
+        'Content-Type': 'application/json-patch+json'
+      }
+    });
     return response.data;
   },
 

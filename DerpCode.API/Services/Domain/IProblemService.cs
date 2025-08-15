@@ -20,7 +20,7 @@ public interface IProblemService
     /// <param name="searchParams">The cursor pagination parameters</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A paginated list of problems</returns>
-    Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken);
+    Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken);
 
     /// <summary>
     /// Retrieves a single problem by ID
@@ -77,9 +77,10 @@ public interface IProblemService
     /// Deletes a problem (problem existence should be validated first)
     /// </summary>
     /// <param name="problemId">The ID of the problem to delete</param>
+    /// <param name="hardDelete">Whether to perform a hard delete</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task representing the async operation</returns>
-    Task<Result<bool>> DeleteProblemAsync(int problemId, CancellationToken cancellationToken);
+    Task<Result<bool>> DeleteProblemAsync(int problemId, bool hardDelete, CancellationToken cancellationToken);
 
     /// <summary>
     /// Validates a problem creation request by testing all driver templates

@@ -227,7 +227,7 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         foreach (var problem in problemsToRemove)
         {
             this.logger.LogInformation("Removing obsolete problem: {ProblemName} (ID: {ProblemId})", problem.Name, problem.Id);
-            var result = await this.problemService.DeleteProblemAsync(problem.Id, cancellationToken);
+            var result = await this.problemService.DeleteProblemAsync(problem.Id, hardDelete: true, cancellationToken);
 
             if (result.IsSuccess)
             {

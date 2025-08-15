@@ -23,7 +23,8 @@ import {
   Chip,
   Spinner,
   Tabs,
-  Tab
+  Tab,
+  Switch
 } from '@heroui/react';
 import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -55,7 +56,8 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
     input: [],
     expectedOutput: [],
     hints: [],
-    drivers: []
+    drivers: [],
+    isPublished: false
   });
 
   const [drivers, setDrivers] = useState<CreateProblemDriverRequest[]>([]);
@@ -78,6 +80,7 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
         input: existingProblem.input,
         expectedOutput: existingProblem.expectedOutput,
         hints: existingProblem.hints,
+        isPublished: existingProblem.isPublished,
         drivers: []
       });
 
@@ -341,6 +344,14 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
                       <SelectItem key={ProblemDifficulty.Hard}>Hard</SelectItem>
                       <SelectItem key={ProblemDifficulty.VeryHard}>Very Hard</SelectItem>
                     </Select>
+
+                    <Switch
+                      isSelected={problem.isPublished || false}
+                      onValueChange={isSelected => setProblem(prev => ({ ...prev, isPublished: isSelected }))}
+                      color="success"
+                    >
+                      Published
+                    </Switch>
 
                     <div className="space-y-2">
                       <div className="flex gap-2">

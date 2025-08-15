@@ -23,6 +23,8 @@ public sealed record CreateProblemRequest
     [Required]
     public ProblemDifficulty? Difficulty { get; init; }
 
+    public bool IsPublished { get; init; }
+
     [MinLength(1)]
     [Required]
     public List<object> ExpectedOutput { get; init; } = [];
@@ -49,6 +51,7 @@ public sealed record CreateProblemRequest
             Description = this.Description,
             Difficulty = this.Difficulty ?? throw new InvalidOperationException("Difficulty is required"),
             ExpectedOutput = this.ExpectedOutput,
+            IsPublished = this.IsPublished,
             Hints = [.. this.Hints],
             Input = this.Input,
             Tags = [.. this.Tags.Select(tag => tag.ToEntity())],
@@ -66,6 +69,7 @@ public sealed record CreateProblemRequest
             Name = problem.Name,
             Description = problem.Description,
             Difficulty = problem.Difficulty,
+            IsPublished = problem.IsPublished,
             ExplanationArticle = CreateProblemExplanationArticleRequest.FromEntity(problem.ExplanationArticle),
             ExpectedOutput = [.. problem.ExpectedOutput],
             Input = [.. problem.Input],

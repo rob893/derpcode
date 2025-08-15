@@ -17,7 +17,7 @@ namespace DerpCode.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.17")
+                .HasAnnotation("ProductVersion", "8.0.19")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -206,6 +206,12 @@ namespace DerpCode.API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -230,14 +236,30 @@ namespace DerpCode.API.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LastEditedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("ExplanationArticleId");
+
+                    b.HasIndex("LastEditedById");
 
                     b.ToTable("Problems");
                 });
@@ -446,6 +468,9 @@ namespace DerpCode.API.Migrations
 
                     b.Property<int>("Experience")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTimeOffset>("LastEmailChange")
                         .HasColumnType("datetime(6)");
@@ -709,13 +734,29 @@ namespace DerpCode.API.Migrations
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.Problem", b =>
                 {
+                    b.HasOne("DerpCode.API.Models.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("DerpCode.API.Models.Entities.Article", "ExplanationArticle")
                         .WithMany()
                         .HasForeignKey("ExplanationArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DerpCode.API.Models.Entities.User", "LastEditedBy")
+                        .WithMany()
+                        .HasForeignKey("LastEditedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
                     b.Navigation("ExplanationArticle");
+
+                    b.Navigation("LastEditedBy");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.ProblemDriver", b =>

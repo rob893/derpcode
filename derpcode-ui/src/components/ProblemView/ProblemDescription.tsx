@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Divider, Tabs, Tab } from '@heroui/react';
-import { EyeIcon, EyeSlashIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  PencilIcon,
+  TrashIcon,
+  DocumentDuplicateIcon,
+  GlobeAltIcon,
+  NoSymbolIcon
+} from '@heroicons/react/24/outline';
 import type { Problem, ProblemSubmission } from '../../types/models';
 import type { User } from '../../types/auth';
 import { hasAdminRole } from '../../utils/auth';
@@ -15,7 +23,9 @@ interface ProblemDescriptionProps {
   onEdit: () => void;
   onClone: () => void;
   onDelete: (problem: { id: number; name: string }) => void;
+  onTogglePublished?: (problemId: number, isPublished: boolean) => void;
   isCloneLoading: boolean;
+  isTogglePublishedLoading?: boolean;
   onSubmissionSelect?: (submission: ProblemSubmission) => void;
 }
 
@@ -25,7 +35,9 @@ export const ProblemDescription = ({
   onEdit,
   onClone,
   onDelete,
+  onTogglePublished,
   isCloneLoading,
+  isTogglePublishedLoading = false,
   onSubmissionSelect
 }: ProblemDescriptionProps) => {
   const [activeTab, setActiveTab] = useState('question');
@@ -48,6 +60,18 @@ export const ProblemDescription = ({
                   onPress={onEdit}
                 >
                   Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  color={problem.isPublished ? 'warning' : 'success'}
+                  size="sm"
+                  startContent={
+                    problem.isPublished ? <NoSymbolIcon className="h-4 w-4" /> : <GlobeAltIcon className="h-4 w-4" />
+                  }
+                  onPress={() => onTogglePublished?.(problem.id, !problem.isPublished)}
+                  isLoading={isTogglePublishedLoading}
+                >
+                  {problem.isPublished ? 'Unpublish' : 'Publish'}
                 </Button>
                 <Button
                   variant="ghost"

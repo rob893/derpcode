@@ -5,10 +5,20 @@ import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react
 import { ProblemDifficulty } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblems } from '../hooks/api';
+import { useAuth } from '../hooks/useAuth';
+import { hasAdminRole } from '../utils/auth';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
-  const { data: problems = [], isLoading, error } = useProblems();
+  const { user } = useAuth();
+  const isAdmin = hasAdminRole(user);
+  const {
+    data: problems = [],
+    isLoading,
+    error
+  } = useProblems({
+    includeUnpublished: isAdmin
+  });
 
   // Filter state
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
@@ -375,6 +385,11 @@ export const ProblemList = () => {
                     >
                       {getDifficultyLabel(problem.difficulty)}
                     </Chip>
+                    {!problem.isPublished && (
+                      <Chip color="warning" variant="flat" size="sm" className="font-medium">
+                        Unpublished
+                      </Chip>
+                    )}
                   </div>
                 </div>
 

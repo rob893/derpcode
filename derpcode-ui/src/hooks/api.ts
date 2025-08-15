@@ -7,14 +7,16 @@ import type {
   CreateProblemRequest,
   Language,
   UserSubmissionQueryParameters,
+  ProblemQueryParameters,
   CreateArticleCommentRequest,
-  ArticleCommentQueryParameters
+  ArticleCommentQueryParameters,
+  JsonPatchDocument
 } from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
 
 // Query Keys
 export const queryKeys = {
-  problems: ['problems'] as const,
+  problems: (queryParams?: Partial<ProblemQueryParameters>) => ['problems', queryParams] as const,
   problem: (id: number) => ['problems', id] as const,
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
@@ -34,13 +36,13 @@ export const queryKeys = {
 } as const;
 
 // Problem hooks
-export const useProblems = () => {
+export const useProblems = (queryParams?: Partial<ProblemQueryParameters>) => {
   const queryClient = useQueryClient();
   const { isLoading: isAuthLoading } = useAuth();
 
   const query = useQuery({
-    queryKey: queryKeys.problems,
-    queryFn: problemsApi.getProblems,
+    queryKey: queryKeys.problems(queryParams),
+    queryFn: () => problemsApi.getProblems(queryParams),
     enabled: !isAuthLoading, // Wait for auth initialization
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
@@ -75,7 +77,7 @@ export const useCreateProblem = () => {
     mutationFn: (problem: CreateProblemRequest) => problemsApi.createProblem(problem),
     onSuccess: newProblem => {
       // Invalidate and refetch problems list
-      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Optionally, add the new problem to the cache
       queryClient.setQueryData(queryKeys.problem(newProblem.id), newProblem);
@@ -91,7 +93,7 @@ export const useUpdateProblem = () => {
       problemsApi.updateProblem(problemId, problem),
     onSuccess: updatedProblem => {
       // Invalidate and refetch problems list
-      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Update the specific problem caches
       queryClient.setQueryData(queryKeys.problem(updatedProblem.id), updatedProblem);
@@ -106,7 +108,7 @@ export const useDeleteProblem = () => {
     mutationFn: (problemId: number) => problemsApi.deleteProblem(problemId),
     onSuccess: () => {
       // Invalidate and refetch problems list
-      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
     }
   });
 };
@@ -118,10 +120,34 @@ export const useCloneProblem = () => {
     mutationFn: (problemId: number) => problemsApi.cloneProblem(problemId),
     onSuccess: newProblem => {
       // Invalidate and refetch problems list
-      queryClient.invalidateQueries({ queryKey: queryKeys.problems });
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Add the new problem to the cache
       queryClient.setQueryData(queryKeys.problem(newProblem.id), newProblem);
+    }
+  });
+};
+
+export const useToggleProblemPublished = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ problemId, isPublished }: { problemId: number; isPublished: boolean }) => {
+      const patchDocument: JsonPatchDocument = [
+        {
+          op: 'replace' as const,
+          path: '/isPublished',
+          value: isPublished
+        }
+      ];
+      return problemsApi.patchProblem(problemId, patchDocument);
+    },
+    onSuccess: updatedProblem => {
+      // Invalidate and refetch problems list
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
+
+      // Update the specific problem cache
+      queryClient.setQueryData(queryKeys.problem(updatedProblem.id), updatedProblem);
     }
   });
 };

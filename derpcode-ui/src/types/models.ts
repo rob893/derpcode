@@ -31,6 +31,7 @@ export interface Problem {
   drivers: ProblemDriver[];
   hints: string[];
   explanationArticle?: ExplanationArticle;
+  isPublished: boolean;
 }
 
 export enum Language {
@@ -117,6 +118,7 @@ export interface CreateProblemRequest {
   hints: string[];
   tags: CreateTagRequest[];
   drivers: CreateProblemDriverRequest[];
+  isPublished: boolean;
 }
 
 export interface CreateTagRequest {
@@ -185,6 +187,10 @@ export interface UserSubmissionQueryParameters extends CursorPaginationQueryPara
   problemId?: number;
 }
 
+export interface ProblemQueryParameters extends CursorPaginationQueryParameters {
+  includeUnpublished?: boolean;
+}
+
 export interface ArticleComment {
   id: number;
   userId: number;
@@ -209,3 +215,13 @@ export interface CreateArticleCommentRequest {
 }
 
 export type ArticleCommentQueryParameters = CursorPaginationQueryParameters;
+
+// JSON Patch types
+export interface JsonPatchOperation {
+  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
+  path: string;
+  value?: any;
+  from?: string;
+}
+
+export type JsonPatchDocument = JsonPatchOperation[];

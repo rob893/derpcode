@@ -151,8 +151,10 @@ public sealed class ProblemServiceTests
     public async Task GetProblemsAsync_WithValidParams_ReturnsProblems()
     {
         // Arrange
-        var searchParams = new CursorPaginationQueryParameters { First = 10 };
-        var problems = new List<Problem> { CreateTestProblem() };
+        var searchParams = new ProblemQueryParameters { First = 10 };
+        var testProblem = CreateTestProblem();
+        testProblem.IsPublished = true; // Make sure it's published so it passes the filter
+        var problems = new List<Problem> { testProblem };
 
         // Mock cache miss and repository call for loading all problems
         this.mockCache
@@ -186,7 +188,7 @@ public sealed class ProblemServiceTests
     public async Task GetProblemsAsync_WithCancellationToken_PassesToRepository()
     {
         // Arrange
-        var searchParams = new CursorPaginationQueryParameters { First = 10 };
+        var searchParams = new ProblemQueryParameters { First = 10 };
         var cancellationToken = new CancellationToken(true);
 
         // Mock cache miss
@@ -757,7 +759,7 @@ public sealed class ProblemServiceTests
             .ReturnsAsync((Problem?)null);
 
         // Act
-        var result = await this.problemService.DeleteProblemAsync(problemId, CancellationToken.None);
+        var result = await this.problemService.DeleteProblemAsync(problemId, false, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -781,13 +783,16 @@ public sealed class ProblemServiceTests
             .ReturnsAsync(1);
 
         // Act
-        var result = await this.problemService.DeleteProblemAsync(problemId, CancellationToken.None);
+        var result = await this.problemService.DeleteProblemAsync(problemId, false, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.True(result.Value);
-        this.mockProblemRepository.Verify(x => x.Remove(problem), Times.Once);
+        Assert.True(problem.IsDeleted); // Verify soft delete - IsDeleted should be true
+        Assert.True(problem.ExplanationArticle.IsDeleted); // Explanation article should also be soft deleted
+        this.mockProblemRepository.Verify(x => x.Remove(problem), Times.Never); // Should NOT call Remove for soft delete
         this.mockProblemRepository.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        this.mockCache.Verify(x => x.Remove(CacheKeys.Problems), Times.Once); // Cache should be cleared
     }
 
     [Fact]
@@ -806,7 +811,7 @@ public sealed class ProblemServiceTests
             .ReturnsAsync(0);
 
         // Act
-        var result = await this.problemService.DeleteProblemAsync(problemId, CancellationToken.None);
+        var result = await this.problemService.DeleteProblemAsync(problemId, false, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -827,7 +832,7 @@ public sealed class ProblemServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            this.problemService.DeleteProblemAsync(problemId, cancellationToken));
+            this.problemService.DeleteProblemAsync(problemId, false, cancellationToken));
 
         this.mockProblemRepository.Verify(x => x.GetByIdAsync(problemId, It.IsAny<Expression<Func<Problem, object>>[]>(), It.IsAny<bool>(), cancellationToken), Times.Once);
     }

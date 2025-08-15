@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DerpCode.API.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -47,6 +47,7 @@ namespace DerpCode.API.Migrations
                     LastUsernameChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastEmailConfirmationSent = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     Experience = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -405,7 +406,13 @@ namespace DerpCode.API.Migrations
                     Input = table.Column<string>(type: "json", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Hints = table.Column<string>(type: "json", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsPublished = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    LastEditedById = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -414,6 +421,18 @@ namespace DerpCode.API.Migrations
                         name: "FK_Problems_Articles_ExplanationArticleId",
                         column: x => x.ExplanationArticleId,
                         principalTable: "Articles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Problems_AspNetUsers_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Problems_AspNetUsers_LastEditedById",
+                        column: x => x.LastEditedById,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -604,9 +623,19 @@ namespace DerpCode.API.Migrations
                 column: "ProblemId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Problems_CreatedById",
+                table: "Problems",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Problems_ExplanationArticleId",
                 table: "Problems",
                 column: "ExplanationArticleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Problems_LastEditedById",
+                table: "Problems",
+                column: "LastEditedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProblemSubmissions_ProblemId",
@@ -695,10 +724,10 @@ namespace DerpCode.API.Migrations
                 name: "Articles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Problems");
 
             migrationBuilder.DropTable(
-                name: "Problems");
+                name: "AspNetUsers");
         }
     }
 }

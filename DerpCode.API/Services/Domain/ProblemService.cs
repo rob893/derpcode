@@ -66,12 +66,26 @@ public sealed class ProblemService : IProblemService
     }
 
     /// <inheritdoc />
-    public async Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken)
+    public async Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(searchParams);
         var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
 
         var pagedList = problems.Values
+            .Where(x =>
+            {
+                if (x.IsDeleted)
+                {
+                    return false;
+                }
+
+                if (searchParams.IncludeUnpublished)
+                {
+                    return true;
+                }
+
+                return x.IsPublished;
+            })
             .Select(x => ProblemDto.FromEntity(x, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser))
             .ToCursorPaginatedList(searchParams);
 
@@ -105,6 +119,11 @@ public sealed class ProblemService : IProblemService
         ArgumentNullException.ThrowIfNull(request);
 
         var newProblem = request.ToEntity();
+
+        newProblem.CreatedAt = DateTimeOffset.UtcNow;
+        newProblem.UpdatedAt = DateTimeOffset.UtcNow;
+        newProblem.CreatedById = this.currentUserService.UserId;
+        newProblem.LastEditedById = this.currentUserService.UserId;
 
         if (newProblemId.HasValue)
         {
@@ -141,7 +160,11 @@ public sealed class ProblemService : IProblemService
             return Result<ProblemDto>.Failure(DomainErrorType.NotFound, $"Problem with ID {existingProblemId} not found.");
         }
 
-        var cloneRequest = CreateProblemRequest.FromEntity(existingProblem) with { Name = $"{existingProblem.Name} (Clone)" };
+        var cloneRequest = CreateProblemRequest.FromEntity(existingProblem) with
+        {
+            Name = $"{existingProblem.Name} (Clone)",
+            IsPublished = false
+        };
 
         return await this.CreateProblemAsync(cloneRequest, cancellationToken);
     }
@@ -179,6 +202,9 @@ public sealed class ProblemService : IProblemService
             this.logger.LogError("Failed to apply patch document to problem {ProblemId} after successful validation: {Error}", problemId, error);
             return Result<ProblemDto>.Failure(DomainErrorType.Unknown, $"Failed to apply JSON patch document after successful validation: {error}");
         }
+
+        problem.LastEditedById = this.currentUserService.UserId;
+        problem.UpdatedAt = DateTimeOffset.UtcNow;
 
         var updated = await this.problemRepository.SaveChangesAsync(cancellationToken);
 
@@ -220,6 +246,9 @@ public sealed class ProblemService : IProblemService
         existingProblem.Name = newProblem.Name;
         existingProblem.Description = newProblem.Description;
         existingProblem.Difficulty = newProblem.Difficulty;
+        existingProblem.IsPublished = newProblem.IsPublished;
+        existingProblem.UpdatedAt = DateTimeOffset.UtcNow;
+        existingProblem.LastEditedById = this.currentUserService.UserId;
         existingProblem.Tags = newProblem.Tags;
         existingProblem.Hints = newProblem.Hints;
         existingProblem.ExpectedOutput = newProblem.ExpectedOutput;
@@ -268,7 +297,7 @@ public sealed class ProblemService : IProblemService
     }
 
     /// <inheritdoc />
-    public async Task<Result<bool>> DeleteProblemAsync(int problemId, CancellationToken cancellationToken)
+    public async Task<Result<bool>> DeleteProblemAsync(int problemId, bool hardDelete, CancellationToken cancellationToken)
     {
         var problem = await this.problemRepository.GetByIdAsync(problemId, [p => p.ExplanationArticle, p => p.SolutionArticles], track: true, cancellationToken);
 
@@ -278,7 +307,16 @@ public sealed class ProblemService : IProblemService
             return Result<bool>.Failure(DomainErrorType.NotFound, $"Problem with ID {problemId} not found.");
         }
 
-        this.problemRepository.Remove(problem);
+        if (hardDelete)
+        {
+            this.problemRepository.Remove(problem);
+        }
+        else
+        {
+            problem.IsDeleted = true;
+            problem.ExplanationArticle.IsDeleted = true;
+            problem.SolutionArticles.ForEach(sa => sa.IsDeleted = true);
+        }
 
         var removed = await this.problemRepository.SaveChangesAsync(cancellationToken);
 
@@ -366,6 +404,8 @@ public sealed class ProblemService : IProblemService
 
         // Compare basic properties
         if (leftProblem.Name != rightProblem.Name ||
+            leftProblem.IsPublished != rightProblem.IsPublished ||
+            leftProblem.IsDeleted != rightProblem.IsDeleted ||
             leftProblem.Description != rightProblem.Description ||
             leftProblem.Difficulty != rightProblem.Difficulty ||
             leftProblem.ExplanationArticle.Content != rightProblem.ExplanationArticle.Content)
@@ -450,7 +490,7 @@ public sealed class ProblemService : IProblemService
         if (!this.cache.TryGetValue(CacheKeys.Problems, out Dictionary<int, Problem>? problemLookup))
         {
             var problems = await this.problemRepository.SearchAsync(
-                p => true,
+                p => !p.IsDeleted,
                 [p => p.ExplanationArticle, p => p.Tags, p => p.Drivers],
                 track: false,
                 cancellationToken);

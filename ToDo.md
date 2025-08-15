@@ -6,7 +6,5 @@
 - implement solutions tab (endpoint for CRUD articles)
 - move mapping logic into seperate class instead of dtos?
 - implement soft deleting for problems, users, articles (user soft deletes should null email. anon username and other pii. Article, problem, reply will keep original content in db but service will remove it)
-- Add change tracking to problems (created by, updated by, dates, etc)
 - Keep refactoring controllers out into services (auth)
 - add dynamic cursor for ordering pages
-- add 'Published' property to questions that only admins can change. Non-admins should filter out non-published

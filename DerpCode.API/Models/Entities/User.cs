@@ -26,5 +26,7 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
 
     public int Experience { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
 }
