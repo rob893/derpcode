@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Services.Domain;
-using Moq;
-using Xunit;
 
 namespace DerpCode.API.Tests.Services.Domain;
 
