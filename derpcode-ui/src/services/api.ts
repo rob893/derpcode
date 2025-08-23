@@ -11,21 +11,40 @@ import {
   type ArticleComment,
   type CreateArticleCommentRequest,
   type ArticleCommentQueryParameters,
-  type JsonPatchDocument
+  type JsonPatchDocument,
+  type CursorPaginationQueryParameters
 } from '../types/models';
 import apiClient from './axiosConfig';
+
+function appendCursorPaginationParams(
+  params: URLSearchParams,
+  queryParams?: Partial<CursorPaginationQueryParameters>
+): void {
+  if (queryParams?.first) params.append('first', queryParams.first.toString());
+  if (queryParams?.last) params.append('last', queryParams.last.toString());
+  if (queryParams?.after) params.append('after', queryParams.after);
+  if (queryParams?.before) params.append('before', queryParams.before);
+  if (queryParams?.includeTotal !== undefined) params.append('includeTotal', queryParams.includeTotal.toString());
+  if (queryParams?.includeNodes !== undefined) params.append('includeNodes', queryParams.includeNodes.toString());
+  if (queryParams?.includeEdges !== undefined) params.append('includeEdges', queryParams.includeEdges.toString());
+}
+
+function appendCommentPaginationParams(
+  params: URLSearchParams,
+  queryParams?: Partial<Omit<ArticleCommentQueryParameters, keyof CursorPaginationQueryParameters>>
+): void {
+  if (queryParams?.orderBy) params.append('orderBy', queryParams.orderBy.toString());
+  if (queryParams?.orderByDirection) params.append('orderByDirection', queryParams.orderByDirection.toString());
+  if (queryParams?.parentCommentId) params.append('parentCommentId', queryParams.parentCommentId.toString());
+  if (queryParams?.quotedCommentId) params.append('quotedCommentId', queryParams.quotedCommentId.toString());
+}
 
 export const problemsApi = {
   async getProblems(queryParams?: Partial<ProblemQueryParameters>): Promise<Problem[]> {
     const params = new URLSearchParams();
 
-    if (queryParams?.first) params.append('first', queryParams.first.toString());
-    if (queryParams?.last) params.append('last', queryParams.last.toString());
-    if (queryParams?.after) params.append('after', queryParams.after);
-    if (queryParams?.before) params.append('before', queryParams.before);
-    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
-    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
-    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+    appendCursorPaginationParams(params, queryParams);
+
     if (queryParams?.includeUnpublished) params.append('includeUnpublished', queryParams.includeUnpublished.toString());
 
     const url = params.toString() ? `/api/v1/problems?${params.toString()}` : '/api/v1/problems';
@@ -109,13 +128,7 @@ export const submissionsApi = {
     const params = new URLSearchParams();
     params.append('problemId', problemId.toString());
 
-    if (queryParams?.first) params.append('first', queryParams.first.toString());
-    if (queryParams?.last) params.append('last', queryParams.last.toString());
-    if (queryParams?.after) params.append('after', queryParams.after);
-    if (queryParams?.before) params.append('before', queryParams.before);
-    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
-    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
-    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+    appendCursorPaginationParams(params, queryParams);
 
     const response = await apiClient.get<CursorPaginatedResponse<ProblemSubmission>>(
       `/api/v1/users/${userId}/submissions?${params.toString()}`
@@ -138,13 +151,8 @@ export const articlesApi = {
   ): Promise<CursorPaginatedResponse<ArticleComment>> {
     const params = new URLSearchParams();
 
-    if (queryParams?.first) params.append('first', queryParams.first.toString());
-    if (queryParams?.last) params.append('last', queryParams.last.toString());
-    if (queryParams?.after) params.append('after', queryParams.after);
-    if (queryParams?.before) params.append('before', queryParams.before);
-    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
-    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
-    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+    appendCursorPaginationParams(params, queryParams);
+    appendCommentPaginationParams(params, queryParams);
 
     const response = await apiClient.get<CursorPaginatedResponse<ArticleComment>>(
       `/api/v1/articles/${articleId}/comments?${params.toString()}`
@@ -155,17 +163,12 @@ export const articlesApi = {
   async getArticleCommentReplies(
     articleId: number,
     commentId: number,
-    queryParams?: Partial<ArticleCommentQueryParameters>
+    queryParams?: Omit<Partial<ArticleCommentQueryParameters>, 'quotedCommentId' | 'parentCommentId'>
   ): Promise<CursorPaginatedResponse<ArticleComment>> {
     const params = new URLSearchParams();
 
-    if (queryParams?.first) params.append('first', queryParams.first.toString());
-    if (queryParams?.last) params.append('last', queryParams.last.toString());
-    if (queryParams?.after) params.append('after', queryParams.after);
-    if (queryParams?.before) params.append('before', queryParams.before);
-    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
-    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
-    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+    appendCursorPaginationParams(params, queryParams);
+    appendCommentPaginationParams(params, queryParams);
 
     const response = await apiClient.get<CursorPaginatedResponse<ArticleComment>>(
       `/api/v1/articles/${articleId}/comments/${commentId}/replies?${params.toString()}`
@@ -176,17 +179,12 @@ export const articlesApi = {
   async getArticleCommentQuotedBy(
     articleId: number,
     commentId: number,
-    queryParams?: Partial<ArticleCommentQueryParameters>
+    queryParams?: Omit<Partial<ArticleCommentQueryParameters>, 'quotedCommentId' | 'parentCommentId'>
   ): Promise<CursorPaginatedResponse<ArticleComment>> {
     const params = new URLSearchParams();
 
-    if (queryParams?.first) params.append('first', queryParams.first.toString());
-    if (queryParams?.last) params.append('last', queryParams.last.toString());
-    if (queryParams?.after) params.append('after', queryParams.after);
-    if (queryParams?.before) params.append('before', queryParams.before);
-    if (queryParams?.includeTotal) params.append('includeTotal', queryParams.includeTotal.toString());
-    if (queryParams?.includeNodes) params.append('includeNodes', queryParams.includeNodes.toString());
-    if (queryParams?.includeEdges) params.append('includeEdges', queryParams.includeEdges.toString());
+    appendCursorPaginationParams(params, queryParams);
+    appendCommentPaginationParams(params, queryParams);
 
     const response = await apiClient.get<CursorPaginatedResponse<ArticleComment>>(
       `/api/v1/articles/${articleId}/comments/${commentId}/quotedBy?${params.toString()}`

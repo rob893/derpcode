@@ -51,24 +51,19 @@ public sealed class ArticlesController : ServiceControllerBase
 
     [HttpGet("{id}/comments", Name = nameof(GetArticleCommentsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CursorPaginatedResponse<ArticleCommentDto>>> GetArticleCommentsAsync([FromRoute] int id, [FromQuery] CursorPaginationQueryParameters searchParams)
+    public async Task<ActionResult<CursorPaginatedResponse<ArticleCommentDto>>> GetArticleCommentsAsync([FromRoute] int id, [FromQuery] ArticleCommentQueryParameters searchParams)
     {
         if (searchParams == null)
         {
             return this.BadRequest("Search parameters cannot be null.");
         }
 
-        var paramsWithArticleId = new ArticleCommentQueryParameters
+        if (searchParams.ArticleId.HasValue)
         {
-            ArticleId = id,
-            After = searchParams.After,
-            Before = searchParams.Before,
-            First = searchParams.First,
-            Last = searchParams.Last,
-            IncludeEdges = searchParams.IncludeEdges,
-            IncludeNodes = searchParams.IncludeNodes,
-            IncludeTotal = searchParams.IncludeTotal
-        };
+            return this.BadRequest("Article id is passed in the route, not the query.");
+        }
+
+        var paramsWithArticleId = searchParams with { ArticleId = id };
         var comments = await this.articleService.GetArticleCommentsAsync(paramsWithArticleId, this.HttpContext.RequestAborted);
         var response = comments.ToCursorPaginatedResponse(paramsWithArticleId);
 
@@ -92,24 +87,32 @@ public sealed class ArticlesController : ServiceControllerBase
 
     [HttpGet("{articleId}/comments/{commentId}/replies", Name = nameof(GetArticleCommentRepliesAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentRepliesAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] CursorPaginationQueryParameters searchParams)
+    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentRepliesAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] ArticleCommentQueryParameters searchParams)
     {
         if (searchParams == null)
         {
             return this.BadRequest("Search parameters cannot be null.");
         }
 
-        var paramsWithArticleId = new ArticleCommentQueryParameters
+        if (searchParams.ArticleId.HasValue)
+        {
+            return this.BadRequest("Article id is passed in the route, not the query.");
+        }
+
+        if (searchParams.ParentCommentId.HasValue)
+        {
+            return this.BadRequest("ParentCommentId id is passed in the route, not the query.");
+        }
+
+        if (searchParams.QuotedCommentId.HasValue)
+        {
+            return this.BadRequest("QuotedCommentId is not supported for this endpoint.");
+        }
+
+        var paramsWithArticleId = searchParams with
         {
             ArticleId = articleId,
-            ParentCommentId = commentId,
-            After = searchParams.After,
-            Before = searchParams.Before,
-            First = searchParams.First,
-            Last = searchParams.Last,
-            IncludeEdges = searchParams.IncludeEdges,
-            IncludeNodes = searchParams.IncludeNodes,
-            IncludeTotal = searchParams.IncludeTotal
+            ParentCommentId = commentId
         };
         var comments = await this.articleService.GetArticleCommentsAsync(paramsWithArticleId, this.HttpContext.RequestAborted);
         var response = comments.ToCursorPaginatedResponse(paramsWithArticleId);
@@ -119,24 +122,32 @@ public sealed class ArticlesController : ServiceControllerBase
 
     [HttpGet("{articleId}/comments/{commentId}/quotedBy", Name = nameof(GetArticleCommentQuotedByAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentQuotedByAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] CursorPaginationQueryParameters searchParams)
+    public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentQuotedByAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] ArticleCommentQueryParameters searchParams)
     {
         if (searchParams == null)
         {
             return this.BadRequest("Search parameters cannot be null.");
         }
 
-        var paramsWithArticleId = new ArticleCommentQueryParameters
+        if (searchParams.ArticleId.HasValue)
+        {
+            return this.BadRequest("Article id is passed in the route, not the query.");
+        }
+
+        if (searchParams.QuotedCommentId.HasValue)
+        {
+            return this.BadRequest("QuotedCommentId id is passed in the route, not the query.");
+        }
+
+        if (searchParams.ParentCommentId.HasValue)
+        {
+            return this.BadRequest("ParentCommentId is not supported for this endpoint.");
+        }
+
+        var paramsWithArticleId = searchParams with
         {
             ArticleId = articleId,
-            QuotedCommentId = commentId,
-            After = searchParams.After,
-            Before = searchParams.Before,
-            First = searchParams.First,
-            Last = searchParams.Last,
-            IncludeEdges = searchParams.IncludeEdges,
-            IncludeNodes = searchParams.IncludeNodes,
-            IncludeTotal = searchParams.IncludeTotal
+            QuotedCommentId = commentId
         };
         var comments = await this.articleService.GetArticleCommentsAsync(paramsWithArticleId, this.HttpContext.RequestAborted);
         var response = comments.ToCursorPaginatedResponse(paramsWithArticleId);

@@ -4,6 +4,7 @@ import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import type { User } from '../../types/auth';
 import { useArticleComments, useCreateArticleComment } from '../../hooks/api';
 import { CommentItem } from './CommentItem';
+import { ArticleCommentOrderBy, OrderByDirection } from '../../types/models';
 
 interface ArticleCommentsProps {
   articleId: number;
@@ -20,7 +21,9 @@ export const ArticleComments = ({ articleId, user }: ArticleCommentsProps) => {
     isLoading,
     error
   } = useArticleComments(articleId, {
-    last: 50,
+    first: 50,
+    orderBy: ArticleCommentOrderBy.MostRecent,
+    orderByDirection: OrderByDirection.Descending,
     includeNodes: true
   });
 

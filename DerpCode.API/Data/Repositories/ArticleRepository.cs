@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
 using DerpCode.API.Extensions;
+using DerpCode.API.Models;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
+using DerpCode.API.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DerpCode.API.Data.Repositories;
@@ -40,12 +42,26 @@ public sealed class ArticleRepository(DataContext context) : Repository<Article,
 
         query = query.Include(c => c.User);
 
-        var list = await query.ToCursorPaginatedListAsync(
-            item => item.Id,
-            this.ConvertIdToBase64,
-            this.ConvertBase64ToIdType,
-            searchParams,
-            cancellationToken);
+        var list = searchParams.OrderBy switch
+        {
+            ArticleCommentOrderBy.MostRecent => await query.ToCursorPaginatedListAsync(
+                item => item.Id,
+                item => item.CreatedAt,
+                CursorConverters.CreateCompositeKeyConverterDateTimeOffsetInt(),
+                CursorConverters.CreateCompositeCursorConverterDateTimeOffsetInt(),
+                searchParams,
+                searchParams.OrderByDirection == OrderByDirection.Ascending,
+                cancellationToken),
+            ArticleCommentOrderBy.HighestRated => await query.ToCursorPaginatedListAsync(
+                item => item.Id,
+                item => item.UpVotes,
+                CursorConverters.CreateCompositeKeyConverterIntInt(),
+                CursorConverters.CreateCompositeCursorConverterIntInt(),
+                searchParams,
+                searchParams.OrderByDirection == OrderByDirection.Ascending,
+                cancellationToken),
+            _ => throw new InvalidOperationException("Invalid OrderBy value")
+        };
 
         return list;
     }

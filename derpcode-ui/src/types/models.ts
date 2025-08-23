@@ -214,13 +214,28 @@ export interface CreateArticleCommentRequest {
   quotedCommentId?: number;
 }
 
-export type ArticleCommentQueryParameters = CursorPaginationQueryParameters;
+export type ArticleCommentQueryParameters = CursorPaginationQueryParameters & {
+  orderBy?: ArticleCommentOrderBy;
+  orderByDirection?: OrderByDirection;
+  parentCommentId?: number;
+  quotedCommentId?: number;
+};
+
+export enum ArticleCommentOrderBy {
+  MostRecent = 'MostRecent',
+  HighestRated = 'HighestRated'
+}
+
+export enum OrderByDirection {
+  Ascending = 'Ascending',
+  Descending = 'Descending'
+}
 
 // JSON Patch types
-export interface JsonPatchOperation {
+export interface JsonPatchOperation<T = any> {
   op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
   path: string;
-  value?: any;
+  value?: T;
   from?: string;
 }
 
