@@ -509,7 +509,7 @@ public sealed class ProblemService : IProblemService
 
         if (searchParams.Tags?.Count > 0)
         {
-            isCorrectDifficulty = searchParams.Tags.Any(t => problem.Tags.Select(xt => xt.Name.ToUpperInvariant()).Contains(t.ToUpperInvariant()));
+            hasCorrectTag = searchParams.Tags.Any(t => problem.Tags.Select(xt => xt.Name.ToUpperInvariant()).Contains(t.ToUpperInvariant()));
         }
 
         return problem.IsPublished && isCorrectDifficulty && hasCorrectTag;
