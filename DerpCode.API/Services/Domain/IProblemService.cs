@@ -23,6 +23,14 @@ public interface IProblemService
     Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves a paginated list of problems with limited data
+    /// </summary>
+    /// <param name="searchParams">The cursor pagination parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A paginated list of problems</returns>
+    Task<CursorPaginatedList<ProblemLimitedDto, int>> GetProblemsLimitedAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Retrieves a single problem by ID
     /// </summary>
     /// <param name="id">The problem ID</param>

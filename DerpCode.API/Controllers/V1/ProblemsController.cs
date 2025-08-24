@@ -44,6 +44,16 @@ public sealed class ProblemsController : ServiceControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("limited", Name = nameof(GetProblemsLimitedAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CursorPaginatedResponse<ProblemLimitedDto>>> GetProblemsLimitedAsync([FromQuery] ProblemQueryParameters searchParams)
+    {
+        var problems = await this.problemService.GetProblemsLimitedAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = problems.ToCursorPaginatedResponse(searchParams);
+        return this.Ok(response);
+    }
+
+    [AllowAnonymous]
     [HttpGet("{id}", Name = nameof(GetProblemAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

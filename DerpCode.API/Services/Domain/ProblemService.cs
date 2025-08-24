@@ -72,21 +72,22 @@ public sealed class ProblemService : IProblemService
         var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
 
         var pagedList = problems.Values
-            .Where(x =>
-            {
-                if (x.IsDeleted)
-                {
-                    return false;
-                }
-
-                if (searchParams.IncludeUnpublished)
-                {
-                    return true;
-                }
-
-                return x.IsPublished;
-            })
+            .Where(x => ApplyProblemFilter(x, searchParams))
             .Select(x => ProblemDto.FromEntity(x, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser))
+            .ToCursorPaginatedList(searchParams);
+
+        return pagedList;
+    }
+
+    /// <inheritdoc />
+    public async Task<CursorPaginatedList<ProblemLimitedDto, int>> GetProblemsLimitedAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(searchParams);
+        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+
+        var pagedList = problems.Values
+            .Where(x => ApplyProblemFilter(x, searchParams))
+            .Select(ProblemLimitedDto.FromEntity)
             .ToCursorPaginatedList(searchParams);
 
         return pagedList;
@@ -483,6 +484,35 @@ public sealed class ProblemService : IProblemService
         }
 
         return true;
+    }
+
+    private static bool ApplyProblemFilter(Problem problem, ProblemQueryParameters searchParams)
+    {
+        if (problem.IsDeleted)
+        {
+            return false;
+        }
+
+        if (searchParams.IncludeUnpublished)
+        {
+            return true;
+        }
+
+        var isCorrectDifficulty = true;
+
+        if (searchParams.Difficulties?.Count > 0)
+        {
+            isCorrectDifficulty = searchParams.Difficulties.Contains(problem.Difficulty);
+        }
+
+        var hasCorrectTag = true;
+
+        if (searchParams.Tags?.Count > 0)
+        {
+            isCorrectDifficulty = searchParams.Tags.Any(t => problem.Tags.Select(xt => xt.Name.ToUpperInvariant()).Contains(t.ToUpperInvariant()));
+        }
+
+        return problem.IsPublished && isCorrectDifficulty && hasCorrectTag;
     }
 
     private async Task<IReadOnlyDictionary<int, Problem>> GetProblemsFromCacheAsync(CancellationToken cancellationToken)

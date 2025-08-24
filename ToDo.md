@@ -2,7 +2,6 @@
 - xp system with unlocks (themes, titles, editor animations, etc)
 - programs (guided learnings based on subject)
 - User can update email (endpoint to send update email link to new email)
-- optimize problem querying (list should not return drivers, articles, etc). Artilce should should be pulled back on explanation tab
 - implement solutions tab (endpoint for CRUD articles)
 - move mapping logic into seperate class instead of dtos?
 - implement soft deleting for problems, users, articles (user soft deletes should null email. anon username and other pii. Article, problem, reply will keep original content in db but service will remove it)

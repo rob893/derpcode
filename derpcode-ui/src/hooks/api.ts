@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { problemsApi, driverTemplatesApi, submissionsApi, articlesApi } from '../services/api';
 import { authApi } from '../services/auth';
 import { useAuth } from './useAuth';
@@ -16,7 +15,7 @@ import type { LoginRequest, RegisterRequest } from '../types/auth';
 
 // Query Keys
 export const queryKeys = {
-  problems: (queryParams?: Partial<ProblemQueryParameters>) => ['problems', queryParams] as const,
+  problemsLimited: (queryParams?: Partial<ProblemQueryParameters>) => ['problems', 'limited', queryParams] as const,
   problem: (id: number) => ['problems', id] as const,
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
@@ -36,27 +35,16 @@ export const queryKeys = {
 } as const;
 
 // Problem hooks
-export const useProblems = (queryParams?: Partial<ProblemQueryParameters>) => {
-  const queryClient = useQueryClient();
+
+export const useProblemsLimited = (queryParams?: Partial<ProblemQueryParameters>) => {
   const { isLoading: isAuthLoading } = useAuth();
 
-  const query = useQuery({
-    queryKey: queryKeys.problems(queryParams),
-    queryFn: () => problemsApi.getProblems(queryParams),
+  return useQuery({
+    queryKey: queryKeys.problemsLimited(queryParams),
+    queryFn: () => problemsApi.getProblemsLimited(queryParams),
     enabled: !isAuthLoading, // Wait for auth initialization
     staleTime: 15 * 60 * 1000 // 15 minutes
   });
-
-  // Set cache keys for each individual problem when data changes
-  useEffect(() => {
-    if (query.data) {
-      query.data.forEach(problem => {
-        queryClient.setQueryData(queryKeys.problem(problem.id), problem);
-      });
-    }
-  }, [query.data, queryClient]);
-
-  return query;
 };
 
 export const useProblem = (id: number) => {
@@ -76,7 +64,7 @@ export const useCreateProblem = () => {
   return useMutation({
     mutationFn: (problem: CreateProblemRequest) => problemsApi.createProblem(problem),
     onSuccess: newProblem => {
-      // Invalidate and refetch problems list
+      // Invalidate and refetch problems lists
       queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Optionally, add the new problem to the cache
@@ -92,7 +80,7 @@ export const useUpdateProblem = () => {
     mutationFn: ({ problemId, problem }: { problemId: number; problem: CreateProblemRequest }) =>
       problemsApi.updateProblem(problemId, problem),
     onSuccess: updatedProblem => {
-      // Invalidate and refetch problems list
+      // Invalidate and refetch problems lists
       queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Update the specific problem caches
@@ -107,7 +95,7 @@ export const useDeleteProblem = () => {
   return useMutation({
     mutationFn: (problemId: number) => problemsApi.deleteProblem(problemId),
     onSuccess: () => {
-      // Invalidate and refetch problems list
+      // Invalidate and refetch problems lists
       queryClient.invalidateQueries({ queryKey: ['problems'] });
     }
   });
@@ -119,7 +107,7 @@ export const useCloneProblem = () => {
   return useMutation({
     mutationFn: (problemId: number) => problemsApi.cloneProblem(problemId),
     onSuccess: newProblem => {
-      // Invalidate and refetch problems list
+      // Invalidate and refetch problems lists
       queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Add the new problem to the cache
@@ -143,7 +131,7 @@ export const useToggleProblemPublished = () => {
       return problemsApi.patchProblem(problemId, patchDocument);
     },
     onSuccess: updatedProblem => {
-      // Invalidate and refetch problems list
+      // Invalidate and refetch problems lists
       queryClient.invalidateQueries({ queryKey: ['problems'] });
 
       // Update the specific problem cache

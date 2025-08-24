@@ -4,7 +4,7 @@ import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Inp
 import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblems } from '../hooks/api';
+import { useProblemsLimited } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
 
@@ -16,7 +16,7 @@ export const ProblemList = () => {
     data: problems = [],
     isLoading,
     error
-  } = useProblems({
+  } = useProblemsLimited({
     includeUnpublished: isAdmin
   });
 

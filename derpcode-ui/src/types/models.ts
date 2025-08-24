@@ -34,6 +34,14 @@ export interface Problem {
   isPublished: boolean;
 }
 
+export interface ProblemLimited {
+  id: number;
+  name: string;
+  tags: TagDto[];
+  difficulty: ProblemDifficulty;
+  isPublished: boolean;
+}
+
 export enum Language {
   CSharp = 'CSharp',
   JavaScript = 'JavaScript',

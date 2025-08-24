@@ -1,5 +1,6 @@
 import {
   type Problem,
+  type ProblemLimited,
   type CursorPaginatedResponse,
   type DriverTemplate,
   type CreateProblemRequest,
@@ -49,6 +50,18 @@ export const problemsApi = {
 
     const url = params.toString() ? `/api/v1/problems?${params.toString()}` : '/api/v1/problems';
     const response = await apiClient.get<CursorPaginatedResponse<Problem>>(url);
+    return response.data.nodes || response.data.edges?.map(edge => edge.node) || [];
+  },
+
+  async getProblemsLimited(queryParams?: Partial<ProblemQueryParameters>): Promise<ProblemLimited[]> {
+    const params = new URLSearchParams();
+
+    appendCursorPaginationParams(params, queryParams);
+
+    if (queryParams?.includeUnpublished) params.append('includeUnpublished', queryParams.includeUnpublished.toString());
+
+    const url = params.toString() ? `/api/v1/problems/limited?${params.toString()}` : '/api/v1/problems/limited';
+    const response = await apiClient.get<CursorPaginatedResponse<ProblemLimited>>(url);
     return response.data.nodes || response.data.edges?.map(edge => edge.node) || [];
   },
 
