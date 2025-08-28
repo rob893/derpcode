@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { reverseList, ListNode } from './solution';
+import { isPalindrome } from './solution.js';
 
 function main() {
     const args = process.argv.slice(2);
@@ -11,14 +11,14 @@ function main() {
 
     const [inputPath, expectedPath, resultPath] = args;
 
-    const result: any = {
+    const result = {
         pass: false,
         testCaseCount: 0,
         passedTestCases: 0,
         failedTestCases: 0,
         errorMessage: '',
         executionTimeInMs: 0,
-        testCaseResults: [] as any[]
+        testCaseResults: []
     };
 
     try {
@@ -36,7 +36,7 @@ function main() {
         result.testCaseResults = testResults.testCaseResults;
         result.executionTimeInMs = Date.now() - start;
 
-    } catch (err: any) {
+    } catch (err) {
         console.error('Error reading files:' + err.message);
         result.errorMessage = err.message;
     }
@@ -44,14 +44,14 @@ function main() {
     fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
 }
 
-function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
-    const input: number[][] = JSON.parse(inputJsonStr);
-    const expectedOutput: number[][] = JSON.parse(expectedOutputJsonStr);
+function runTests(inputJsonStr, expectedOutputJsonStr) {
+    const input = JSON.parse(inputJsonStr);
+    const expectedOutput = JSON.parse(expectedOutputJsonStr);
     
     const testCaseCount = input.length;
     let passedTestCases = 0;
     let failedTestCases = 0;
-    const testCaseResults: any[] = [];
+    const testCaseResults = [];
 
     for (let i = 0; i < testCaseCount; i++) {
         console.log(`|derpcode-start-test-${i}|`);
@@ -64,35 +64,29 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
             executionTimeInMs: 0,
             input: input[i],
             expectedOutput: expectedOutput[i],
-            actualOutput: null as number[] | null,
+            actualOutput: null,
             isHidden: false
         };
 
         try {
-            // Convert input array to linked list
-            const head = arrayToLinkedList(input[i]);
-            
             // Run the solution
-            const reversedHead = reverseList(head);
-            
-            // Convert result back to array
-            const actualOutput = linkedListToArray(reversedHead);
+            const actualOutput = isPalindrome(input[i]);
 
             testCaseResult.actualOutput = actualOutput;
             testCaseResult.executionTimeInMs = Date.now() - start;
 
             // Compare results
-            const testPassed = arraysEqual(actualOutput, expectedOutput[i]);
+            const testPassed = actualOutput === expectedOutput[i];
             testCaseResult.pass = testPassed;
 
             if (testPassed) {
                 passedTestCases++;
             } else {
                 failedTestCases++;
-                testCaseResult.errorMessage = `Expected: ${JSON.stringify(expectedOutput[i])}, but got: ${JSON.stringify(actualOutput)}`;
+                testCaseResult.errorMessage = `Expected: ${expectedOutput[i]}, but got: ${actualOutput}`;
             }
 
-        } catch (err: any) {
+        } catch (err) {
             failedTestCases++;
             testCaseResult.pass = false;
             testCaseResult.errorMessage = `Runtime error: ${err.message}`;
@@ -110,57 +104,6 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
         failedTestCases,
         testCaseResults
     };
-}
-
-/**
- * Converts an array to a linked list
- */
-function arrayToLinkedList(arr: number[]): ListNode | null {
-    if (!arr || arr.length === 0) {
-        return null;
-    }
-    
-    const head = new ListNode(arr[0]);
-    let current = head;
-    
-    for (let i = 1; i < arr.length; i++) {
-        current.next = new ListNode(arr[i]);
-        current = current.next;
-    }
-    
-    return head;
-}
-
-/**
- * Converts a linked list to an array
- */
-function linkedListToArray(head: ListNode | null): number[] {
-    const result: number[] = [];
-    let current = head;
-    
-    while (current !== null) {
-        result.push(current.val);
-        current = current.next;
-    }
-    
-    return result;
-}
-
-/**
- * Compare two arrays for equality
- */
-function arraysEqual(arr1: number[], arr2: number[]): boolean {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-    
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-    
-    return true;
 }
 
 main();

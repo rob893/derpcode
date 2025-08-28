@@ -1,8 +1,6 @@
 mod solution;
 
-use solution::{Solution, ListNode};
-use std::rc::Rc;
-use std::cell::RefCell;
+use solution::Solution;
 use std::env;
 use std::fs;
 use std::time::Instant;
@@ -82,8 +80,8 @@ fn run_tests(input_path: &str, expected_path: &str) -> Result<SubmissionResult, 
     let input_content = fs::read_to_string(input_path)?;
     let expected_content = fs::read_to_string(expected_path)?;
     
-    let inputs: Vec<Value> = serde_json::from_str(&input_content)?;
-    let expected_outputs: Vec<Value> = serde_json::from_str(&expected_content)?;
+    let inputs: Vec<String> = serde_json::from_str(&input_content)?;
+    let expected_outputs: Vec<bool> = serde_json::from_str(&expected_content)?;
     
     let test_case_count = inputs.len();
     let mut passed_test_cases = 0;
@@ -99,16 +97,16 @@ fn run_tests(input_path: &str, expected_path: &str) -> Result<SubmissionResult, 
             pass: false,
             error_message: String::new(),
             execution_time_in_ms: 0,
-            input: input.clone(),
-            expected_output: expected_output.clone(),
+            input: Value::String(input.clone()),
+            expected_output: Value::Bool(*expected_output),
             actual_output: Value::Null,
             is_hidden: false,
         };
         
-        match run_single_test(input, expected_output) {
+        match run_single_test(input, *expected_output) {
             Ok(actual_output) => {
                 test_result.execution_time_in_ms = test_start_time.elapsed().as_millis();
-                test_result.actual_output = actual_output.clone();
+                test_result.actual_output = Value::Bool(actual_output);
                 
                 if actual_output == *expected_output {
                     test_result.pass = true;
@@ -144,50 +142,9 @@ fn run_tests(input_path: &str, expected_path: &str) -> Result<SubmissionResult, 
     })
 }
 
-fn run_single_test(input: &Value, _expected_output: &Value) -> Result<Value, Box<dyn std::error::Error>> {
-    let input_array = input.as_array().ok_or("Input is not an array")?;
-    
-    // Convert JSON array to linked list
-    let head = json_array_to_linked_list(input_array)?;
-    
+fn run_single_test(input: &String, _expected_output: bool) -> Result<bool, Box<dyn std::error::Error>> {
     // Run the solution
-    let reversed_head = Solution::reverse_list(head);
+    let result = Solution::is_palindrome(input.clone());
     
-    // Convert result back to JSON array
-    let result_array = linked_list_to_json_array(reversed_head);
-    
-    Ok(Value::Array(result_array))
-}
-
-fn json_array_to_linked_list(arr: &[Value]) -> Result<Option<Rc<RefCell<ListNode>>>, Box<dyn std::error::Error>> {
-    if arr.is_empty() {
-        return Ok(None);
-    }
-    
-    let head = Rc::new(RefCell::new(ListNode::new(
-        arr[0].as_i64().ok_or("Invalid integer in array")? as i32
-    )));
-    let mut current = head.clone();
-    
-    for val in &arr[1..] {
-        let new_node = Rc::new(RefCell::new(ListNode::new(
-            val.as_i64().ok_or("Invalid integer in array")? as i32
-        )));
-        current.borrow_mut().next = Some(new_node.clone());
-        current = new_node;
-    }
-    
-    Ok(Some(head))
-}
-
-fn linked_list_to_json_array(head: Option<Rc<RefCell<ListNode>>>) -> Vec<Value> {
-    let mut result = Vec::new();
-    let mut current = head;
-    
-    while let Some(node) = current {
-        result.push(Value::Number(serde_json::Number::from(node.borrow().val)));
-        current = node.borrow().next.clone();
-    }
-    
-    result
+    Ok(result)
 }

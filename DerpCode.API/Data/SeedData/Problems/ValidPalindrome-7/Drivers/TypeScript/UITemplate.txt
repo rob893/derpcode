@@ -1,0 +1,6 @@
+function isPalindrome(s: string): boolean {
+    // Your implementation here
+    return false;
+}
+
+export { isPalindrome };

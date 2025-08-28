@@ -1,0 +1,31 @@
+impl Solution {
+    pub fn is_palindrome(s: String) -> bool {
+        let chars: Vec<char> = s.chars().collect();
+        let mut left = 0;
+        let mut right = chars.len() as i32 - 1;
+        
+        while left < right {
+            // Skip non-alphanumeric characters from left
+            while left < right && !chars[left as usize].is_alphanumeric() {
+                left += 1;
+            }
+            
+            // Skip non-alphanumeric characters from right
+            while left < right && !chars[right as usize].is_alphanumeric() {
+                right -= 1;
+            }
+            
+            // Compare characters (case-insensitive)
+            if chars[left as usize].to_lowercase().to_string() != chars[right as usize].to_lowercase().to_string() {
+                return false;
+            }
+            
+            left += 1;
+            right -= 1;
+        }
+        
+        true
+    }
+}
+
+pub struct Solution;

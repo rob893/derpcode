@@ -1,0 +1,10 @@
+/**
+ * @param {string} s
+ * @return {boolean}
+ */
+function isPalindrome(s) {
+    // Your implementation here
+    return false;
+}
+
+export { isPalindrome };

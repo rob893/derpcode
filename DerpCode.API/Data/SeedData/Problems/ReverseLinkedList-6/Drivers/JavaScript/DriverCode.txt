@@ -89,11 +89,9 @@ function runTests(inputJsonStr, expectedOutputJsonStr) {
 
             if (testPassed) {
                 passedTestCases++;
-                console.log(`|derpcode-test-${i}-passed|`);
             } else {
                 failedTestCases++;
                 testCaseResult.errorMessage = `Expected: ${JSON.stringify(expectedOutput[i])}, but got: ${JSON.stringify(actualOutput)}`;
-                console.log(`|derpcode-test-${i}-failed|`);
             }
 
         } catch (err) {
@@ -101,9 +99,9 @@ function runTests(inputJsonStr, expectedOutputJsonStr) {
             testCaseResult.pass = false;
             testCaseResult.errorMessage = `Runtime error: ${err.message}`;
             testCaseResult.executionTimeInMs = Date.now() - start;
-            console.log(`|derpcode-test-${i}-failed|`);
         }
 
+        console.log(`|derpcode-end-test-${i}|`);
         testCaseResults.push(testCaseResult);
     }
 

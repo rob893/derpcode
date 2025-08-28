@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { reverseList, ListNode } from './solution';
+import { isPalindrome } from './solution';
 
 function main() {
     const args = process.argv.slice(2);
@@ -45,8 +45,8 @@ function main() {
 }
 
 function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
-    const input: number[][] = JSON.parse(inputJsonStr);
-    const expectedOutput: number[][] = JSON.parse(expectedOutputJsonStr);
+    const input: string[] = JSON.parse(inputJsonStr);
+    const expectedOutput: boolean[] = JSON.parse(expectedOutputJsonStr);
     
     const testCaseCount = input.length;
     let passedTestCases = 0;
@@ -64,32 +64,26 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
             executionTimeInMs: 0,
             input: input[i],
             expectedOutput: expectedOutput[i],
-            actualOutput: null as number[] | null,
+            actualOutput: null as boolean | null,
             isHidden: false
         };
 
         try {
-            // Convert input array to linked list
-            const head = arrayToLinkedList(input[i]);
-            
             // Run the solution
-            const reversedHead = reverseList(head);
-            
-            // Convert result back to array
-            const actualOutput = linkedListToArray(reversedHead);
+            const actualOutput = isPalindrome(input[i]);
 
             testCaseResult.actualOutput = actualOutput;
             testCaseResult.executionTimeInMs = Date.now() - start;
 
             // Compare results
-            const testPassed = arraysEqual(actualOutput, expectedOutput[i]);
+            const testPassed = actualOutput === expectedOutput[i];
             testCaseResult.pass = testPassed;
 
             if (testPassed) {
                 passedTestCases++;
             } else {
                 failedTestCases++;
-                testCaseResult.errorMessage = `Expected: ${JSON.stringify(expectedOutput[i])}, but got: ${JSON.stringify(actualOutput)}`;
+                testCaseResult.errorMessage = `Expected: ${expectedOutput[i]}, but got: ${actualOutput}`;
             }
 
         } catch (err: any) {
@@ -110,57 +104,6 @@ function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
         failedTestCases,
         testCaseResults
     };
-}
-
-/**
- * Converts an array to a linked list
- */
-function arrayToLinkedList(arr: number[]): ListNode | null {
-    if (!arr || arr.length === 0) {
-        return null;
-    }
-    
-    const head = new ListNode(arr[0]);
-    let current = head;
-    
-    for (let i = 1; i < arr.length; i++) {
-        current.next = new ListNode(arr[i]);
-        current = current.next;
-    }
-    
-    return head;
-}
-
-/**
- * Converts a linked list to an array
- */
-function linkedListToArray(head: ListNode | null): number[] {
-    const result: number[] = [];
-    let current = head;
-    
-    while (current !== null) {
-        result.push(current.val);
-        current = current.next;
-    }
-    
-    return result;
-}
-
-/**
- * Compare two arrays for equality
- */
-function arraysEqual(arr1: number[], arr2: number[]): boolean {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-    
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-    
-    return true;
 }
 
 main();

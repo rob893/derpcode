@@ -1,0 +1,116 @@
+import sys
+import json
+import time
+from solution import Solution
+
+def main():
+    if len(sys.argv) < 4:
+        print("Usage: python main.py <inputFilePath> <expectedOutputFilePath> <resultFilePath>", file=sys.stderr)
+        sys.exit(1)
+
+    input_path, expected_path, result_path = sys.argv[1], sys.argv[2], sys.argv[3]
+
+    result = {
+        "pass": False,
+        "testCaseCount": 0,
+        "passedTestCases": 0,
+        "failedTestCases": 0,
+        "errorMessage": "",
+        "executionTimeInMs": 0,
+        "testCaseResults": []
+    }
+
+    try:
+        with open(input_path, 'r') as f:
+            input_data = f.read()
+        with open(expected_path, 'r') as f:
+            expected_output = f.read()
+
+        start_time = time.time()
+        test_results = run_tests(input_data, expected_output)
+        result["executionTimeInMs"] = int((time.time() - start_time) * 1000)
+
+        result["pass"] = test_results["pass"]
+        result["testCaseCount"] = test_results["testCaseCount"]
+        result["passedTestCases"] = test_results["passedTestCases"]
+        result["failedTestCases"] = test_results["failedTestCases"]
+        result["testCaseResults"] = test_results["testCaseResults"]
+
+    except Exception as e:
+        print(f"Error reading files: {e}", file=sys.stderr)
+        result["errorMessage"] = f"Error reading input files: {e}"
+
+    with open(result_path, 'w') as f:
+        json.dump(result, f, indent=2)
+
+def run_tests(input_json_str, expected_output_json_str):
+    try:
+        inputs = json.loads(input_json_str)
+        expected_outputs = json.loads(expected_output_json_str)
+        
+        test_case_count = len(inputs)
+        passed_test_cases = 0
+        failed_test_cases = 0
+        test_case_results = []
+        
+        solution = Solution()
+        
+        for i in range(test_case_count):
+            print(f"|derpcode-start-test-{i}|")
+            test_result = {
+                "testCaseIndex": i,
+                "pass": False,
+                "errorMessage": "",
+                "executionTimeInMs": 0,
+                "input": inputs[i],
+                "expectedOutput": expected_outputs[i],
+                "actualOutput": None,
+                "isHidden": False
+            }
+            
+            try:
+                test_start_time = time.time()
+                
+                actual_output = solution.isPalindrome(inputs[i])
+                
+                test_result["executionTimeInMs"] = int((time.time() - test_start_time) * 1000)
+                test_result["actualOutput"] = actual_output
+                
+                test_passed = actual_output == expected_outputs[i]
+                test_result["pass"] = test_passed
+                
+                if test_passed:
+                    passed_test_cases += 1
+                else:
+                    failed_test_cases += 1
+                    test_result["errorMessage"] = f"Expected: {expected_outputs[i]}, but got: {actual_output}"
+                    
+            except Exception as e:
+                failed_test_cases += 1
+                test_result["pass"] = False
+                test_result["errorMessage"] = f"Runtime error: {e}"
+                test_result["executionTimeInMs"] = int((time.time() - test_start_time) * 1000) if 'test_start_time' in locals() else 0
+            
+            print(f"|derpcode-end-test-{i}|")
+            test_case_results.append(test_result)
+        
+        return {
+            "pass": failed_test_cases == 0,
+            "testCaseCount": test_case_count,
+            "passedTestCases": passed_test_cases,
+            "failedTestCases": failed_test_cases,
+            "testCaseResults": test_case_results
+        }
+        
+    except Exception as e:
+        return {
+            "pass": False,
+            "testCaseCount": 0,
+            "passedTestCases": 0,
+            "failedTestCases": 0,
+            "errorMessage": f"Error parsing input: {e}",
+            "testCaseResults": []
+        }
+
+if __name__ == "__main__":
+    main()

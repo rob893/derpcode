@@ -116,10 +116,10 @@ class Program {
 
         try {
             Gson gson = new Gson();
-            JsonArray inputs = gson.fromJson(input, JsonArray.class);
-            JsonArray expectedOutputs = gson.fromJson(expectedOutput, JsonArray.class);
+            String[] inputs = gson.fromJson(input, String[].class);
+            Boolean[] expectedOutputs = gson.fromJson(expectedOutput, Boolean[].class);
 
-            int testCaseCount = inputs.size();
+            int testCaseCount = inputs.length;
             int passedTests = 0;
             int failedTests = 0;
 
@@ -134,32 +134,25 @@ class Program {
                 try {
                     long testStartTime = System.currentTimeMillis();
 
-                    JsonArray inputArray = inputs.get(i).getAsJsonArray();
-                    JsonArray expectedArray = expectedOutputs.get(i).getAsJsonArray();
+                    String inputString = inputs[i];
+                    Boolean expectedBool = expectedOutputs[i];
 
-                    // Convert input array to linked list
-                    ListNode head = arrayToLinkedList(inputArray);
-                    
                     // Run the solution
-                    ListNode reversedHead = solution.reverseList(head);
-                    
-                    // Convert result back to array
-                    List<Integer> actualOutput = linkedListToArray(reversedHead);
-                    List<Integer> expectedList = jsonArrayToIntegerList(expectedArray);
+                    boolean actualOutput = solution.isPalindrome(inputString);
 
                     testResult.setExecutionTimeInMs((int)(System.currentTimeMillis() - testStartTime));
-                    testResult.setInput(jsonArrayToIntegerList(inputArray));
-                    testResult.setExpectedOutput(expectedList);
+                    testResult.setInput(inputString);
+                    testResult.setExpectedOutput(expectedBool);
                     testResult.setActualOutput(actualOutput);
 
-                    boolean testPassed = listsEqual(actualOutput, expectedList);
+                    boolean testPassed = actualOutput == expectedBool;
                     testResult.setPass(testPassed);
 
                     if (testPassed) {
                         passedTests++;
                     } else {
                         failedTests++;
-                        testResult.setErrorMessage("Expected: " + expectedList + ", but got: " + actualOutput);
+                        testResult.setErrorMessage("Expected: " + expectedBool + ", but got: " + actualOutput);
                     }
 
                 } catch (Exception ex) {
@@ -188,55 +181,5 @@ class Program {
         }
 
         return result;
-    }
-
-    private static ListNode arrayToLinkedList(JsonArray arr) {
-        if (arr.size() == 0) {
-            return null;
-        }
-        
-        ListNode head = new ListNode(arr.get(0).getAsInt());
-        ListNode current = head;
-        
-        for (int i = 1; i < arr.size(); i++) {
-            current.next = new ListNode(arr.get(i).getAsInt());
-            current = current.next;
-        }
-        
-        return head;
-    }
-
-    private static List<Integer> linkedListToArray(ListNode head) {
-        List<Integer> result = new ArrayList<>();
-        ListNode current = head;
-        
-        while (current != null) {
-            result.add(current.val);
-            current = current.next;
-        }
-        
-        return result;
-    }
-
-    private static List<Integer> jsonArrayToIntegerList(JsonArray arr) {
-        List<Integer> result = new ArrayList<>();
-        for (JsonElement element : arr) {
-            result.add(element.getAsInt());
-        }
-        return result;
-    }
-
-    private static boolean listsEqual(List<Integer> list1, List<Integer> list2) {
-        if (list1.size() != list2.size()) {
-            return false;
-        }
-        
-        for (int i = 0; i < list1.size(); i++) {
-            if (!Objects.equals(list1.get(i), list2.get(i))) {
-                return false;
-            }
-        }
-        
-        return true;
     }
 }

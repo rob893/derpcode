@@ -1,0 +1,35 @@
+function isPalindrome(s: string): boolean {
+    let left = 0;
+    let right = s.length - 1;
+    
+    while (left < right) {
+        // Skip non-alphanumeric characters from left
+        while (left < right && !isAlphanumeric(s[left])) {
+            left++;
+        }
+        
+        // Skip non-alphanumeric characters from right
+        while (left < right && !isAlphanumeric(s[right])) {
+            right--;
+        }
+        
+        // Compare characters (case-insensitive)
+        if (s[left].toLowerCase() !== s[right].toLowerCase()) {
+            return false;
+        }
+        
+        left++;
+        right--;
+    }
+    
+    return true;
+}
+
+/**
+ * Helper function to check if a character is alphanumeric
+ */
+function isAlphanumeric(char: string): boolean {
+    return /^[a-zA-Z0-9]$/.test(char);
+}
+
+export { isPalindrome };
