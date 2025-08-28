@@ -3,11 +3,6 @@
   "Name": "Add Two Numbers",
   "Description": "DerpCode.API/Data/SeedData/Problems/AddTwoNumbers-1/Description.md",
   "IsPublished": true,
-  "IsDeleted": false,
-  "CreatedAt": "2025-07-25T02:12:36.376411+00:00",
-  "UpdatedAt": "2025-07-26T17:40:25.537498+00:00",
-  "LastEditedById": 1,
-  "CreatedById": 1,
   "ExplanationArticle": {
     "Id": 1,
     "UserId": 1,
@@ -15,25 +10,35 @@
     "Content": "DerpCode.API/Data/SeedData/Problems/AddTwoNumbers-1/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-07-25T02:12:36.376411+00:00",
-    "UpdatedAt": "2025-07-26T17:40:25.537498+00:00",
+    "CreatedAt": "2025-08-15T03:54:59.748833+00:00",
+    "UpdatedAt": "2025-08-15T03:54:59.748833+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 1,
-        "Name": "Math"
-      },
-      {
         "Id": 2,
         "Name": "Addition"
+      },
+      {
+        "Id": 1,
+        "Name": "Math"
       }
     ]
   },
   "Difficulty": "VeryEasy",
-  "ExpectedOutput": [6, 10],
-  "Input": [5, 1, 6, 4],
-  "Hints": ["Use the \u0027\u002B\u0027 operator to add two numbers.."],
+  "ExpectedOutput": [
+    6,
+    10
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the \u0027\u002B\u0027 operator to add two numbers.."
+  ],
   "Tags": [
     {
       "Id": 1,
