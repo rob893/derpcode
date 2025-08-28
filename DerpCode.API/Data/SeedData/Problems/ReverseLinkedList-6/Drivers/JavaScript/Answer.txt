@@ -1,0 +1,27 @@
+// Definition for singly-linked list.
+class ListNode {
+    constructor(val, next) {
+        this.val = (val===undefined ? 0 : val)
+        this.next = (next===undefined ? null : next)
+    }
+}
+
+/**
+ * @param {ListNode} head
+ * @return {ListNode}
+ */
+function reverseList(head) {
+    let previous = null;
+    let current = head;
+    
+    while (current !== null) {
+        const nextNode = current.next;
+        current.next = previous;
+        previous = current;
+        current = nextNode;
+    }
+    
+    return previous;
+}
+
+module.exports = { reverseList, ListNode };

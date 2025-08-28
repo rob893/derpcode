@@ -1,0 +1,191 @@
+mod solution;
+
+use solution::{Solution, ListNode};
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::env;
+use std::fs;
+use std::time::Instant;
+use serde::Serialize;
+use serde_json::{Value, json};
+
+#[derive(Serialize)]
+struct SubmissionResult {
+    pass: bool,
+    #[serde(rename = "testCaseCount")]
+    test_case_count: usize,
+    #[serde(rename = "passedTestCases")]
+    passed_test_cases: usize,
+    #[serde(rename = "failedTestCases")]
+    failed_test_cases: usize,
+    #[serde(rename = "errorMessage")]
+    error_message: String,
+    #[serde(rename = "executionTimeInMs")]
+    execution_time_in_ms: u128,
+    #[serde(rename = "testCaseResults")]
+    test_case_results: Vec<TestCaseResult>,
+}
+
+#[derive(Serialize)]
+struct TestCaseResult {
+    #[serde(rename = "testCaseIndex")]
+    test_case_index: usize,
+    pass: bool,
+    #[serde(rename = "errorMessage")]
+    error_message: String,
+    #[serde(rename = "executionTimeInMs")]
+    execution_time_in_ms: u128,
+    input: Value,
+    #[serde(rename = "expectedOutput")]
+    expected_output: Value,
+    #[serde(rename = "actualOutput")]
+    actual_output: Value,
+    #[serde(rename = "isHidden")]
+    is_hidden: bool,
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let input_path = &args[1];
+    let expected_path = &args[2];
+    let result_path = &args[3];
+
+    match run_tests(input_path, expected_path) {
+        Ok(results) => {
+            let json = serde_json::to_string_pretty(&results).unwrap();
+            if let Err(e) = fs::write(result_path, json) {
+                eprintln!("Error writing results: {}", e);
+            }
+        }
+        Err(e) => {
+            eprintln!("Error running tests: {}", e);
+            let error_result = SubmissionResult {
+                pass: false,
+                test_case_count: 0,
+                passed_test_cases: 0,
+                failed_test_cases: 0,
+                error_message: format!("Error running tests: {}", e),
+                execution_time_in_ms: 0,
+                test_case_results: vec![],
+            };
+            let json = serde_json::to_string_pretty(&error_result).unwrap();
+            if let Err(e) = fs::write(result_path, json) {
+                eprintln!("Error writing error results: {}", e);
+            }
+        }
+    }
+}
+
+fn run_tests(input_path: &str, expected_path: &str) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
+    let start_time = Instant::now();
+    
+    let input_content = fs::read_to_string(input_path)?;
+    let expected_content = fs::read_to_string(expected_path)?;
+    
+    let inputs: Vec<Value> = serde_json::from_str(&input_content)?;
+    let expected_outputs: Vec<Value> = serde_json::from_str(&expected_content)?;
+    
+    let test_case_count = inputs.len();
+    let mut passed_test_cases = 0;
+    let mut failed_test_cases = 0;
+    let mut test_case_results = Vec::new();
+    
+    for (i, (input, expected_output)) in inputs.iter().zip(expected_outputs.iter()).enumerate() {
+        let test_start_time = Instant::now();
+        
+        let mut test_result = TestCaseResult {
+            test_case_index: i,
+            pass: false,
+            error_message: String::new(),
+            execution_time_in_ms: 0,
+            input: input.clone(),
+            expected_output: expected_output.clone(),
+            actual_output: Value::Null,
+            is_hidden: false,
+        };
+        
+        match run_single_test(input, expected_output) {
+            Ok(actual_output) => {
+                test_result.execution_time_in_ms = test_start_time.elapsed().as_millis();
+                test_result.actual_output = actual_output.clone();
+                
+                if actual_output == *expected_output {
+                    test_result.pass = true;
+                    passed_test_cases += 1;
+                } else {
+                    test_result.pass = false;
+                    test_result.error_message = format!("Expected: {}, but got: {}", expected_output, actual_output);
+                    failed_test_cases += 1;
+                }
+            }
+            Err(e) => {
+                test_result.pass = false;
+                test_result.error_message = format!("Runtime error: {}", e);
+                test_result.execution_time_in_ms = test_start_time.elapsed().as_millis();
+                failed_test_cases += 1;
+            }
+        }
+        
+        test_case_results.push(test_result);
+    }
+    
+    let execution_time_in_ms = start_time.elapsed().as_millis();
+    
+    Ok(SubmissionResult {
+        pass: failed_test_cases == 0,
+        test_case_count,
+        passed_test_cases,
+        failed_test_cases,
+        error_message: String::new(),
+        execution_time_in_ms,
+        test_case_results,
+    })
+}
+
+fn run_single_test(input: &Value, _expected_output: &Value) -> Result<Value, Box<dyn std::error::Error>> {
+    let input_array = input.as_array().ok_or("Input is not an array")?;
+    
+    // Convert JSON array to linked list
+    let head = json_array_to_linked_list(input_array)?;
+    
+    // Run the solution
+    let reversed_head = Solution::reverse_list(head);
+    
+    // Convert result back to JSON array
+    let result_array = linked_list_to_json_array(reversed_head);
+    
+    Ok(Value::Array(result_array))
+}
+
+fn json_array_to_linked_list(arr: &[Value]) -> Result<Option<Rc<RefCell<ListNode>>>, Box<dyn std::error::Error>> {
+    if arr.is_empty() {
+        return Ok(None);
+    }
+    
+    let head = Rc::new(RefCell::new(ListNode::new(
+        arr[0].as_i64().ok_or("Invalid integer in array")? as i32
+    )));
+    let mut current = head.clone();
+    
+    for val in &arr[1..] {
+        let new_node = Rc::new(RefCell::new(ListNode::new(
+            val.as_i64().ok_or("Invalid integer in array")? as i32
+        )));
+        current.borrow_mut().next = Some(new_node.clone());
+        current = new_node;
+    }
+    
+    Ok(Some(head))
+}
+
+fn linked_list_to_json_array(head: Option<Rc<RefCell<ListNode>>>) -> Vec<Value> {
+    let mut result = Vec::new();
+    let mut current = head;
+    
+    while let Some(node) = current {
+        result.push(Value::Number(serde_json::Number::from(node.borrow().val)));
+        current = node.borrow().next.clone();
+    }
+    
+    result
+}

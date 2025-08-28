@@ -1,0 +1,124 @@
+{
+  "Id": 6,
+  "Name": "Reverse Linked List",
+  "Description": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Description.md",
+  "IsPublished": true,
+  "IsDeleted": false,
+  "CreatedAt": "2025-08-27T00:00:00.000000+00:00",
+  "UpdatedAt": "2025-08-27T00:00:00.000000+00:00",
+  "LastEditedById": 1,
+  "CreatedById": 1,
+  "ExplanationArticle": {
+    "Id": 6,
+    "UserId": 1,
+    "Title": "Reverse Linked List Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-08-27T00:00:00.000000+00:00",
+    "UpdatedAt": "2025-08-27T00:00:00.000000+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 5,
+        "Name": "Linked List"
+      },
+      {
+        "Id": 10,
+        "Name": "Two Pointers"
+      },
+      {
+        "Id": 9,
+        "Name": "Recursion"
+      },
+      {
+        "Id": 11,
+        "Name": "Iterative"
+      }
+    ]
+  },
+  "Difficulty": "Medium",
+  "ExpectedOutput": [[5, 4, 3, 2, 1], [2, 1], [], [1], [3, 2, 1]],
+  "Input": [[1, 2, 3, 4, 5], [1, 2], [], [1], [1, 2, 3]],
+  "Hints": [
+    "Think about using three pointers: previous, current, and next.",
+    "You can solve this iteratively by reversing the links one by one.",
+    "For the recursive approach, what's the base case?",
+    "Remember to handle the edge case of an empty list."
+  ],
+  "Tags": [
+    {
+      "Id": 5,
+      "Name": "Linked List"
+    },
+    {
+      "Id": 10,
+      "Name": "Two Pointers"
+    },
+    {
+      "Id": 9,
+      "Name": "Recursion"
+    },
+    {
+      "Id": 11,
+      "Name": "Iterative"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 31,
+      "ProblemId": 6,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 32,
+      "ProblemId": 6,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 33,
+      "ProblemId": 6,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 34,
+      "ProblemId": 6,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 35,
+      "ProblemId": 6,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 36,
+      "ProblemId": 6,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Java/Answer.txt"
+    }
+  ]
+}
