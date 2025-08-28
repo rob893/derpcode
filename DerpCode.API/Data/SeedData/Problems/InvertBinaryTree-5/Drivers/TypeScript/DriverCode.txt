@@ -1,0 +1,182 @@
+import fs from 'fs';
+import { invertTree, TreeNode } from './solution';
+
+function main() {
+    const args = process.argv.slice(2);
+
+    if (args.length < 3) {
+        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+        process.exit(1);
+    }
+
+    const [inputPath, expectedPath, resultPath] = args;
+
+    const result: any = {
+        pass: false,
+        testCaseCount: 0,
+        passedTestCases: 0,
+        failedTestCases: 0,
+        errorMessage: '',
+        executionTimeInMs: 0,
+        testCaseResults: [] as any[]
+    };
+
+    try {
+        const input = fs.readFileSync(inputPath, 'utf8');
+        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+
+        const start = Date.now();
+
+        const testResults = runTests(input, expectedOutput);
+
+        result.pass = testResults.pass;
+        result.testCaseCount = testResults.testCaseCount;
+        result.passedTestCases = testResults.passedTestCases;
+        result.failedTestCases = testResults.failedTestCases;
+        result.testCaseResults = testResults.testCaseResults;
+        result.executionTimeInMs = Date.now() - start;
+
+    } catch (err: any) {
+        console.error('Error reading files:' + err.message);
+        result.errorMessage = err.message;
+    }
+
+    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+}
+
+function runTests(inputJsonStr: string, expectedOutputJsonStr: string): any {
+    const input = JSON.parse(inputJsonStr);
+    const expectedOutput = JSON.parse(expectedOutputJsonStr);
+    
+    const testCaseCount = input.length;
+    let passedTestCases = 0;
+    let failedTestCases = 0;
+    const testCaseResults: any[] = [];
+
+    for (let i = 0; i < testCaseCount; i++) {
+        console.log(`|derpcode-start-test-${i}|`);
+        const start = Date.now();
+        
+        try {
+            // Build input tree from array
+            const inputTree = buildTreeFromArray(input[i]);
+            
+            // Run the solution
+            const result = invertTree(inputTree);
+            
+            // Convert result back to array for comparison
+            const actualOutput = treeToArray(result);
+            
+            console.log(`|derpcode-end-test-${i}|`);
+            
+            // Get expected output
+            const expected = i < expectedOutput.length ? expectedOutput[i] : [];
+            
+            // Compare arrays
+            const passed = arraysEqual(actualOutput, expected);
+
+            testCaseResults.push({
+                testCaseIndex: i,
+                pass: passed,
+                errorMessage: passed ? null : `Expected ${JSON.stringify(expected)} but got ${JSON.stringify(actualOutput)}`,
+                executionTimeInMs: Date.now() - start,
+                input: input[i],
+                expectedOutput: expected,
+                actualOutput: actualOutput,
+                isHidden: false
+            });
+
+            if (passed) {
+                passedTestCases++;
+            } else {
+                failedTestCases++;
+            }
+            
+        } catch (err: any) {
+            console.log(`|derpcode-end-test-${i}|`);
+            
+            testCaseResults.push({
+                testCaseIndex: i,
+                pass: false,
+                errorMessage: err.message,
+                executionTimeInMs: Date.now() - start,
+                input: i < input.length ? input[i] : null,
+                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : null,
+                actualOutput: null,
+                isHidden: false
+            });
+            
+            failedTestCases++;
+        }
+    }
+
+    return {
+        testCaseCount: testCaseCount,
+        passedTestCases: passedTestCases,
+        failedTestCases: failedTestCases,
+        pass: passedTestCases === testCaseCount,
+        testCaseResults: testCaseResults
+    };
+}
+
+function buildTreeFromArray(arr: (number | null)[]): TreeNode | null {
+    if (!arr || arr.length === 0 || arr[0] === null) {
+        return null;
+    }
+    
+    function buildTree(values: (number | null)[], index: number): TreeNode | null {
+        if (index >= values.length || values[index] === null) {
+            return null;
+        }
+        
+        const node = new TreeNode(values[index]!);
+        node.left = buildTree(values, 2 * index + 1);
+        node.right = buildTree(values, 2 * index + 2);
+        return node;
+    }
+    
+    return buildTree(arr, 0);
+}
+
+function treeToArray(root: TreeNode | null): (number | null)[] {
+    if (!root) {
+        return [];
+    }
+    
+    const result: (number | null)[] = [];
+    const queue: (TreeNode | null)[] = [root];
+    
+    while (queue.length > 0) {
+        const node = queue.shift();
+        if (node === null || node === undefined) {
+            result.push(null);
+        } else {
+            result.push(node.val);
+            queue.push(node.left);
+            queue.push(node.right);
+        }
+    }
+    
+    // Remove trailing nulls
+    while (result.length > 0 && result[result.length - 1] === null) {
+        result.pop();
+    }
+    
+    return result;
+}
+
+function arraysEqual(arr1: (number | null)[], arr2: (number | null)[]): boolean {
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+    
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+main();
