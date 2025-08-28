@@ -3,40 +3,49 @@
   "Name": "Valid Palindrome",
   "Description": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Description.md",
   "IsPublished": true,
-  "IsDeleted": false,
-  "CreatedAt": "2025-08-27T00:00:00.000000+00:00",
-  "UpdatedAt": "2025-08-27T00:00:00.000000+00:00",
-  "LastEditedById": 1,
-  "CreatedById": 1,
   "ExplanationArticle": {
-    "Id": 7,
+    "Id": 6,
     "UserId": 1,
     "Title": "Valid Palindrome Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-27T00:00:00.000000+00:00",
-    "UpdatedAt": "2025-08-27T00:00:00.000000+00:00",
+    "CreatedAt": "2025-08-28T03:33:59.505748+00:00",
+    "UpdatedAt": "2025-08-28T03:33:59.505781+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 12,
-        "Name": "String"
+        "Id": 9,
+        "Name": "Character Manipulation"
       },
       {
-        "Id": 10,
+        "Id": 8,
         "Name": "Two Pointers"
       },
       {
-        "Id": 13,
-        "Name": "Character Manipulation"
+        "Id": 7,
+        "Name": "String"
       }
     ]
   },
   "Difficulty": "Easy",
-  "ExpectedOutput": [true, false, true, true, true, true],
-  "Input": ["A man a plan a canal Panama", "race a car", "", "a", "Madam", "No 'x' in Nixon"],
+  "ExpectedOutput": [
+    true,
+    false,
+    true,
+    true,
+    true,
+    true
+  ],
+  "Input": [
+    "A man a plan a canal Panama",
+    "race a car",
+    "",
+    "a",
+    "Madam",
+    "No \u0027x\u0027 in Nixon"
+  ],
   "Hints": [
     "Convert the string to lowercase and remove non-alphanumeric characters first.",
     "Use two pointers - one at the start and one at the end of the cleaned string.",
@@ -46,15 +55,15 @@
   ],
   "Tags": [
     {
-      "Id": 12,
+      "Id": 7,
       "Name": "String"
     },
     {
-      "Id": 10,
+      "Id": 8,
       "Name": "Two Pointers"
     },
     {
-      "Id": 13,
+      "Id": 9,
       "Name": "Character Manipulation"
     }
   ],
