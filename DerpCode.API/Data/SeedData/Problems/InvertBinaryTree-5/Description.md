@@ -63,14 +63,4 @@ Inverting a binary tree means swapping the left and right children of **every** 
 - The number of nodes in the tree is in the range `[0, 100]`
 - `-100 <= Node.val <= 100`
 
-## Function Signature
-
-You need to implement a function that takes the root of a binary tree and returns the root of the inverted tree.
-
-> 💡 **Tip**: This problem was inspired by a real interview question at Google! The story goes that the original creator of Homebrew was rejected from Google because they couldn't solve this problem on a whiteboard. Don't let that intimidate you though - it's actually quite straightforward once you think about it!
-
-## Key Insights
-
-- **Recursive Approach**: For each node, swap its left and right children, then recursively invert the left and right subtrees
-- **Iterative Approach**: Use a queue or stack to traverse the tree and swap children at each level
-- **Base Case**: An empty tree (null root) should return null
+> 💡 **Trivia**: This problem was inspired by a real interview question at Google! The story goes that the original creator of Homebrew was rejected from Google because they couldn't solve this problem on a whiteboard. Don't let that intimidate you though - it's actually quite straightforward once you think about it!

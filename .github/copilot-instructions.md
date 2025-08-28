@@ -41,6 +41,7 @@ When asked to create new problems:
 - Problems are stored in DerpCode.API/Data/SeedData/Problems folder
 - Using the Existing DerpCode.API/Data/SeedData/Problems/LRUCache-4 problem as an example for creating new problems (pay close attention to the sections in the problem description and explanation)
 - User submitted data and problem drivers are in seperate files when run in the container (see Docker/ folder for docker files). Meaning don't assume that user code is injected into the same file as the driver when you are making new drivers. Don't forget import statemenst for user files (like import { add } form 'solution.js' for javasctipt)
-- For JavaScript drivers, always use class syntax over 'function ClassName ()' syntax. Never use var for javascript. Prefer function foo() syntax over const foo = () syntax
+- For JavaScript code, always use class syntax over 'function ClassName ()' syntax. Never use var for javascript. Prefer function foo() syntax over const foo = () syntax
 - All drivers must log to standard out `|derpcode-start-test-${i}|` before the start of each test and `|derpcode-end-test-${i}|` after the end of each test. The drivers should not log ANYTHING ELSE as it will break stdout capturing.
 - Drivers should not use any 3rd party libraries (like lodash) unless absolutely necessary
+- Do not provide hints in the problem description.

@@ -78,7 +78,7 @@ public static class CursorConverters
     }
 
     /// <summary>
-    /// Creates a composite cursor converter for int order value and int entity key
+    /// Creates a composite cursor converter for int order value and int entity key.
     /// </summary>
     /// <returns>A function that converts a Base64 URL encoded string back to a composite key.</returns>
     public static Func<string, (int OrderValue, int Key)> CreateCompositeCursorConverterIntInt()
