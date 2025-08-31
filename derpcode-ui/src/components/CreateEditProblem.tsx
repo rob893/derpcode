@@ -292,7 +292,11 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
           isIconOnly
           variant="light"
           onPress={() => {
-            mode === 'create' ? navigate('/') : navigate(`/problems/${problemId}`);
+            if (mode === 'create') {
+              navigate('/');
+            } else {
+              navigate(`/problems/${problemId}`);
+            }
           }}
           startContent={<ArrowLeftIcon className="w-5 h-5" />}
         />
