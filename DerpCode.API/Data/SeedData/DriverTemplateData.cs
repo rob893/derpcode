@@ -194,135 +194,67 @@ public static class DriverTemplateData
             Id = 4,
             Language = LanguageType.Rust,
             Template = """
-                use serde::{Deserialize, Serialize};
-                use std::{env, fs, time::Instant};
+                use serde_json::Value;
+
+                mod base_driver;
+                use base_driver::{BaseDriver, ProblemDriver, TestCase};
 
                 mod solution;
                 use solution::Solution;
 
-                #[derive(Serialize, Deserialize)]
-                #[serde(rename_all = "camelCase")]
-                struct SubmissionResult {
-                    pass: bool,
-                    test_case_count: usize,
-                    passed_test_cases: usize,
-                    failed_test_cases: usize,
-                    error_message: String,
-                    execution_time_in_ms: u128,
-                    test_case_results: Vec<TestCaseResult>,
-                }
+                /// Problem-specific driver for NewProblem.
+                pub struct NewProblemDriver;
 
-                #[derive(Serialize, Deserialize)]
-                #[serde(rename_all = "camelCase")]
-                struct TestCaseResult {
-                    test_case_index: usize,
-                    pass: bool,
-                    error_message: Option<String>,
-                    execution_time_in_ms: u128,
-                    input: serde_json::Value,
-                    expected_output: serde_json::Value,
-                    actual_output: serde_json::Value,
-                    is_hidden: bool,
+                impl ProblemDriver for NewProblemDriver {
+                    /// Parse input and expected output into test cases.
+                    /// TODO: Implement parsing logic for your specific problem.
+                    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+                        let _input_array = input.as_array().expect("Input should be an array");
+                        let _expected_array = expected_output.as_array().expect("Expected output should be an array");
+                        
+                        // TODO: Implement parsing logic
+                        // Example for pairs of integers:
+                        // let mut test_cases = Vec::new();
+                        // for i in (0..input_array.len()).step_by(2) {
+                        //     if i + 1 < input_array.len() {
+                        //         let a = input_array[i].as_i64().expect("Input should be integer") as i32;
+                        //         let b = input_array[i + 1].as_i64().expect("Input should be integer") as i32;
+                        //         let expected = expected_array[i / 2].clone();
+                        //         test_cases.push(TestCase {
+                        //             input: serde_json::json!({ "a": a, "b": b }),
+                        //             expected_output: expected,
+                        //         });
+                        //     }
+                        // }
+                        // test_cases
+                        
+                        panic!("Implement parse_test_cases method");
+                    }
+
+                    /// Execute the solution function with the test case input.
+                    /// TODO: Update to call your specific solution function.
+                    fn execute_test_case(&self, _test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+                        // TODO: Execute your solution function
+                        // Example: 
+                        // let a = test_case.input["a"].as_i64().ok_or("Missing 'a' input")? as i32;
+                        // let b = test_case.input["b"].as_i64().ok_or("Missing 'b' input")? as i32;
+                        // let result = Solution::add(a, b);
+                        // Ok(serde_json::json!(result))
+                        
+                        Err("Implement execute_test_case method".into())
+                    }
+
+                    /// Compare results using simple equality.
+                    /// TODO: Customize comparison logic if needed.
+                    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+                        actual == expected
+                    }
                 }
 
                 fn main() {
-                    let args: Vec<String> = env::args().collect();
-
-                    if args.len() < 4 {
-                        eprintln!("Usage: cargo run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-                        std::process::exit(1);
-                    }
-
-                    let input_path = &args[1];
-                    let expected_path = &args[2];
-                    let result_path = &args[3];
-
-                    let start = Instant::now();
-
-                    let result = match run_test_harness(input_path, expected_path) {
-                        Ok(mut r) => {
-                            r.execution_time_in_ms = start.elapsed().as_millis();
-                            r
-                        }
-                        Err(e) => SubmissionResult {
-                            pass: false,
-                            test_case_count: 0,
-                            passed_test_cases: 0,
-                            failed_test_cases: 0,
-                            error_message: e.to_string(),
-                            execution_time_in_ms: start.elapsed().as_millis(),
-                            test_case_results: vec![],
-                        },
-                    };
-
-                    let json = serde_json::to_string_pretty(&result).unwrap();
-                    fs::write(result_path, json).unwrap();
-                }
-
-                fn run_test_harness(
-                    input_path: &str,
-                    expected_path: &str,
-                ) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
-                    // EXAMPLE: Replace with your actual test logic
-                    let input_json = fs::read_to_string(input_path)?;
-                    let expected_json = fs::read_to_string(expected_path)?;
-
-                    let input: Vec<i32> = serde_json::from_str(&input_json)?;
-                    let expected: Vec<i32> = serde_json::from_str(&expected_json)?;
-
-                    let test_case_count = input.len() / 2;
-                    let mut passed = 0;
-                    let mut failed = 0;
-                    let mut test_results = vec![];
-
-                    for (i, pair) in input.chunks(2).enumerate() {
-                        if pair.len() < 2 {
-                            continue;
-                        }
-
-                        let a = pair[0];
-                        let b = pair[1];
-
-                        println!("|derpcode-start-test-{}|", i);
-                        let t_start = Instant::now();
-                        let result = Solution::add(a, b);
-                        let duration = t_start.elapsed().as_millis();
-                        println!("|derpcode-end-test-{}|", i);
-
-                        let expected_result = expected[i];
-                        let did_pass = result == expected_result;
-
-                        if did_pass {
-                            passed += 1;
-                        } else {
-                            failed += 1;
-                        }
-
-                        test_results.push(TestCaseResult {
-                            test_case_index: i,
-                            pass: did_pass,
-                            error_message: if did_pass {
-                                None
-                            } else {
-                                Some(format!("Expected {} but got {}", expected_result, result))
-                            },
-                            execution_time_in_ms: duration,
-                            input: serde_json::json!({ "a": a, "b": b }),
-                            expected_output: serde_json::json!(expected_result),
-                            actual_output: serde_json::json!(result),
-                            is_hidden: false,
-                        });
-                    }
-
-                    Ok(SubmissionResult {
-                        pass: passed == test_case_count,
-                        test_case_count,
-                        passed_test_cases: passed,
-                        failed_test_cases: failed,
-                        error_message: String::new(),
-                        execution_time_in_ms: 0, // filled later
-                        test_case_results: test_results,
-                    })
+                    // Create and run the driver
+                    let driver = BaseDriver::new(NewProblemDriver);
+                    driver.run();
                 }
                 """,
             UITemplate = """

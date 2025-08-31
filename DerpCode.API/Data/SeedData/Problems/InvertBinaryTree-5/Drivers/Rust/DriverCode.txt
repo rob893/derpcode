@@ -1,290 +1,168 @@
-mod solution;
-use solution::{invert_tree, TreeNode};
-
-use std::env;
-use std::fs;
-use std::time::Instant;
+use serde_json::Value;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::VecDeque;
-use serde::Serialize;
-use serde_json::{Value, json};
 
-#[derive(Serialize)]
-struct SubmissionResult {
-    pass: bool,
-    #[serde(rename = "testCaseCount")]
-    test_case_count: usize,
-    #[serde(rename = "passedTestCases")]
-    passed_test_cases: usize,
-    #[serde(rename = "failedTestCases")]
-    failed_test_cases: usize,
-    #[serde(rename = "errorMessage")]
-    error_message: String,
-    #[serde(rename = "executionTimeInMs")]
-    execution_time_in_ms: u128,
-    #[serde(rename = "testCaseResults")]
-    test_case_results: Vec<TestCaseResult>,
-}
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
 
-#[derive(Serialize)]
-struct TestCaseResult {
-    #[serde(rename = "testCaseIndex")]
-    test_case_index: usize,
-    pass: bool,
-    #[serde(rename = "errorMessage")]
-    error_message: Option<String>,
-    #[serde(rename = "executionTimeInMs")]
-    execution_time_in_ms: u128,
-    input: Value,
-    #[serde(rename = "expectedOutput")]
-    expected_output: Value,
-    #[serde(rename = "actualOutput")]
-    actual_output: Value,
-    #[serde(rename = "isHidden")]
-    is_hidden: bool,
-}
+mod solution;
+use solution::{invert_tree, TreeNode};
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    
-    if args.len() < 4 {
-        eprintln!("Usage: cargo run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-        std::process::exit(1);
-    }
+/// Problem-specific driver for InvertBinaryTree problem.
+pub struct InvertBinaryTreeDriver;
 
-    let input_path = &args[1];
-    let expected_path = &args[2];
-    let result_path = &args[3];
-
-    let result = match run_program(input_path, expected_path) {
-        Ok(result) => result,
-        Err(err) => SubmissionResult {
-            pass: false,
-            test_case_count: 0,
-            passed_test_cases: 0,
-            failed_test_cases: 0,
-            error_message: err.to_string(),
-            execution_time_in_ms: 0,
-            test_case_results: vec![],
-        },
-    };
-
-    let json = serde_json::to_string_pretty(&result).unwrap();
-    fs::write(result_path, json).unwrap();
-}
-
-fn run_program(input_path: &str, expected_path: &str) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
-    let input = fs::read_to_string(input_path)?;
-    let expected_output = fs::read_to_string(expected_path)?;
-
-    let start = Instant::now();
-    let test_results = run_tests(&input, &expected_output)?;
-    let execution_time = start.elapsed().as_millis();
-
-    Ok(SubmissionResult {
-        pass: test_results.pass,
-        test_case_count: test_results.test_case_count,
-        passed_test_cases: test_results.passed_test_cases,
-        failed_test_cases: test_results.failed_test_cases,
-        error_message: String::new(),
-        execution_time_in_ms: execution_time,
-        test_case_results: test_results.test_case_results,
-    })
-}
-
-fn run_tests(input_json_str: &str, expected_output_json_str: &str) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
-    let input_data: Value = serde_json::from_str(input_json_str)?;
-    let expected_output: Value = serde_json::from_str(expected_output_json_str)?;
-    
-    let input_array = input_data.as_array().ok_or("Input is not an array")?;
-    let expected_array = expected_output.as_array().ok_or("Expected output is not an array")?;
-    
-    let test_case_count = input_array.len();
-    let mut passed_test_cases = 0;
-    let mut failed_test_cases = 0;
-    let mut test_case_results = Vec::new();
-
-    for i in 0..test_case_count {
-        println!("|derpcode-start-test-{}|", i);
-        let start = Instant::now();
+impl ProblemDriver for InvertBinaryTreeDriver {
+    /// Parse input as tree arrays and expected output as tree arrays.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
         
-        let test_result = match run_single_test(&input_array[i], &expected_array[i], i) {
-            Ok(result) => {
-                if result.pass {
-                    passed_test_cases += 1;
-                } else {
-                    failed_test_cases += 1;
-                }
-                result
-            }
-            Err(err) => {
-                failed_test_cases += 1;
-                TestCaseResult {
-                    test_case_index: i,
-                    pass: false,
-                    error_message: Some(err.to_string()),
-                    execution_time_in_ms: start.elapsed().as_millis(),
-                    input: input_array[i].clone(),
-                    expected_output: expected_array.get(i).cloned().unwrap_or(Value::Null),
-                    actual_output: Value::Null,
-                    is_hidden: false,
-                }
-            }
-        };
+        let mut test_cases = Vec::new();
         
-        println!("|derpcode-end-test-{}|", i);
-        test_case_results.push(test_result);
+        for i in 0..input_array.len() {
+            test_cases.push(TestCase {
+                input: input_array[i].clone(),
+                expected_output: expected_array[i].clone(),
+            });
+        }
+        
+        test_cases
     }
 
-    Ok(SubmissionResult {
-        pass: passed_test_cases == test_case_count,
-        test_case_count,
-        passed_test_cases,
-        failed_test_cases,
-        error_message: String::new(),
-        execution_time_in_ms: 0, // Will be set by caller
-        test_case_results,
-    })
-}
-
-fn run_single_test(input: &Value, expected: &Value, index: usize) -> Result<TestCaseResult, Box<dyn std::error::Error>> {
-    let start = Instant::now();
-    
-    // Build input tree from array
-    let input_tree = build_tree_from_array(input)?;
-    
-    // Run the solution
-    let result = invert_tree(input_tree);
-    
-    // Convert result back to array for comparison
-    let actual_output = tree_to_array(result);
-    
-    // Get expected output
-    let expected_array = value_to_int_array(expected)?;
-    
-    // Compare arrays
-    let passed = arrays_equal(&actual_output, &expected_array);
-
-    Ok(TestCaseResult {
-        test_case_index: index,
-        pass: passed,
-        error_message: if passed { 
-            None 
-        } else { 
-            Some(format!("Expected {:?} but got {:?}", expected_array, actual_output))
-        },
-        execution_time_in_ms: start.elapsed().as_millis(),
-        input: input.clone(),
-        expected_output: expected.clone(),
-        actual_output: json!(actual_output),
-        is_hidden: false,
-    })
-}
-
-fn build_tree_from_array(arr: &Value) -> Result<Option<Rc<RefCell<TreeNode>>>, Box<dyn std::error::Error>> {
-    // Handle single integer input (single node tree)
-    if let Some(val) = arr.as_i64() {
-        return Ok(Some(Rc::new(RefCell::new(TreeNode::new(val as i32)))));
+    /// Execute the invert_tree function with the test case input.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        // Build tree from array
+        let input_tree = self.build_tree_from_array(&test_case.input)?;
+        
+        // Run the solution
+        let result = invert_tree(input_tree);
+        
+        // Convert result back to array for comparison
+        let result_array = self.tree_to_array(result);
+        Ok(serde_json::json!(result_array))
     }
-    
-    // Handle array input
-    if let Some(array) = arr.as_array() {
-        if array.is_empty() || array[0].is_null() {
+
+    /// Compare tree arrays.
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        let actual_array = self.value_to_int_array(actual).unwrap_or_default();
+        let expected_array = self.value_to_int_array(expected).unwrap_or_default();
+        
+        self.arrays_equal(&actual_array, &expected_array)
+    }
+}
+
+impl InvertBinaryTreeDriver {
+    fn build_tree_from_array(&self, arr: &Value) -> Result<Option<Rc<RefCell<TreeNode>>>, Box<dyn std::error::Error>> {
+        // Handle single integer input (single node tree)
+        if let Some(val) = arr.as_i64() {
+            return Ok(Some(Rc::new(RefCell::new(TreeNode::new(val as i32)))));
+        }
+        
+        // Handle array input
+        if let Some(array) = arr.as_array() {
+            if array.is_empty() || array[0].is_null() {
+                return Ok(None);
+            }
+            
+            fn build_tree(values: &[Value], index: usize) -> Option<Rc<RefCell<TreeNode>>> {
+                if index >= values.len() || values[index].is_null() {
+                    return None;
+                }
+                
+                let val = values[index].as_i64().unwrap() as i32;
+                let node = Rc::new(RefCell::new(TreeNode::new(val)));
+                
+                node.borrow_mut().left = build_tree(values, 2 * index + 1);
+                node.borrow_mut().right = build_tree(values, 2 * index + 2);
+                
+                Some(node)
+            }
+            
+            return Ok(build_tree(array, 0));
+        }
+        
+        // Handle null input
+        if arr.is_null() {
             return Ok(None);
         }
         
-        fn build_tree(values: &[Value], index: usize) -> Option<Rc<RefCell<TreeNode>>> {
-            if index >= values.len() || values[index].is_null() {
-                return None;
-            }
-            
-            let val = values[index].as_i64().unwrap() as i32;
-            let node = Rc::new(RefCell::new(TreeNode::new(val)));
-            
-            node.borrow_mut().left = build_tree(values, 2 * index + 1);
-            node.borrow_mut().right = build_tree(values, 2 * index + 2);
-            
-            Some(node)
+        Err("Input must be an array, integer, or null".into())
+    }
+
+    fn tree_to_array(&self, root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Option<i32>> {
+        if root.is_none() {
+            return vec![];
         }
         
-        return Ok(build_tree(array, 0));
-    }
-    
-    // Handle null input
-    if arr.is_null() {
-        return Ok(None);
-    }
-    
-    Err("Input must be an array, integer, or null".into())
-}
-
-fn tree_to_array(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<Option<i32>> {
-    if root.is_none() {
-        return vec![];
-    }
-    
-    let mut result = Vec::new();
-    let mut queue = VecDeque::new();
-    queue.push_back(root);
-    
-    while let Some(node_opt) = queue.pop_front() {
-        if let Some(node) = node_opt {
-            result.push(Some(node.borrow().val));
-            queue.push_back(node.borrow().left.clone());
-            queue.push_back(node.borrow().right.clone());
-        } else {
-            result.push(None);
-        }
-    }
-    
-    // Remove trailing nulls
-    while let Some(&None) = result.last() {
-        result.pop();
-    }
-    
-    result
-}
-
-fn value_to_int_array(value: &Value) -> Result<Vec<Option<i32>>, Box<dyn std::error::Error>> {
-    // Handle single integer (single node tree)
-    if let Some(val) = value.as_i64() {
-        return Ok(vec![Some(val as i32)]);
-    }
-    
-    // Handle array
-    if let Some(array) = value.as_array() {
         let mut result = Vec::new();
+        let mut queue = VecDeque::new();
+        queue.push_back(root);
         
-        for item in array {
-            if item.is_null() {
-                result.push(None);
+        while let Some(node_opt) = queue.pop_front() {
+            if let Some(node) = node_opt {
+                result.push(Some(node.borrow().val));
+                queue.push_back(node.borrow().left.clone());
+                queue.push_back(node.borrow().right.clone());
             } else {
-                result.push(Some(item.as_i64().ok_or("Item is not a number")? as i32));
+                result.push(None);
             }
         }
         
-        return Ok(result);
+        // Remove trailing nulls
+        while let Some(&None) = result.last() {
+            result.pop();
+        }
+        
+        result
     }
-    
-    // Handle null
-    if value.is_null() {
-        return Ok(vec![]);
-    }
-    
-    Err("Value must be an array, integer, or null".into())
-}
 
-fn arrays_equal(arr1: &[Option<i32>], arr2: &[Option<i32>]) -> bool {
-    if arr1.len() != arr2.len() {
-        return false;
+    fn value_to_int_array(&self, value: &Value) -> Result<Vec<Option<i32>>, Box<dyn std::error::Error>> {
+        // Handle single integer (single node tree)
+        if let Some(val) = value.as_i64() {
+            return Ok(vec![Some(val as i32)]);
+        }
+        
+        // Handle array
+        if let Some(array) = value.as_array() {
+            let mut result = Vec::new();
+            
+            for item in array {
+                if item.is_null() {
+                    result.push(None);
+                } else {
+                    result.push(Some(item.as_i64().ok_or("Item is not a number")? as i32));
+                }
+            }
+            
+            return Ok(result);
+        }
+        
+        // Handle null
+        if value.is_null() {
+            return Ok(vec![]);
+        }
+        
+        Err("Value must be an array, integer, or null".into())
     }
-    
-    for i in 0..arr1.len() {
-        if arr1[i] != arr2[i] {
+
+    fn arrays_equal(&self, arr1: &[Option<i32>], arr2: &[Option<i32>]) -> bool {
+        if arr1.len() != arr2.len() {
             return false;
         }
+        
+        for i in 0..arr1.len() {
+            if arr1[i] != arr2[i] {
+                return false;
+            }
+        }
+        
+        true
     }
-    
-    true
+}
+
+fn main() {
+    // Create and run the driver
+    let driver = BaseDriver::new(InvertBinaryTreeDriver);
+    driver.run();
 }

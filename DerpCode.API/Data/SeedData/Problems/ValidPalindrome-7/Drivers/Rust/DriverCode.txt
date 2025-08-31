@@ -1,150 +1,51 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
 mod solution;
-
 use solution::Solution;
-use std::env;
-use std::fs;
-use std::time::Instant;
-use serde::Serialize;
-use serde_json::{Value, json};
 
-#[derive(Serialize)]
-struct SubmissionResult {
-    pass: bool,
-    #[serde(rename = "testCaseCount")]
-    test_case_count: usize,
-    #[serde(rename = "passedTestCases")]
-    passed_test_cases: usize,
-    #[serde(rename = "failedTestCases")]
-    failed_test_cases: usize,
-    #[serde(rename = "errorMessage")]
-    error_message: String,
-    #[serde(rename = "executionTimeInMs")]
-    execution_time_in_ms: u128,
-    #[serde(rename = "testCaseResults")]
-    test_case_results: Vec<TestCaseResult>,
-}
+/// Problem-specific driver for ValidPalindrome problem.
+pub struct ValidPalindromeDriver;
 
-#[derive(Serialize)]
-struct TestCaseResult {
-    #[serde(rename = "testCaseIndex")]
-    test_case_index: usize,
-    pass: bool,
-    #[serde(rename = "errorMessage")]
-    error_message: String,
-    #[serde(rename = "executionTimeInMs")]
-    execution_time_in_ms: u128,
-    input: Value,
-    #[serde(rename = "expectedOutput")]
-    expected_output: Value,
-    #[serde(rename = "actualOutput")]
-    actual_output: Value,
-    #[serde(rename = "isHidden")]
-    is_hidden: bool,
+impl ProblemDriver for ValidPalindromeDriver {
+    /// Parse input as array of strings and expected output as array of booleans.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in 0..input_array.len() {
+            let input_string = input_array[i].as_str().expect("Input should be string").to_string();
+            let expected = expected_array[i].clone();
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!(input_string),
+                expected_output: expected,
+            });
+        }
+        
+        test_cases
+    }
+
+    /// Execute the is_palindrome function with the test case input.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let input_string = test_case.input.as_str().ok_or("Missing string input")?.to_string();
+        
+        let result = Solution::is_palindrome(input_string);
+        Ok(serde_json::json!(result))
+    }
+
+    /// Compare results using simple equality.
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let input_path = &args[1];
-    let expected_path = &args[2];
-    let result_path = &args[3];
-
-    match run_tests(input_path, expected_path) {
-        Ok(results) => {
-            let json = serde_json::to_string_pretty(&results).unwrap();
-            if let Err(e) = fs::write(result_path, json) {
-                eprintln!("Error writing results: {}", e);
-            }
-        }
-        Err(e) => {
-            eprintln!("Error running tests: {}", e);
-            let error_result = SubmissionResult {
-                pass: false,
-                test_case_count: 0,
-                passed_test_cases: 0,
-                failed_test_cases: 0,
-                error_message: format!("Error running tests: {}", e),
-                execution_time_in_ms: 0,
-                test_case_results: vec![],
-            };
-            let json = serde_json::to_string_pretty(&error_result).unwrap();
-            if let Err(e) = fs::write(result_path, json) {
-                eprintln!("Error writing error results: {}", e);
-            }
-        }
-    }
-}
-
-fn run_tests(input_path: &str, expected_path: &str) -> Result<SubmissionResult, Box<dyn std::error::Error>> {
-    let start_time = Instant::now();
-    
-    let input_content = fs::read_to_string(input_path)?;
-    let expected_content = fs::read_to_string(expected_path)?;
-    
-    let inputs: Vec<String> = serde_json::from_str(&input_content)?;
-    let expected_outputs: Vec<bool> = serde_json::from_str(&expected_content)?;
-    
-    let test_case_count = inputs.len();
-    let mut passed_test_cases = 0;
-    let mut failed_test_cases = 0;
-    let mut test_case_results = Vec::new();
-    
-    for (i, (input, expected_output)) in inputs.iter().zip(expected_outputs.iter()).enumerate() {
-        println!("|derpcode-start-test-{}|", i);
-        let test_start_time = Instant::now();
-        
-        let mut test_result = TestCaseResult {
-            test_case_index: i,
-            pass: false,
-            error_message: String::new(),
-            execution_time_in_ms: 0,
-            input: Value::String(input.clone()),
-            expected_output: Value::Bool(*expected_output),
-            actual_output: Value::Null,
-            is_hidden: false,
-        };
-        
-        match run_single_test(input, *expected_output) {
-            Ok(actual_output) => {
-                test_result.execution_time_in_ms = test_start_time.elapsed().as_millis();
-                test_result.actual_output = Value::Bool(actual_output);
-                
-                if actual_output == *expected_output {
-                    test_result.pass = true;
-                    passed_test_cases += 1;
-                } else {
-                    test_result.pass = false;
-                    test_result.error_message = format!("Expected: {}, but got: {}", expected_output, actual_output);
-                    failed_test_cases += 1;
-                }
-            }
-            Err(e) => {
-                test_result.pass = false;
-                test_result.error_message = format!("Runtime error: {}", e);
-                test_result.execution_time_in_ms = test_start_time.elapsed().as_millis();
-                failed_test_cases += 1;
-            }
-        }
-        
-        println!("|derpcode-end-test-{}|", i);
-        test_case_results.push(test_result);
-    }
-    
-    let execution_time_in_ms = start_time.elapsed().as_millis();
-    
-    Ok(SubmissionResult {
-        pass: failed_test_cases == 0,
-        test_case_count,
-        passed_test_cases,
-        failed_test_cases,
-        error_message: String::new(),
-        execution_time_in_ms,
-        test_case_results,
-    })
-}
-
-fn run_single_test(input: &String, _expected_output: bool) -> Result<bool, Box<dyn std::error::Error>> {
-    // Run the solution
-    let result = Solution::is_palindrome(input.clone());
-    
-    Ok(result)
+    // Create and run the driver
+    let driver = BaseDriver::new(ValidPalindromeDriver);
+    driver.run();
 }
