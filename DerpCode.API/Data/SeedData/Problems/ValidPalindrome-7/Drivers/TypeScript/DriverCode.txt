@@ -1,109 +1,41 @@
-import fs from 'fs';
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
 import { isPalindrome } from './solution';
 
-function main() {
-    const args = process.argv.slice(2);
-
-    if (args.length < 3) {
-        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
-        process.exit(1);
-    }
-
-    const [inputPath, expectedPath, resultPath] = args;
-
-    const result: any = {
-        pass: false,
-        testCaseCount: 0,
-        passedTestCases: 0,
-        failedTestCases: 0,
-        errorMessage: '',
-        executionTimeInMs: 0,
-        testCaseResults: [] as any[]
-    };
-
-    try {
-        const input = fs.readFileSync(inputPath, 'utf8');
-        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
-
-        const start = Date.now();
-
-        const testResults = runTests(input, expectedOutput);
-
-        result.pass = testResults.pass;
-        result.testCaseCount = testResults.testCaseCount;
-        result.passedTestCases = testResults.passedTestCases;
-        result.failedTestCases = testResults.failedTestCases;
-        result.testCaseResults = testResults.testCaseResults;
-        result.executionTimeInMs = Date.now() - start;
-
-    } catch (err: any) {
-        console.error('Error reading files:' + err.message);
-        result.errorMessage = err.message;
-    }
-
-    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
-}
-
-function runTests(inputJsonStr: string, expectedOutputJsonStr: string) {
-    const input: string[] = JSON.parse(inputJsonStr);
-    const expectedOutput: boolean[] = JSON.parse(expectedOutputJsonStr);
-    
-    const testCaseCount = input.length;
-    let passedTestCases = 0;
-    let failedTestCases = 0;
-    const testCaseResults: any[] = [];
-
-    for (let i = 0; i < testCaseCount; i++) {
-        console.log(`|derpcode-start-test-${i}|`);
-        const start = Date.now();
-
-        const testCaseResult = {
-            testCaseIndex: i,
-            pass: false,
-            errorMessage: '',
-            executionTimeInMs: 0,
-            input: input[i],
-            expectedOutput: expectedOutput[i],
-            actualOutput: null as boolean | null,
-            isHidden: false
-        };
-
-        try {
-            // Run the solution
-            const actualOutput = isPalindrome(input[i]);
-
-            testCaseResult.actualOutput = actualOutput;
-            testCaseResult.executionTimeInMs = Date.now() - start;
-
-            // Compare results
-            const testPassed = actualOutput === expectedOutput[i];
-            testCaseResult.pass = testPassed;
-
-            if (testPassed) {
-                passedTestCases++;
-            } else {
-                failedTestCases++;
-                testCaseResult.errorMessage = `Expected: ${expectedOutput[i]}, but got: ${actualOutput}`;
-            }
-
-        } catch (err: any) {
-            failedTestCases++;
-            testCaseResult.pass = false;
-            testCaseResult.errorMessage = `Runtime error: ${err.message}`;
-            testCaseResult.executionTimeInMs = Date.now() - start;
+/**
+ * Problem-specific driver for ValidPalindrome problem.
+ */
+class ValidPalindromeDriver extends ProblemDriverBase {
+    /**
+     * Parse input as array of strings and expected output as array of booleans.
+     */
+    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
         }
-
-        console.log(`|derpcode-end-test-${i}|`);
-        testCaseResults.push(testCaseResult);
+        
+        return testCases;
     }
 
-    return {
-        pass: failedTestCases === 0,
-        testCaseCount,
-        passedTestCases,
-        failedTestCases,
-        testCaseResults
-    };
+    /**
+     * Execute the isPalindrome function with the test case input.
+     */
+    executeTestCase(testCase: TestCase, index: number): any {
+        return isPalindrome(testCase.input);
+    }
+
+    /**
+     * Compare results using simple equality.
+     */
+    compareResults(actual: any, expected: any): boolean {
+        return actual === expected;
+    }
 }
 
-main();
+// Create and run the driver
+const driver = new BaseDriver(new ValidPalindromeDriver());
+driver.run();

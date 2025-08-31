@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 
-interface TestCase {
+export interface TestCase {
     input: any;
     expectedOutput: any;
 }
 
-interface TestResult {
+export interface TestResult {
     testCaseIndex: number;
     pass: boolean;
     errorMessage: string | null;
@@ -16,7 +16,7 @@ interface TestResult {
     isHidden: boolean;
 }
 
-interface SubmissionResult {
+export interface SubmissionResult {
     pass: boolean;
     testCaseCount: number;
     passedTestCases: number;

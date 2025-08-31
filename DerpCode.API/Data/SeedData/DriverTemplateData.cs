@@ -136,118 +136,52 @@ public static class DriverTemplateData
             Id = 3,
             Language = LanguageType.TypeScript,
             Template = """
-                import fs from 'fs';
-    
-                interface SubmissionResult {
-                    pass: boolean;
-                    testCaseCount: number;
-                    passedTestCases: number;
-                    failedTestCases: number;
-                    errorMessage: string;
-                    executionTimeInMs: number;
-                    testCaseResults: TestCaseResult[];
-                }
+                import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+                import { add } from './solution'; // update import to match your solution function
 
-                interface TestCaseResult {
-                    testCaseIndex: number;
-                    pass: boolean;
-                    errorMessage: string | null;
-                    executionTimeInMs: number;
-                    input: any;
-                    expectedOutput: any;
-                    actualOutput: any;
-                    isHidden: boolean;
-                }
-
-                function main(): void {
-                    const args = process.argv.slice(2);
-
-                    if (args.length < 3) {
-                        console.error('Usage: ts-node index.ts <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
-                        process.exit(1);
-                    }
-
-                    const [inputPath, expectedPath, resultPath] = args;
-
-                    const result: SubmissionResult = {
-                        pass: false,
-                        testCaseCount: 0,
-                        passedTestCases: 0,
-                        failedTestCases: 0,
-                        errorMessage: '',
-                        executionTimeInMs: 0,
-                        testCaseResults: []
-                    };
-
-                    try {
-                        const input = fs.readFileSync(inputPath, 'utf8');
-                        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
-
-                        const start = Date.now();
-
-                        const testResults = runTests(input, expectedOutput);
-
-                        result.pass = testResults.pass;
-                        result.testCaseCount = testResults.testCaseCount;
-                        result.passedTestCases = testResults.passedTestCases;
-                        result.failedTestCases = testResults.failedTestCases;
-                        result.testCaseResults = testResults.testCaseResults;
-                        result.executionTimeInMs = Date.now() - start;
-                    } catch (err: any) {
-                        console.error('Error reading files:' + err.message);
-                        result.errorMessage = err.message;
-                    }
-
-                    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
-                }
-
-                function runTests(inputJsonStr: string, expectedOutputJsonStr: string): SubmissionResult {
-                    // Example logic: parse and compare
-                    const input = JSON.parse(inputJsonStr);
-                    const expected = JSON.parse(expectedOutputJsonStr);
-
-                    // TODO: Implement your test logic here and populate testCaseResults
-                    // Each test case should create a TestCaseResult with detailed information
-                    const testCaseResults: TestCaseResult[] = [];
-
-                    // Example for measuring execution time:
-                    /*
-                    for (let i = 0; i < input.length; i++) {
-                        console.log(`|derpcode-start-test-${i}|`);
-                        const testCaseStart = Date.now();
-                        const result = yourTestFunction(input[i]);
-                        const testCaseEnd = Date.now();
-                        console.log(`|derpcode-end-test-${i}|`);
+                /**
+                 * Problem-specific driver for NewProblem.
+                 */
+                class NewProblemDriver extends ProblemDriverBase {
+                    /**
+                     * Parse input and expected output into test cases.
+                     * TODO: Implement parsing logic for your specific problem.
+                     */
+                    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+                        const testCases: TestCase[] = [];
                         
-                        testCaseResults.push({
-                            testCaseIndex: i,
-                            pass: result === expected[i],
-                            errorMessage: passed ? null : `Expected ${expected[i]} but got ${result}`,
-                            executionTimeInMs: testCaseEnd - testCaseStart,
-                            input: input[i],
-                            expectedOutput: expected[i],
-                            actualOutput: result,
-                            isHidden: false
-                        });
+                        // Example: simple array parsing (adjust for your problem)
+                        for (let i = 0; i < input.length; i++) {
+                            testCases.push({
+                                input: input[i],
+                                expectedOutput: expectedOutput[i]
+                            });
+                        }
+                        
+                        return testCases;
                     }
-                    */
 
-                    // Implement your test logic here
-                    throw new Error('Implement your test logic here and populate testCaseResults.');
+                    /**
+                     * Execute the solution function with the test case input.
+                     * TODO: Implement execution logic for your specific problem.
+                     */
+                    executeTestCase(testCase: TestCase, index: number): any {
+                        // Example: call your solution function
+                        return add(testCase.input); // update to match your solution function call
+                    }
 
-                    // return example:
-                    return {
-                        pass: true,
-                        testCaseCount: 1,
-                        passedTestCases: 1,
-                        failedTestCases: 0,
-                        errorMessage: '',
-                        executionTimeInMs: 0,
-                        testCaseResults
-                    };
+                    /**
+                     * Compare results using simple equality.
+                     * TODO: Customize comparison logic if needed.
+                     */
+                    compareResults(actual: any, expected: any): boolean {
+                        return actual === expected;
+                    }
                 }
 
-                main();
+                // Create and run the driver
+                const driver = new BaseDriver(new NewProblemDriver());
+                driver.run();
                 """,
             UITemplate = """
                 export function add(a: number, b: number): number { // update the function signature to match your requirements
