@@ -1,0 +1,138 @@
+import * as fs from 'fs';
+
+interface TestCase {
+    input: any;
+    expectedOutput: any;
+}
+
+interface TestResult {
+    testCaseIndex: number;
+    pass: boolean;
+    errorMessage: string | null;
+    executionTimeInMs: number;
+    input: any;
+    expectedOutput: any;
+    actualOutput: any;
+    isHidden: boolean;
+}
+
+interface SubmissionResult {
+    pass: boolean;
+    testCaseCount: number;
+    passedTestCases: number;
+    failedTestCases: number;
+    errorMessage: string;
+    executionTimeInMs: number;
+    testCaseResults: TestResult[];
+}
+
+export abstract class ProblemDriverBase {
+    abstract parseTestCases(input: any, expectedOutput: any): TestCase[];
+    abstract executeTestCase(testCase: TestCase, index: number): any;
+    abstract compareResults(actual: any, expected: any): boolean;
+}
+
+export class BaseDriver {
+    private problemDriver: ProblemDriverBase;
+
+    constructor(problemDriver: ProblemDriverBase) {
+        this.problemDriver = problemDriver;
+    }
+
+    run(): void {
+        const args = process.argv.slice(2);
+        if (args.length < 3) {
+            console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+            process.exit(1);
+        }
+
+        const [inputPath, expectedPath, resultPath] = args;
+        const result = this.createDefaultResult();
+
+        try {
+            const input = fs.readFileSync(inputPath, 'utf8');
+            const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+            const start = Date.now();
+
+            const testResults = this.runTests(input, expectedOutput);
+            Object.assign(result, testResults);
+            result.executionTimeInMs = Date.now() - start;
+
+        } catch (err: any) {
+            console.error('Error reading files:' + err.message);
+            result.errorMessage = err.message;
+        }
+
+        fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+    }
+
+    private createDefaultResult(): SubmissionResult {
+        return {
+            pass: false,
+            testCaseCount: 0,
+            passedTestCases: 0,
+            failedTestCases: 0,
+            errorMessage: '',
+            executionTimeInMs: 0,
+            testCaseResults: []
+        };
+    }
+
+    private runTests(inputJsonStr: string, expectedOutputJsonStr: string): Partial<SubmissionResult> {
+        const input = JSON.parse(inputJsonStr);
+        const expectedOutput = JSON.parse(expectedOutputJsonStr);
+        
+        const testCases = this.problemDriver.parseTestCases(input, expectedOutput);
+        const results = this.executeTestCases(testCases);
+        
+        return this.aggregateResults(results);
+    }
+
+    private executeTestCases(testCases: TestCase[]): TestResult[] {
+        return testCases.map((testCase, index) => {
+            console.log(`|derpcode-start-test-${index}|`);
+            const start = Date.now();
+            
+            try {
+                const actualOutput = this.problemDriver.executeTestCase(testCase, index);
+                const passed = this.problemDriver.compareResults(actualOutput, testCase.expectedOutput);
+                
+                console.log(`|derpcode-end-test-${index}|`);
+                
+                return {
+                    testCaseIndex: index,
+                    pass: passed,
+                    errorMessage: passed ? null : `Expected ${testCase.expectedOutput} but got ${actualOutput}`,
+                    executionTimeInMs: Date.now() - start,
+                    input: testCase.input,
+                    expectedOutput: testCase.expectedOutput,
+                    actualOutput: actualOutput,
+                    isHidden: false
+                };
+            } catch (err: any) {
+                console.log(`|derpcode-end-test-${index}|`);
+                return {
+                    testCaseIndex: index,
+                    pass: false,
+                    errorMessage: err.message,
+                    executionTimeInMs: Date.now() - start,
+                    input: testCase.input,
+                    expectedOutput: testCase.expectedOutput,
+                    actualOutput: null,
+                    isHidden: false
+                };
+            }
+        });
+    }
+
+    private aggregateResults(testResults: TestResult[]): Partial<SubmissionResult> {
+        const passedTestCases = testResults.filter(r => r.pass).length;
+        return {
+            testCaseCount: testResults.length,
+            passedTestCases,
+            failedTestCases: testResults.length - passedTestCases,
+            pass: passedTestCases === testResults.length,
+            testCaseResults: testResults
+        };
+    }
+}

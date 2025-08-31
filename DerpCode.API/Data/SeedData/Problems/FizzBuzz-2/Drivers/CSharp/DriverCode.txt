@@ -1,133 +1,71 @@
 #pragma warning disable CS8602
 using System;
-using System.Diagnostics;
-using System.IO;
+using System.Collections.Generic;
 using System.Text.Json;
+using DerpCode.Driver.Base;
 
-public class Program
+namespace DerpCode.Driver.FizzBuzz
 {
-    private class SubmissionResult
+    /// <summary>
+    /// Problem-specific driver for FizzBuzz problem.
+    /// </summary>
+    public class FizzBuzzDriver : BaseProblemDriver
     {
-        public bool Pass { get; set; }
-        public int TestCaseCount { get; set; }
-        public int PassedTestCases { get; set; }
-        public int FailedTestCases { get; set; }
-        public string ErrorMessage { get; set; } = string.Empty;
-        public long ExecutionTimeInMs { get; set; }
-        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
-    }
-
-    private class TestCaseResult
-    {
-        public int TestCaseIndex { get; set; }
-        public bool Pass { get; set; }
-        public string? ErrorMessage { get; set; }
-        public int ExecutionTimeInMs { get; set; }
-        public object Input { get; set; } = default!;
-        public object ExpectedOutput { get; set; } = default!;
-        public object ActualOutput { get; set; } = default!;
-        public bool IsHidden { get; set; }
-    }
-
-    public static void Main(string[] args)
-    {
-        if (args.Length < 3)
+        /// <summary>
+        /// Parse input as array of integers and expected output as array of strings.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
         {
-            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-            Environment.Exit(1);
-        }
-
-        string inputPath = args[0];
-        string expectedPath = args[1];
-        string resultPath = args[2];
-
-        try
-        {
-            string input = File.ReadAllText(inputPath);
-            string expectedOutput = File.ReadAllText(expectedPath);
-            var sw = Stopwatch.StartNew();
-
-            var results = RunTests(input, expectedOutput);
-            results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
-
-            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            File.WriteAllText(resultPath, asJson);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Error reading files: {ex.Message}");
-
-            var results = new SubmissionResult
-            {
-                ErrorMessage = ex.Message,
-            };
-            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            File.WriteAllText(resultPath, asJson);
-            Environment.Exit(1);
-        }
-    }
-
-    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
-    {
-        var input = JsonSerializer.Deserialize<int[]>(inputJsonStr);
-        var expectedOutput = JsonSerializer.Deserialize<string[]>(expectedOutputJsonStr);
-        int testCaseCount = input.Length;
-        int passedTestCases = 0;
-        int failedTestCases = 0;
-        var testCaseResults = new List<TestCaseResult>();
-
-        for (int i = 0; i < input.Length; i++)
-        {
-            var number = input[i];
+            var inputArray = JsonSerializer.Deserialize<int[]>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<string[]>(expectedOutput.ToString()!);
             
-            Console.WriteLine($"|derpcode-start-test-{i}|");
-            var testCaseSw = Stopwatch.StartNew();
-            var result = Solution.FizzBuzz(number);
-            testCaseSw.Stop();
-            Console.WriteLine($"|derpcode-end-test-{i}|");
+            var testCases = new List<TestCase>();
             
-            string expected = expectedOutput[i];
-            bool passed = result == expected;
-
-            testCaseResults.Add(new TestCaseResult
+            for (int i = 0; i < inputArray!.Length; i++)
             {
-                TestCaseIndex = i,
-                Pass = passed,
-                ErrorMessage = passed ? null : $"Expected '{expected}' but got '{result}'",
-                ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
-                Input = number,
-                ExpectedOutput = expected,
-                ActualOutput = result,
-                IsHidden = false
-            });
-
-            if (passed)
-            {
-                passedTestCases++;
+                testCases.Add(new TestCase
+                {
+                    Input = inputArray[i],
+                    ExpectedOutput = expectedArray![i]
+                });
             }
-            else
-            {
-                failedTestCases++;
-            }
+            
+            return testCases;
         }
 
-        return new SubmissionResult
+        /// <summary>
+        /// Execute the FizzBuzz method with the test case input.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
         {
-            TestCaseCount = testCaseCount,
-            PassedTestCases = passedTestCases,
-            FailedTestCases = failedTestCases,
-            Pass = passedTestCases == testCaseCount,
-            TestCaseResults = testCaseResults
-        };
+            var number = (int)testCase.Input;
+            return Solution.FizzBuzz(number);
+        }
+
+        /// <summary>
+        /// Compare results using string equality.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return object.Equals(actual, expected);
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected '{expected}' but got '{actual}'";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new FizzBuzzDriver());
+            driver.Run(args);
+        }
     }
 }

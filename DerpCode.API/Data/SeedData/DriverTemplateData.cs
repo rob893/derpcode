@@ -12,116 +12,46 @@ public static class DriverTemplateData
             Id = 1,
             Language = LanguageType.CSharp,
             Template = """
+                #pragma warning disable CS8602
                 using System;
-                using System.IO;
+                using System.Collections.Generic;
                 using System.Text.Json;
+                using DerpCode.Driver.Base;
 
-                public class Program
+                namespace DerpCode.Driver.NewProblem
                 {
-                    private class SubmissionResult
+                    public class NewProblemDriver : BaseProblemDriver
                     {
-                        public bool Pass { get; set; }
-                        public int TestCaseCount { get; set; }
-                        public int PassedTestCases { get; set; }
-                        public int FailedTestCases { get; set; }
-                        public string ErrorMessage { get; set; } = string.Empty;
-                        public long ExecutionTimeInMs { get; set; }
-                        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
-                    }
-
-                    private class TestCaseResult
-                    {
-                        public int TestCaseIndex { get; set; }
-                        public bool Pass { get; set; }
-                        public string? ErrorMessage { get; set; }
-                        public int ExecutionTimeInMs { get; set; }
-                        public object Input { get; set; } = default!;
-                        public object ExpectedOutput { get; set; } = default!;
-                        public object ActualOutput { get; set; } = default!;
-                        public bool IsHidden { get; set; }
-                    }
-
-                    public static void Main(string[] args)
-                    {
-                        if (args.Length < 3)
+                        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
                         {
-                            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-                            Environment.Exit(1);
+                            throw new NotImplementedException();
                         }
 
-                        string inputPath = args[0];
-                        string expectedPath = args[1];
-                        string resultPath = args[2];
-
-                        try
+                        public override object? ExecuteTestCase(TestCase testCase, int index)
                         {
-                            string input = File.ReadAllText(inputPath);
-                            string expectedOutput = File.ReadAllText(expectedPath);
-                            var sw = System.Diagnostics.Stopwatch.StartNew();
-
-                            var results = RunTests(input, expectedOutput);
-                            results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
-
-                            string asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
-                            {
-                                WriteIndented = true,
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                            });
-
-                            File.WriteAllText(resultPath, asJson);
+                            throw new NotImplementedException();
                         }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine($"Error reading files: {ex.Message}");
 
-                            var results = new SubmissionResult
-                            {
-                                ErrorMessage = ex.Message,
-                            };
-                            string asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
-                            {
-                                WriteIndented = true,
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                            });
-
-                            File.WriteAllText(resultPath, asJson);
-                            Environment.Exit(1);
-                        }
-                    }
-
-                    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
-                    {
-                        // parse input and expected output json objects and implement your test logic here
-                        // Example implementation:
-                        var testCaseResults = new List<TestCaseResult>();
                         
-                        // TODO: Implement your test logic and populate testCaseResults
-                        // Each test case should create a TestCaseResult with detailed information
-                        // Example for measuring execution time:
-                        /*
-                        for (int i = 0; i < testCaseCount; i++)
+                        public override bool CompareResults(object? actual, object expected)
                         {
-                            Console.WriteLine($"|derpcode-start-test-{i}|");
-                            var testCaseSw = System.Diagnostics.Stopwatch.StartNew();
-                            var result = YourTestFunction(input[i]);
-                            testCaseSw.Stop();
-                            Console.WriteLine($"|derpcode-end-test-{i}|");
-                            
-                            testCaseResults.Add(new TestCaseResult
-                            {
-                                TestCaseIndex = i,
-                                Pass = result == expected[i],
-                                ErrorMessage = passed ? null : $"Expected {expected[i]} but got {result}",
-                                ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
-                                Input = input[i],
-                                ExpectedOutput = expected[i],
-                                ActualOutput = result,
-                                IsHidden = false
-                            });
+                            return object.Equals(actual, expected);
                         }
-                        */
-                        
-                        throw new NotImplementedException("Implement your test logic here and populate TestCaseResults.");
+
+                        public override string FormatErrorMessage(object? actual, object expected)
+                        {
+                            return $"Expected {expected} but got {actual}";
+                        }
+                    }
+
+                    public class Program
+                    {
+                        public static void Main(string[] args)
+                        {
+                            // Create and run the driver
+                            var driver = new BaseDriver(new NewProblemDriver());
+                            driver.Run(args);
+                        }
                     }
                 }
                 """,

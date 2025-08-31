@@ -6,6 +6,7 @@ mkdir -p /home/runner/App
 
 echo "Building and running code..."
 
+cp /home/runner/base_driver.py /home/runner/App/base_driver.py
 cp /home/runner/submission/UserCode.txt /home/runner/App/solution.py
 cp /home/runner/submission/DriverCode.txt /home/runner/App/index.py
 cp /home/runner/submission/input.json /home/runner/input.json

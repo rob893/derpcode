@@ -6,6 +6,7 @@ WORKDIR /home/runner
 RUN mkdir src
 RUN echo "fn main() {}" > src/main.rs
 COPY . .
+COPY base_driver.txt ./src/base_driver.rs
 RUN cargo build --release
 RUN chmod +x run.sh
 

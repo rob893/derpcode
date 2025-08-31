@@ -1,0 +1,205 @@
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
+public abstract class ProblemDriverBase {
+    public abstract List<TestCase> parseTestCases(JsonNode input, JsonNode expectedOutput);
+    public abstract Object executeTestCase(TestCase testCase, int index) throws Exception;
+    public abstract boolean compareResults(Object actual, Object expected);
+}
+
+class TestCase {
+    private Object input;
+    private Object expectedOutput;
+    
+    public TestCase(Object input, Object expectedOutput) {
+        this.input = input;
+        this.expectedOutput = expectedOutput;
+    }
+    
+    public Object getInput() { return input; }
+    public Object getExpectedOutput() { return expectedOutput; }
+}
+
+class TestResult {
+    private int testCaseIndex;
+    private boolean pass;
+    private String errorMessage;
+    private long executionTimeInMs;
+    private Object input;
+    private Object expectedOutput;
+    private Object actualOutput;
+    private boolean isHidden;
+    
+    public TestResult(int testCaseIndex, boolean pass, String errorMessage, 
+                     long executionTimeInMs, Object input, Object expectedOutput, 
+                     Object actualOutput, boolean isHidden) {
+        this.testCaseIndex = testCaseIndex;
+        this.pass = pass;
+        this.errorMessage = errorMessage;
+        this.executionTimeInMs = executionTimeInMs;
+        this.input = input;
+        this.expectedOutput = expectedOutput;
+        this.actualOutput = actualOutput;
+        this.isHidden = isHidden;
+    }
+    
+    // Getters
+    public int getTestCaseIndex() { return testCaseIndex; }
+    public boolean getPass() { return pass; }
+    public String getErrorMessage() { return errorMessage; }
+    public long getExecutionTimeInMs() { return executionTimeInMs; }
+    public Object getInput() { return input; }
+    public Object getExpectedOutput() { return expectedOutput; }
+    public Object getActualOutput() { return actualOutput; }
+    public boolean getIsHidden() { return isHidden; }
+}
+
+class SubmissionResult {
+    private boolean pass;
+    private int testCaseCount;
+    private int passedTestCases;
+    private int failedTestCases;
+    private String errorMessage;
+    private long executionTimeInMs;
+    private List<TestResult> testCaseResults;
+    
+    public SubmissionResult() {
+        this.pass = false;
+        this.testCaseCount = 0;
+        this.passedTestCases = 0;
+        this.failedTestCases = 0;
+        this.errorMessage = "";
+        this.executionTimeInMs = 0;
+        this.testCaseResults = new ArrayList<>();
+    }
+    
+    // Getters and setters
+    public boolean getPass() { return pass; }
+    public void setPass(boolean pass) { this.pass = pass; }
+    public int getTestCaseCount() { return testCaseCount; }
+    public void setTestCaseCount(int testCaseCount) { this.testCaseCount = testCaseCount; }
+    public int getPassedTestCases() { return passedTestCases; }
+    public void setPassedTestCases(int passedTestCases) { this.passedTestCases = passedTestCases; }
+    public int getFailedTestCases() { return failedTestCases; }
+    public void setFailedTestCases(int failedTestCases) { this.failedTestCases = failedTestCases; }
+    public String getErrorMessage() { return errorMessage; }
+    public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    public long getExecutionTimeInMs() { return executionTimeInMs; }
+    public void setExecutionTimeInMs(long executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
+    public List<TestResult> getTestCaseResults() { return testCaseResults; }
+    public void setTestCaseResults(List<TestResult> testCaseResults) { this.testCaseResults = testCaseResults; }
+}
+
+public class BaseDriver {
+    private ProblemDriverBase problemDriver;
+    private ObjectMapper objectMapper;
+    
+    public BaseDriver(ProblemDriverBase problemDriver) {
+        this.problemDriver = problemDriver;
+        this.objectMapper = new ObjectMapper();
+    }
+    
+    public void run(String[] args) {
+        if (args.length < 3) {
+            System.err.println("Usage: java Main <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+            System.exit(1);
+        }
+        
+        String inputPath = args[0];
+        String expectedPath = args[1];
+        String resultPath = args[2];
+        
+        SubmissionResult result = new SubmissionResult();
+        
+        try {
+            String input = Files.readString(Paths.get(inputPath));
+            String expectedOutput = Files.readString(Paths.get(expectedPath));
+            long start = System.currentTimeMillis();
+            
+            SubmissionResult testResults = runTests(input, expectedOutput);
+            result.setPass(testResults.getPass());
+            result.setTestCaseCount(testResults.getTestCaseCount());
+            result.setPassedTestCases(testResults.getPassedTestCases());
+            result.setFailedTestCases(testResults.getFailedTestCases());
+            result.setTestCaseResults(testResults.getTestCaseResults());
+            result.setExecutionTimeInMs(System.currentTimeMillis() - start);
+            
+        } catch (Exception err) {
+            System.err.println("Error reading files: " + err.getMessage());
+            result.setErrorMessage(err.getMessage());
+        }
+        
+        try {
+            String jsonResult = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+            Files.write(Paths.get(resultPath), jsonResult.getBytes());
+        } catch (Exception err) {
+            System.err.println("Error writing result file: " + err.getMessage());
+        }
+    }
+    
+    private SubmissionResult runTests(String inputJsonStr, String expectedOutputJsonStr) throws Exception {
+        JsonNode input = objectMapper.readTree(inputJsonStr);
+        JsonNode expectedOutput = objectMapper.readTree(expectedOutputJsonStr);
+        
+        List<TestCase> testCases = problemDriver.parseTestCases(input, expectedOutput);
+        List<TestResult> results = executeTestCases(testCases);
+        
+        return aggregateResults(results);
+    }
+    
+    private List<TestResult> executeTestCases(List<TestCase> testCases) {
+        List<TestResult> results = new ArrayList<>();
+        
+        for (int i = 0; i < testCases.size(); i++) {
+            TestCase testCase = testCases.get(i);
+            System.out.println("|derpcode-start-test-" + i + "|");
+            long start = System.currentTimeMillis();
+            
+            try {
+                Object actualOutput = problemDriver.executeTestCase(testCase, i);
+                boolean passed = problemDriver.compareResults(actualOutput, testCase.getExpectedOutput());
+                
+                System.out.println("|derpcode-end-test-" + i + "|");
+                
+                String errorMessage = passed ? null : 
+                    "Expected " + testCase.getExpectedOutput() + " but got " + actualOutput;
+                
+                results.add(new TestResult(
+                    i, passed, errorMessage, System.currentTimeMillis() - start,
+                    testCase.getInput(), testCase.getExpectedOutput(), actualOutput, false
+                ));
+                
+            } catch (Exception err) {
+                System.out.println("|derpcode-end-test-" + i + "|");
+                results.add(new TestResult(
+                    i, false, err.getMessage(), System.currentTimeMillis() - start,
+                    testCase.getInput(), testCase.getExpectedOutput(), null, false
+                ));
+            }
+        }
+        
+        return results;
+    }
+    
+    private SubmissionResult aggregateResults(List<TestResult> testResults) {
+        SubmissionResult result = new SubmissionResult();
+        int passedTestCases = 0;
+        
+        for (TestResult testResult : testResults) {
+            if (testResult.getPass()) {
+                passedTestCases++;
+            }
+        }
+        
+        result.setTestCaseCount(testResults.size());
+        result.setPassedTestCases(passedTestCases);
+        result.setFailedTestCases(testResults.size() - passedTestCases);
+        result.setPass(passedTestCases == testResults.size());
+        result.setTestCaseResults(testResults);
+        
+        return result;
+    }
+}

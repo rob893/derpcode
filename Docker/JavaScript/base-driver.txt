@@ -1,0 +1,168 @@
+import fs from 'fs';
+
+/**
+ * Base driver class that handles common test execution logic.
+ * Problem-specific drivers should implement the IProblemDriver interface.
+ */
+export class BaseDriver {
+  constructor(problemDriver) {
+    this.problemDriver = problemDriver;
+  }
+
+  /**
+   * Main entry point for the driver.
+   */
+  run() {
+    const args = process.argv.slice(2);
+    if (args.length < 3) {
+      console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
+      process.exit(1);
+    }
+
+    const [inputPath, expectedPath, resultPath] = args;
+    const result = this.createDefaultResult();
+
+    try {
+      const input = fs.readFileSync(inputPath, 'utf8');
+      const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
+      const start = Date.now();
+
+      const testResults = this.runTests(input, expectedOutput);
+      Object.assign(result, testResults);
+      result.executionTimeInMs = Date.now() - start;
+    } catch (err) {
+      console.error('Error reading files:' + err.message);
+      result.errorMessage = err.message;
+    }
+
+    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+  }
+
+  /**
+   * Creates the default result object structure.
+   */
+  createDefaultResult() {
+    return {
+      pass: false,
+      testCaseCount: 0,
+      passedTestCases: 0,
+      failedTestCases: 0,
+      errorMessage: '',
+      executionTimeInMs: 0,
+      testCaseResults: []
+    };
+  }
+
+  /**
+   * Orchestrates the test execution process.
+   */
+  runTests(inputJsonStr, expectedOutputJsonStr) {
+    const input = JSON.parse(inputJsonStr);
+    const expectedOutput = JSON.parse(expectedOutputJsonStr);
+
+    const testCases = this.problemDriver.parseTestCases(input, expectedOutput);
+    const results = this.executeTestCases(testCases);
+
+    return this.aggregateResults(results);
+  }
+
+  /**
+   * Executes all test cases and collects results.
+   */
+  executeTestCases(testCases) {
+    return testCases.map((testCase, index) => {
+      console.log(`|derpcode-start-test-${index}|`);
+      const start = Date.now();
+
+      try {
+        const actualOutput = this.problemDriver.executeTestCase(testCase, index);
+        const passed = this.problemDriver.compareResults(actualOutput, testCase.expectedOutput);
+
+        console.log(`|derpcode-end-test-${index}|`);
+
+        return {
+          testCaseIndex: index,
+          pass: passed,
+          errorMessage: passed ? null : this.problemDriver.formatErrorMessage(actualOutput, testCase.expectedOutput),
+          executionTimeInMs: Date.now() - start,
+          input: testCase.input,
+          expectedOutput: testCase.expectedOutput,
+          actualOutput: actualOutput,
+          isHidden: false
+        };
+      } catch (err) {
+        console.log(`|derpcode-end-test-${index}|`);
+        return {
+          testCaseIndex: index,
+          pass: false,
+          errorMessage: err.message,
+          executionTimeInMs: Date.now() - start,
+          input: testCase.input,
+          expectedOutput: testCase.expectedOutput,
+          actualOutput: null,
+          isHidden: false
+        };
+      }
+    });
+  }
+
+  /**
+   * Aggregates individual test results into final result.
+   */
+  aggregateResults(testResults) {
+    const passedTestCases = testResults.filter(r => r.pass).length;
+    return {
+      testCaseCount: testResults.length,
+      passedTestCases,
+      failedTestCases: testResults.length - passedTestCases,
+      pass: passedTestCases === testResults.length,
+      testCaseResults: testResults
+    };
+  }
+}
+
+/**
+ * Interface that problem-specific drivers should implement.
+ * This is a documentation interface since JavaScript doesn't have formal interfaces.
+ */
+export class IProblemDriver {
+  /**
+   * Parse input and expected output into structured test cases.
+   * @param {any} input - Parsed JSON input
+   * @param {any} expectedOutput - Parsed JSON expected output
+   * @returns {Array<{input: any, expectedOutput: any}>} Array of test cases
+   */
+  parseTestCases(input, expectedOutput) {
+    throw new Error('parseTestCases must be implemented by problem driver');
+  }
+
+  /**
+   * Execute a single test case.
+   * @param {any} testCase - Test case with input and expectedOutput
+   * @param {number} index - Test case index
+   * @returns {any} Actual output from the test
+   */
+  executeTestCase(testCase, index) {
+    throw new Error('executeTestCase must be implemented by problem driver');
+  }
+
+  /**
+   * Compare actual and expected results.
+   * @param {any} actual - Actual output
+   * @param {any} expected - Expected output
+   * @returns {boolean} True if results match
+   */
+  compareResults(actual, expected) {
+    return actual === expected;
+  }
+
+  /**
+   * Format error message when test fails.
+   * @param {any} actual - Actual output
+   * @param {any} expected - Expected output
+   * @returns {string} Formatted error message
+   */
+  formatErrorMessage(actual, expected) {
+    return `Expected ${expected} but got ${actual}`;
+  }
+}

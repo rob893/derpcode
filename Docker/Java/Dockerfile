@@ -9,6 +9,7 @@ RUN mkdir -p /home/runner/lib && \
 
 WORKDIR /home/runner
 COPY run.sh ./run.sh
+COPY BaseDriver.txt ./BaseDriver.java
 RUN chmod +x run.sh
 
 USER runner

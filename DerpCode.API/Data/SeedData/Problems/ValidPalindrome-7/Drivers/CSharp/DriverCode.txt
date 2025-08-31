@@ -1,170 +1,73 @@
+#pragma warning disable CS8602
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using DerpCode.Driver.Base;
 
-public class Program
+namespace DerpCode.Driver.ValidPalindrome
 {
-    public class SubmissionResult
+    /// <summary>
+    /// Problem-specific driver for ValidPalindrome problem.
+    /// </summary>
+    public class ValidPalindromeDriver : BaseProblemDriver
     {
-        [JsonPropertyName("pass")]
-        public bool Pass { get; set; }
-        
-        [JsonPropertyName("testCaseCount")]
-        public int TestCaseCount { get; set; }
-        
-        [JsonPropertyName("passedTestCases")]
-        public int PassedTestCases { get; set; }
-        
-        [JsonPropertyName("failedTestCases")]
-        public int FailedTestCases { get; set; }
-        
-        [JsonPropertyName("errorMessage")]
-        public string ErrorMessage { get; set; } = "";
-        
-        [JsonPropertyName("executionTimeInMs")]
-        public long ExecutionTimeInMs { get; set; }
-        
-        [JsonPropertyName("testCaseResults")]
-        public List<TestCaseResult> TestCaseResults { get; set; } = new();
-    }
-
-    public class TestCaseResult
-    {
-        [JsonPropertyName("testCaseIndex")]
-        public int TestCaseIndex { get; set; }
-        
-        [JsonPropertyName("pass")]
-        public bool Pass { get; set; }
-        
-        [JsonPropertyName("errorMessage")]
-        public string ErrorMessage { get; set; } = "";
-        
-        [JsonPropertyName("executionTimeInMs")]
-        public long ExecutionTimeInMs { get; set; }
-        
-        [JsonPropertyName("input")]
-        public object? Input { get; set; }
-        
-        [JsonPropertyName("expectedOutput")]
-        public object? ExpectedOutput { get; set; }
-        
-        [JsonPropertyName("actualOutput")]
-        public object? ActualOutput { get; set; }
-        
-        [JsonPropertyName("isHidden")]
-        public bool IsHidden { get; set; }
-    }
-
-    public static void Main(string[] args)
-    {
-        string inputPath = args[0];
-        string expectedPath = args[1];
-        string resultPath = args[2];
-
-        var result = new SubmissionResult();
-
-        try
+        /// <summary>
+        /// Parse input as array of strings and expected output as array of booleans.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
         {
-            string input = File.ReadAllText(inputPath);
-            string expectedOutput = File.ReadAllText(expectedPath);
+            var inputArray = JsonSerializer.Deserialize<string[]>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<bool[]>(expectedOutput.ToString()!);
             
-            var startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var testResults = RunTests(input, expectedOutput);
-            result.ExecutionTimeInMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - startTime;
-
-            result.Pass = testResults.Pass;
-            result.TestCaseCount = testResults.TestCaseCount;
-            result.PassedTestCases = testResults.PassedTestCases;
-            result.FailedTestCases = testResults.FailedTestCases;
-            result.TestCaseResults = testResults.TestCaseResults;
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray!.Length; i++)
+            {
+                testCases.Add(new TestCase
+                {
+                    Input = inputArray[i],
+                    ExpectedOutput = expectedArray![i]
+                });
+            }
+            
+            return testCases;
         }
-        catch (Exception ex)
+
+        /// <summary>
+        /// Execute the IsPalindrome method with the test case input.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
         {
-            Console.Error.WriteLine($"Error reading files: {ex.Message}");
-            result.ErrorMessage = $"Error reading input files: {ex.Message}";
+            var solution = new Solution();
+            var inputString = (string)testCase.Input;
+            
+            return solution.IsPalindrome(inputString);
         }
 
-        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(resultPath, json);
+        /// <summary>
+        /// Compare results using boolean equality.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return (bool)actual! == (bool)expected;
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
     }
 
-    private static SubmissionResult RunTests(string input, string expectedOutput)
+    public class Program
     {
-        var result = new SubmissionResult();
-
-        try
+        public static void Main(string[] args)
         {
-            var inputs = JsonSerializer.Deserialize<string[]>(input);
-            var expectedOutputs = JsonSerializer.Deserialize<bool[]>(expectedOutput);
-
-            if (inputs == null || expectedOutputs == null)
-            {
-                result.ErrorMessage = "Failed to parse input or expected output";
-                return result;
-            }
-
-            int testCaseCount = inputs.Length;
-            int passedTests = 0;
-            int failedTests = 0;
-
-            var solution = new Solution();
-
-            for (int i = 0; i < testCaseCount; i++)
-            {
-                Console.WriteLine($"|derpcode-start-test-{i}|");
-                var testResult = new TestCaseResult
-                {
-                    TestCaseIndex = i,
-                    IsHidden = false,
-                    Input = inputs[i],
-                    ExpectedOutput = expectedOutputs[i]
-                };
-
-                try
-                {
-                    var testStartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    
-                    bool actualOutput = solution.IsPalindrome(inputs[i]);
-                    
-                    testResult.ExecutionTimeInMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - testStartTime;
-                    testResult.ActualOutput = actualOutput;
-
-                    bool testPassed = actualOutput == expectedOutputs[i];
-                    testResult.Pass = testPassed;
-
-                    if (testPassed)
-                    {
-                        passedTests++;
-                    }
-                    else
-                    {
-                        failedTests++;
-                        testResult.ErrorMessage = $"Expected: {expectedOutputs[i]}, but got: {actualOutput}";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    failedTests++;
-                    testResult.Pass = false;
-                    testResult.ErrorMessage = $"Runtime error: {ex.Message}";
-                }
-
-                Console.WriteLine($"|derpcode-end-test-{i}|");
-                result.TestCaseResults.Add(testResult);
-            }
-
-            result.Pass = failedTests == 0;
-            result.TestCaseCount = testCaseCount;
-            result.PassedTestCases = passedTests;
-            result.FailedTestCases = failedTests;
+            // Create and run the driver
+            var driver = new BaseDriver(new ValidPalindromeDriver());
+            driver.Run(args);
         }
-        catch (Exception ex)
-        {
-            result.ErrorMessage = $"Error parsing input: {ex.Message}";
-        }
-
-        return result;
     }
 }

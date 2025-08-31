@@ -1,141 +1,68 @@
 #pragma warning disable CS8602
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Text.Json;
+using DerpCode.Driver.Base;
 
-public class Program
+namespace DerpCode.Driver.LRUCacheProblem
 {
-    private class SubmissionResult
+    /// <summary>
+    /// Represents a single LRU cache operation.
+    /// </summary>
+    public class LRUCacheOperation
     {
-        public bool Pass { get; set; }
-        public int TestCaseCount { get; set; }
-        public int PassedTestCases { get; set; }
-        public int FailedTestCases { get; set; }
-        public string ErrorMessage { get; set; } = string.Empty;
-        public long ExecutionTimeInMs { get; set; }
-        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
+        public string Operation { get; set; } = string.Empty;
+        public object?[]? Parameters { get; set; }
+        public object? ExpectedResult { get; set; }
     }
 
-    private class TestCaseResult
+    /// <summary>
+    /// Problem-specific driver for LRUCache problem.
+    /// </summary>
+    public class LRUCacheDriver : BaseProblemDriver
     {
-        public int TestCaseIndex { get; set; }
-        public bool Pass { get; set; }
-        public string? ErrorMessage { get; set; }
-        public int ExecutionTimeInMs { get; set; }
-        public object? Input { get; set; }
-        public object? ExpectedOutput { get; set; }
-        public object? ActualOutput { get; set; }
-        public bool IsHidden { get; set; }
-    }
+        private LRUCache? _cache;
 
-    public static void Main(string[] args)
-    {
-        if (args.Length < 3)
+        /// <summary>
+        /// Parse input as operations array and expected output.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
         {
-            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-            Environment.Exit(1);
-        }
-
-        string inputPath = args[0];
-        string expectedPath = args[1];
-        string resultPath = args[2];
-
-        try
-        {
-            string input = File.ReadAllText(inputPath);
-            string expectedOutput = File.ReadAllText(expectedPath);
-            var sw = Stopwatch.StartNew();
-
-            var results = RunTests(input, expectedOutput);
-            results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
-
-            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            File.WriteAllText(resultPath, asJson);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Error reading files: {ex.Message}");
-
-            var results = new SubmissionResult
-            {
-                ErrorMessage = ex.Message,
-            };
-            var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            File.WriteAllText(resultPath, asJson);
-            Environment.Exit(1);
-        }
-    }
-
-    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
-    {
-        // Parse and extract data before disposal
-        JsonElement operations, parameters, expectedOutput;
-        int testCaseCount;
-        
-        using (var inputDoc = JsonDocument.Parse(inputJsonStr))
-        using (var expectedDoc = JsonDocument.Parse(expectedOutputJsonStr))
-        {
-            operations = inputDoc.RootElement[0].Clone();
-            parameters = inputDoc.RootElement[1].Clone();
-            expectedOutput = expectedDoc.RootElement.Clone();
-            testCaseCount = operations.GetArrayLength();
-        }
-        
-        int passedTestCases = 0;
-        int failedTestCases = 0;
-        var testCaseResults = new List<TestCaseResult>();
-        var actualResults = new List<object?>();
-
-        LRUCache? cache = null;
-
-        for (int i = 0; i < testCaseCount; i++)
-        {
-            var operation = operations[i].GetString();
-            Console.WriteLine($"|derpcode-start-test-{i}|");
-            var testCaseSw = Stopwatch.StartNew();
-            object? result = null;
+            var inputDoc = JsonDocument.Parse(input.ToString()!);
+            var expectedDoc = JsonDocument.Parse(expectedOutput.ToString()!);
             
-            try
+            var operations = inputDoc.RootElement[0];
+            var parameters = inputDoc.RootElement[1];
+            var expectedArray = expectedDoc.RootElement;
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < operations.GetArrayLength(); i++)
             {
-                if (operation == "LRUCache")
-                {
-                    var capacity = parameters[i].GetInt32();
-                    cache = new LRUCache(capacity);
-                    result = null;
-                }
-                else if (operation == "get")
-                {
-                    var key = parameters[i][0].GetInt32();
-                    result = cache!.Get(key);
-                }
-                else if (operation == "put")
-                {
-                    var key = parameters[i][0].GetInt32();
-                    var value = parameters[i][1].GetInt32();
-                    cache!.Put(key, value);
-                    result = null;
-                }
+                var operation = operations[i].GetString()!;
+                object?[]? paramArray = null;
                 
-                testCaseSw.Stop();
-                Console.WriteLine($"|derpcode-end-test-{i}|");
-                actualResults.Add(result);
+                if (i < parameters.GetArrayLength())
+                {
+                    var paramElement = parameters[i];
+                    if (paramElement.ValueKind == JsonValueKind.Array)
+                    {
+                        paramArray = new object?[paramElement.GetArrayLength()];
+                        for (int j = 0; j < paramElement.GetArrayLength(); j++)
+                        {
+                            paramArray[j] = paramElement[j].GetInt32();
+                        }
+                    }
+                    else if (paramElement.ValueKind == JsonValueKind.Number)
+                    {
+                        paramArray = new object?[] { paramElement.GetInt32() };
+                    }
+                }
                 
                 object? expected = null;
-                if (i < expectedOutput.GetArrayLength())
+                if (i < expectedArray.GetArrayLength())
                 {
-                    var expectedElement = expectedOutput[i];
+                    var expectedElement = expectedArray[i];
                     if (expectedElement.ValueKind == JsonValueKind.Number)
                     {
                         expected = expectedElement.GetInt32();
@@ -146,56 +73,75 @@ public class Program
                     }
                 }
                 
-                bool passed = (result == null && expected == null) || 
-                             (result != null && expected != null && result.Equals(expected));
-
-                testCaseResults.Add(new TestCaseResult
+                testCases.Add(new TestCase
                 {
-                    TestCaseIndex = i,
-                    Pass = passed,
-                    ErrorMessage = passed ? null : $"Expected {expected} but got {result}",
-                    ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
-                    Input = new { operation, parameters = i < parameters.GetArrayLength() ? (object?)parameters[i] : null },
-                    ExpectedOutput = expected,
-                    ActualOutput = result,
-                    IsHidden = false
+                    Input = new LRUCacheOperation
+                    {
+                        Operation = operation,
+                        Parameters = paramArray,
+                        ExpectedResult = expected
+                    },
+                    ExpectedOutput = expected
                 });
-
-                if (passed)
-                {
-                    passedTestCases++;
-                }
-                else
-                {
-                    failedTestCases++;
-                }
             }
-            catch (Exception ex)
-            {
-                testCaseSw.Stop();
-                testCaseResults.Add(new TestCaseResult
-                {
-                    TestCaseIndex = i,
-                    Pass = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
-                    Input = new { operation, parameters = i < parameters.GetArrayLength() ? (object?)parameters[i] : null },
-                    ExpectedOutput = i < expectedOutput.GetArrayLength() ? (object?)expectedOutput[i] : null,
-                    ActualOutput = null,
-                    IsHidden = false
-                });
-                
-                failedTestCases++;
-            }
+            
+            return testCases;
         }
 
-        return new SubmissionResult
+        /// <summary>
+        /// Execute a single LRU cache operation.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
         {
-            TestCaseCount = testCaseCount,
-            PassedTestCases = passedTestCases,
-            FailedTestCases = failedTestCases,
-            Pass = passedTestCases == testCaseCount,
-            TestCaseResults = testCaseResults
-        };
+            var operation = (LRUCacheOperation)testCase.Input;
+            
+            if (operation.Operation == "LRUCache")
+            {
+                var capacity = (int)operation.Parameters![0]!;
+                _cache = new LRUCache(capacity);
+                return null;
+            }
+            else if (operation.Operation == "get")
+            {
+                var key = (int)operation.Parameters![0]!;
+                return _cache!.Get(key);
+            }
+            else if (operation.Operation == "put")
+            {
+                var key = (int)operation.Parameters![0]!;
+                var value = (int)operation.Parameters![1]!;
+                _cache!.Put(key, value);
+                return null;
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// Compare results handling nulls properly.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return (actual == null && expected == null) || 
+                   (actual != null && expected != null && actual.Equals(expected));
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new LRUCacheDriver());
+            driver.Run(args);
+        }
     }
 }

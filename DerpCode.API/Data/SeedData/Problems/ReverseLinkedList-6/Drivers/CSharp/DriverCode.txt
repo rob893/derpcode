@@ -1,197 +1,93 @@
 #pragma warning disable CS8602
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
+using DerpCode.Driver.Base;
 
-public class Program
+namespace DerpCode.Driver.ReverseLinkedList
 {
-    private class SubmissionResult
+    /// <summary>
+    /// Problem-specific driver for ReverseLinkedList problem.
+    /// </summary>
+    public class ReverseLinkedListDriver : BaseProblemDriver
     {
-        public bool Pass { get; set; }
-        public int TestCaseCount { get; set; }
-        public int PassedTestCases { get; set; }
-        public int FailedTestCases { get; set; }
-        public string ErrorMessage { get; set; } = string.Empty;
-        public long ExecutionTimeInMs { get; set; }
-        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
-    }
-
-    private class TestCaseResult
-    {
-        public int TestCaseIndex { get; set; }
-        public bool Pass { get; set; }
-        public string? ErrorMessage { get; set; }
-        public int ExecutionTimeInMs { get; set; }
-        public object? Input { get; set; }
-        public object? ExpectedOutput { get; set; }
-        public object? ActualOutput { get; set; }
-        public bool IsHidden { get; set; }
-    }
-
-    public static void Main(string[] args)
-    {
-        if (args.Length < 3)
+        /// <summary>
+        /// Parse input as linked list arrays and expected output as linked list arrays.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
         {
-            Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-            Environment.Exit(1);
-        }
-
-        string inputPath = args[0];
-        string expectedPath = args[1];
-        string resultPath = args[2];
-
-        try
-        {
-            string input = File.ReadAllText(inputPath);
-            string expectedOutput = File.ReadAllText(expectedPath);
-            var sw = Stopwatch.StartNew();
+            var inputDoc = JsonDocument.Parse(input.ToString()!);
+            var expectedDoc = JsonDocument.Parse(expectedOutput.ToString()!);
             
-            var result = RunTests(input, expectedOutput);
+            var inputArray = inputDoc.RootElement;
+            var expectedArray = expectedDoc.RootElement;
             
-            sw.Stop();
-            result.ExecutionTimeInMs = sw.ElapsedMilliseconds;
-
-            string json = JsonSerializer.Serialize(result, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            File.WriteAllText(resultPath, json);
-        }
-        catch (Exception ex)
-        {
-            var errorResult = new SubmissionResult
-            {
-                Pass = false,
-                TestCaseCount = 0,
-                PassedTestCases = 0,
-                FailedTestCases = 0,
-                ErrorMessage = ex.Message,
-                ExecutionTimeInMs = 0,
-                TestCaseResults = new List<TestCaseResult>()
-            };
-
-            string json = JsonSerializer.Serialize(errorResult, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            File.WriteAllText(args[2], json);
-        }
-    }
-
-    private static SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
-    {
-        JsonElement inputArray, expectedArray;
-        
-        using (var inputDoc = JsonDocument.Parse(inputJsonStr))
-        using (var expectedDoc = JsonDocument.Parse(expectedOutputJsonStr))
-        {
-            inputArray = inputDoc.RootElement.Clone();
-            expectedArray = expectedDoc.RootElement.Clone();
-        }
-
-        int testCaseCount = inputArray.GetArrayLength();
-        int passedTestCases = 0;
-        int failedTestCases = 0;
-        var testCaseResults = new List<TestCaseResult>();
-
-        var solution = new Solution();
-
-        for (int i = 0; i < testCaseCount; i++)
-        {
-            Console.WriteLine($"|derpcode-start-test-{i}|");
-            var testCaseSw = Stopwatch.StartNew();
+            var testCases = new List<TestCase>();
             
-            try
+            for (int i = 0; i < inputArray.GetArrayLength(); i++)
             {
-                // Build input linked list from array
-                var inputList = BuildListFromArray(inputArray[i]);
-                
-                // Run the solution
-                var result = solution.ReverseList(inputList);
-                
-                // Convert result back to array for comparison
-                var actualOutput = ListToArray(result);
-                
-                testCaseSw.Stop();
-                Console.WriteLine($"|derpcode-end-test-{i}|");
-                
-                // Get expected output
-                var expectedOutput = JsonElementToIntArray(expectedArray[i]);
-                
-                // Compare arrays
-                bool passed = ArraysEqual(actualOutput, expectedOutput);
-
-                testCaseResults.Add(new TestCaseResult
+                testCases.Add(new TestCase
                 {
-                    TestCaseIndex = i,
-                    Pass = passed,
-                    ErrorMessage = passed ? null : $"Expected [{string.Join(",", expectedOutput ?? new int[0])}] but got [{string.Join(",", actualOutput ?? new int[0])}]",
-                    ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
-                    Input = JsonElementToIntArray(inputArray[i]),
-                    ExpectedOutput = expectedOutput,
-                    ActualOutput = actualOutput,
-                    IsHidden = false
+                    Input = this.JsonElementToIntArray(inputArray[i]),
+                    ExpectedOutput = this.JsonElementToIntArray(expectedArray[i])
                 });
-
-                if (passed)
-                {
-                    passedTestCases++;
-                }
-                else
-                {
-                    failedTestCases++;
-                }
             }
-            catch (Exception ex)
-            {
-                testCaseSw.Stop();
-                Console.WriteLine($"|derpcode-end-test-{i}|");
-                
-                testCaseResults.Add(new TestCaseResult
-                {
-                    TestCaseIndex = i,
-                    Pass = false,
-                    ErrorMessage = ex.Message,
-                    ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
-                    Input = JsonElementToIntArray(inputArray[i]),
-                    ExpectedOutput = JsonElementToIntArray(expectedArray[i]),
-                    ActualOutput = null,
-                    IsHidden = false
-                });
-                
-                failedTestCases++;
-            }
+            
+            return testCases;
         }
 
-        return new SubmissionResult
+        /// <summary>
+        /// Execute the ReverseList method with the test case input.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
         {
-            TestCaseCount = testCaseCount,
-            PassedTestCases = passedTestCases,
-            FailedTestCases = failedTestCases,
-            Pass = passedTestCases == testCaseCount,
-            TestCaseResults = testCaseResults
-        };
-    }
+            var solution = new Solution();
+            var inputArray = (int[])testCase.Input;
+            
+            // Build linked list from array
+            var inputList = this.BuildListFromArray(inputArray);
+            
+            // Run the solution
+            var result = solution.ReverseList(inputList);
+            
+            // Convert result back to array for comparison
+            return this.ListToArray(result);
+        }
 
-    private static ListNode? BuildListFromArray(JsonElement arrayElement)
-    {
-        if (arrayElement.ValueKind == JsonValueKind.Null || arrayElement.GetArrayLength() == 0)
-            return null;
-
-        ListNode? head = null;
-        ListNode? current = null;
-
-        for (int i = 0; i < arrayElement.GetArrayLength(); i++)
+        /// <summary>
+        /// Compare linked list arrays.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
         {
-            var element = arrayElement[i];
-            if (element.ValueKind != JsonValueKind.Null)
+            var actualArray = (int[])actual!;
+            var expectedArray = (int[])expected;
+            
+            return this.ArraysEqual(actualArray, expectedArray);
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            var actualArray = (int[])actual!;
+            var expectedArray = (int[])expected;
+            
+            return $"Expected [{string.Join(",", expectedArray)}] but got [{string.Join(",", actualArray)}]";
+        }
+
+        private ListNode? BuildListFromArray(int[] values)
+        {
+            if (values.Length == 0)
+                return null;
+
+            ListNode? head = null;
+            ListNode? current = null;
+
+            for (int i = 0; i < values.Length; i++)
             {
-                var node = new ListNode(element.GetInt32());
+                var node = new ListNode(values[i]);
                 if (head == null)
                 {
                     head = node;
@@ -203,50 +99,60 @@ public class Program
                     current = node;
                 }
             }
+
+            return head;
         }
 
-        return head;
-    }
-
-    private static int[] ListToArray(ListNode? head)
-    {
-        var result = new List<int>();
-        var current = head;
-
-        while (current != null)
+        private int[] ListToArray(ListNode? head)
         {
-            result.Add(current.val);
-            current = current.next;
+            var result = new List<int>();
+            var current = head;
+
+            while (current != null)
+            {
+                result.Add(current.val);
+                current = current.next;
+            }
+
+            return result.ToArray();
         }
 
-        return result.ToArray();
-    }
-
-    private static int[] JsonElementToIntArray(JsonElement element)
-    {
-        if (element.ValueKind == JsonValueKind.Null)
-            return new int[0];
-
-        var result = new int[element.GetArrayLength()];
-        for (int i = 0; i < element.GetArrayLength(); i++)
+        private int[] JsonElementToIntArray(JsonElement element)
         {
-            var item = element[i];
-            result[i] = item.ValueKind == JsonValueKind.Null ? 0 : item.GetInt32();
+            if (element.ValueKind == JsonValueKind.Null)
+                return new int[0];
+
+            var result = new int[element.GetArrayLength()];
+            for (int i = 0; i < element.GetArrayLength(); i++)
+            {
+                var item = element[i];
+                result[i] = item.ValueKind == JsonValueKind.Null ? 0 : item.GetInt32();
+            }
+            return result;
         }
-        return result;
-    }
 
-    private static bool ArraysEqual(int[] arr1, int[] arr2)
-    {
-        if (arr1.Length != arr2.Length)
-            return false;
-
-        for (int i = 0; i < arr1.Length; i++)
+        private bool ArraysEqual(int[] arr1, int[] arr2)
         {
-            if (arr1[i] != arr2[i])
+            if (arr1.Length != arr2.Length)
                 return false;
-        }
 
-        return true;
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i])
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new ReverseLinkedListDriver());
+            driver.Run(args);
+        }
     }
 }

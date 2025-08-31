@@ -1,0 +1,243 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+
+namespace DerpCode.Driver.Base
+{
+    /// <summary>
+    /// Represents the result of a single test case.
+    /// </summary>
+    public class TestCaseResult
+    {
+        public int TestCaseIndex { get; set; }
+        public bool Pass { get; set; }
+        public string? ErrorMessage { get; set; }
+        public int ExecutionTimeInMs { get; set; }
+        public object Input { get; set; } = default!;
+        public object ExpectedOutput { get; set; } = default!;
+        public object? ActualOutput { get; set; }
+        public bool IsHidden { get; set; }
+    }
+
+    /// <summary>
+    /// Represents the overall submission result.
+    /// </summary>
+    public class SubmissionResult
+    {
+        public bool Pass { get; set; }
+        public int TestCaseCount { get; set; }
+        public int PassedTestCases { get; set; }
+        public int FailedTestCases { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public long ExecutionTimeInMs { get; set; }
+        public List<TestCaseResult> TestCaseResults { get; set; } = new List<TestCaseResult>();
+    }
+
+    /// <summary>
+    /// Represents a single test case with input and expected output.
+    /// </summary>
+    public class TestCase
+    {
+        public object Input { get; set; } = default!;
+        public object ExpectedOutput { get; set; } = default!;
+    }
+
+    /// <summary>
+    /// Interface that problem-specific drivers should implement.
+    /// </summary>
+    public interface IProblemDriver
+    {
+        /// <summary>
+        /// Parse input and expected output into structured test cases.
+        /// </summary>
+        List<TestCase> ParseTestCases(object input, object expectedOutput);
+
+        /// <summary>
+        /// Execute a single test case.
+        /// </summary>
+        object? ExecuteTestCase(TestCase testCase, int index);
+
+        /// <summary>
+        /// Compare actual and expected results.
+        /// </summary>
+        bool CompareResults(object? actual, object expected);
+
+        /// <summary>
+        /// Format error message when test fails.
+        /// </summary>
+        string FormatErrorMessage(object? actual, object expected);
+    }
+
+    /// <summary>
+    /// Base driver class that handles common test execution logic.
+    /// </summary>
+    public class BaseDriver
+    {
+        private readonly IProblemDriver _problemDriver;
+
+        public BaseDriver(IProblemDriver problemDriver)
+        {
+            _problemDriver = problemDriver;
+        }
+
+        /// <summary>
+        /// Main entry point for the driver.
+        /// </summary>
+        public void Run(string[] args)
+        {
+            if (args.Length < 3)
+            {
+                Console.Error.WriteLine("Usage: dotnet run <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
+                Environment.Exit(1);
+            }
+
+            string inputPath = args[0];
+            string expectedPath = args[1];
+            string resultPath = args[2];
+
+            try
+            {
+                string input = File.ReadAllText(inputPath);
+                string expectedOutput = File.ReadAllText(expectedPath);
+                var sw = Stopwatch.StartNew();
+
+                var results = this.RunTests(input, expectedOutput);
+                results.ExecutionTimeInMs = sw.ElapsedMilliseconds;
+
+                var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                File.WriteAllText(resultPath, asJson);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error reading files: {ex.Message}");
+
+                var results = new SubmissionResult
+                {
+                    ErrorMessage = ex.Message,
+                };
+                var asJson = JsonSerializer.Serialize(results, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                File.WriteAllText(resultPath, asJson);
+                Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Orchestrates the test execution process.
+        /// </summary>
+        private SubmissionResult RunTests(string inputJsonStr, string expectedOutputJsonStr)
+        {
+            var input = JsonSerializer.Deserialize<object>(inputJsonStr);
+            var expectedOutput = JsonSerializer.Deserialize<object>(expectedOutputJsonStr);
+
+            var testCases = _problemDriver.ParseTestCases(input!, expectedOutput!);
+            var testResults = this.ExecuteTestCases(testCases);
+
+            return this.AggregateResults(testResults);
+        }
+
+        /// <summary>
+        /// Executes all test cases and collects results.
+        /// </summary>
+        private List<TestCaseResult> ExecuteTestCases(List<TestCase> testCases)
+        {
+            var results = new List<TestCaseResult>();
+
+            for (int index = 0; index < testCases.Count; index++)
+            {
+                var testCase = testCases[index];
+                Console.WriteLine($"|derpcode-start-test-{index}|");
+                var testCaseSw = Stopwatch.StartNew();
+
+                try
+                {
+                    var actualOutput = _problemDriver.ExecuteTestCase(testCase, index);
+                    var passed = _problemDriver.CompareResults(actualOutput, testCase.ExpectedOutput);
+
+                    testCaseSw.Stop();
+                    Console.WriteLine($"|derpcode-end-test-{index}|");
+
+                    results.Add(new TestCaseResult
+                    {
+                        TestCaseIndex = index,
+                        Pass = passed,
+                        ErrorMessage = passed ? null : _problemDriver.FormatErrorMessage(actualOutput, testCase.ExpectedOutput),
+                        ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
+                        Input = testCase.Input,
+                        ExpectedOutput = testCase.ExpectedOutput,
+                        ActualOutput = actualOutput,
+                        IsHidden = false
+                    });
+                }
+                catch (Exception ex)
+                {
+                    testCaseSw.Stop();
+                    Console.WriteLine($"|derpcode-end-test-{index}|");
+
+                    results.Add(new TestCaseResult
+                    {
+                        TestCaseIndex = index,
+                        Pass = false,
+                        ErrorMessage = ex.Message,
+                        ExecutionTimeInMs = (int)testCaseSw.ElapsedMilliseconds,
+                        Input = testCase.Input,
+                        ExpectedOutput = testCase.ExpectedOutput,
+                        ActualOutput = null,
+                        IsHidden = false
+                    });
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Aggregates individual test results into final result.
+        /// </summary>
+        private SubmissionResult AggregateResults(List<TestCaseResult> testResults)
+        {
+            int passedTestCases = testResults.Count(r => r.Pass);
+
+            return new SubmissionResult
+            {
+                TestCaseCount = testResults.Count,
+                PassedTestCases = passedTestCases,
+                FailedTestCases = testResults.Count - passedTestCases,
+                Pass = passedTestCases == testResults.Count,
+                TestCaseResults = testResults
+            };
+        }
+    }
+
+    /// <summary>
+    /// Base implementation of IProblemDriver with common functionality.
+    /// </summary>
+    public abstract class BaseProblemDriver : IProblemDriver
+    {
+        public abstract List<TestCase> ParseTestCases(object input, object expectedOutput);
+        public abstract object? ExecuteTestCase(TestCase testCase, int index);
+
+        public virtual bool CompareResults(object? actual, object expected)
+        {
+            return object.Equals(actual, expected);
+        }
+
+        public virtual string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+    }
+}
