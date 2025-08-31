@@ -291,7 +291,9 @@ export const CreateEditProblem = ({ mode }: CreateEditProblemProps) => {
         <Button
           isIconOnly
           variant="light"
-          onPress={() => navigate('/')}
+          onPress={() => {
+            mode === 'create' ? navigate('/') : navigate(`/problems/${problemId}`);
+          }}
           startContent={<ArrowLeftIcon className="w-5 h-5" />}
         />
         <h2 className="text-3xl font-bold text-white">{mode === 'create' ? 'Create New Problem' : 'Edit Problem'}</h2>
