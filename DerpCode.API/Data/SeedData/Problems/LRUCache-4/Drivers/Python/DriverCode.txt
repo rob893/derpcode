@@ -1,127 +1,75 @@
 import json
 import sys
-import time
-from collections import OrderedDict
+from typing import List, Dict, Any
+from base_driver import BaseDriver, BaseProblemDriver
 from solution import LRUCache
 
-def main():
-    if len(sys.argv) < 4:
-        print("Usage: python index.py <inputFilePath> <expectedOutputFilePath> <resultFilePath>", file=sys.stderr)
-        sys.exit(1)
 
-    input_path, expected_path, result_path = sys.argv[1:4]
+class LRUCacheDriver(BaseProblemDriver):
+    """Problem-specific driver for LRUCache problem."""
 
-    result = {
-        'pass': False,
-        'testCaseCount': 0,
-        'passedTestCases': 0,
-        'failedTestCases': 0,
-        'errorMessage': '',
-        'executionTimeInMs': 0,
-        'testCaseResults': []
-    }
+    def __init__(self):
+        super().__init__()
+        self.cache = None
 
-    try:
-        with open(input_path, 'r') as f:
-            input_data = f.read()
-        with open(expected_path, 'r') as f:
-            expected_output = f.read()
+    def parse_test_cases(self, input_data: Any, expected_output: Any) -> List[Dict[str, Any]]:
+        """Parse input as operations and parameters arrays."""
+        input_array = json.loads(input_data) if isinstance(input_data, str) else input_data
+        expected_array = json.loads(expected_output) if isinstance(expected_output, str) else expected_output
+        
+        operations = input_array[0]
+        parameters = input_array[1]
+        
+        test_cases = []
+        
+        for i in range(len(operations)):
+            test_cases.append({
+                'input': {
+                    'operation': operations[i],
+                    'parameters': parameters[i] if i < len(parameters) else None
+                },
+                'expectedOutput': expected_array[i] if i < len(expected_array) else None
+            })
+        
+        return test_cases
 
-        start_time = time.time()
-
-        test_results = run_tests(input_data, expected_output)
-
-        result['pass'] = test_results['pass']
-        result['testCaseCount'] = test_results['testCaseCount']
-        result['passedTestCases'] = test_results['passedTestCases']
-        result['failedTestCases'] = test_results['failedTestCases']
-        result['testCaseResults'] = test_results['testCaseResults']
-        result['executionTimeInMs'] = int((time.time() - start_time) * 1000)
-
-    except Exception as err:
-        print(f"Error reading files: {err}", file=sys.stderr)
-        result['errorMessage'] = str(err)
-
-    with open(result_path, 'w') as f:
-        json.dump(result, f, indent=2)
-
-def run_tests(input_json_str, expected_output_json_str):
-    input_data = json.loads(input_json_str)
-    expected_output = json.loads(expected_output_json_str)
-    
-    operations = input_data[0]
-    parameters = input_data[1]
-    
-    test_case_count = len(operations)
-    passed_test_cases = 0
-    failed_test_cases = 0
-    test_case_results = []
-    actual_results = []
-
-    cache = None
-
-    for i in range(test_case_count):
-        operation = operations[i]
-        print(f"|derpcode-start-test-{i}|")
-        start_time = time.time()
+    def execute_test_case(self, test_case: Dict[str, Any], index: int) -> Any:
+        """Execute the LRUCache operation with the test case inputs."""
+        operation = test_case['input']['operation']
+        parameters = test_case['input']['parameters']
+        
         result = None
+        
+        if operation == 'LRUCache':
+            capacity = parameters
+            self.cache = LRUCache(capacity)
+            result = None
+        elif operation == 'get':
+            key = parameters[0]
+            result = self.cache.get(key)
+        elif operation == 'put':
+            key = parameters[0]
+            value = parameters[1]
+            self.cache.put(key, value)
+            result = None
+        
+        return result
 
-        try:
-            if operation == 'LRUCache':
-                capacity = parameters[i]
-                cache = LRUCache(capacity)
-                result = None
-            elif operation == 'get':
-                key = parameters[i][0]
-                result = cache.get(key)
-            elif operation == 'put':
-                key = parameters[i][0]
-                value = parameters[i][1]
-                cache.put(key, value)
-                result = None
+    def compare_results(self, actual: Any, expected: Any) -> bool:
+        """Compare results, handling None values correctly."""
+        return (actual is None and expected is None) or (actual is not None and expected is not None and actual == expected)
 
-            actual_results.append(result)
-            print(f"|derpcode-end-test-{i}|")
-            
-            expected = expected_output[i] if i < len(expected_output) else None
-            passed = (result is None and expected is None) or (result is not None and expected is not None and result == expected)
+    def format_error_message(self, actual: Any, expected: Any) -> str:
+        """Format error message for failed tests."""
+        return f"Expected {expected} but got {actual}"
 
-            test_case_results.append({
-                'testCaseIndex': i,
-                'pass': passed,
-                'errorMessage': None if passed else f"Expected {expected} but got {result}",
-                'executionTimeInMs': int((time.time() - start_time) * 1000),
-                'input': {'operation': operation, 'parameters': parameters[i] if i < len(parameters) else None},
-                'expectedOutput': expected,
-                'actualOutput': result,
-                'isHidden': False
-            })
 
-            if passed:
-                passed_test_cases += 1
-            else:
-                failed_test_cases += 1
-        except Exception as err:
-            test_case_results.append({
-                'testCaseIndex': i,
-                'pass': False,
-                'errorMessage': str(err),
-                'executionTimeInMs': int((time.time() - start_time) * 1000),
-                'input': {'operation': operation, 'parameters': parameters[i] if i < len(parameters) else None},
-                'expectedOutput': expected_output[i] if i < len(expected_output) else None,
-                'actualOutput': None,
-                'isHidden': False
-            })
-            
-            failed_test_cases += 1
+def main():
+    """Main entry point for the driver."""
+    # Create and run the driver
+    driver = BaseDriver(LRUCacheDriver())
+    driver.run()
 
-    return {
-        'testCaseCount': test_case_count,
-        'passedTestCases': passed_test_cases,
-        'failedTestCases': failed_test_cases,
-        'pass': passed_test_cases == test_case_count,
-        'testCaseResults': test_case_results
-    }
 
 if __name__ == "__main__":
     main()
