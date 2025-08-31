@@ -72,97 +72,58 @@ public static class DriverTemplateData
             Id = 2,
             Language = LanguageType.JavaScript,
             Template = """
-                import fs from 'fs';
-                import path from 'path';
+                import { BaseDriver, IProblemDriver } from './base-driver.js';
+                import { add } from './solution.js'; // update import to match your solution function
 
-                function main() {
-                    const args = process.argv.slice(2);
-
-                    if (args.length < 3) {
-                        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
-                        process.exit(1);
-                    }
-
-                    const [inputPath, expectedPath, resultPath] = args;
-
-                    const result = {
-                        pass: false,
-                        testCaseCount: 0,
-                        passedTestCases: 0,
-                        failedTestCases: 0,
-                        errorMessage: '',
-                        executionTimeInMs: 0,
-                        testCaseResults: []
-                    };
-
-                    try {
-                        const input = fs.readFileSync(inputPath, 'utf8');
-                        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
-
-                        const start = Date.now();
-
-                        const testResults = runTests(input, expectedOutput);
-
-                        result.pass = testResults.pass;
-                        result.testCaseCount = testResults.testCaseCount;
-                        result.passedTestCases = testResults.passedTestCases;
-                        result.failedTestCases = testResults.failedTestCases;
-                        result.testCaseResults = testResults.testCaseResults;
-                        result.executionTimeInMs = Date.now() - start;
-
-                    } catch (err) {
-                        console.error('Error reading files:' + err.message);
-                        result.errorMessage = err.message;
-                    }
-
-                    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
-                }
-
-                function runTests(inputJsonStr, expectedOutputJsonStr) {
-                    // Example logic: parse and compare
-                    const input = JSON.parse(inputJsonStr);
-                    const expected = JSON.parse(expectedOutputJsonStr);
-
-                    // TODO: Implement your test logic here and populate testCaseResults
-                    // Each test case should create an object with detailed information
-                    const testCaseResults = [];
-
-                    // Example for measuring execution time:
-                    /*
-                    for (let i = 0; i < input.length; i++) {
-                        console.log(`|derpcode-start-test-${i}|`);
-                        const testCaseStart = Date.now();
-                        const result = yourTestFunction(input[i]);
-                        const testCaseEnd = Date.now();
-                        console.log(`|derpcode-end-test-${i}|`);
+                /**
+                 * Problem-specific driver for NewProblem.
+                 */
+                class NewProblemDriver extends IProblemDriver {
+                    /**
+                     * Parse input and expected output into test cases.
+                     * TODO: Implement parsing logic for your specific problem.
+                     */
+                    parseTestCases(input, expectedOutput) {
+                        const testCases = [];
                         
-                        testCaseResults.push({
-                            testCaseIndex: i,
-                            pass: result === expected[i],
-                            errorMessage: passed ? null : `Expected ${expected[i]} but got ${result}`,
-                            executionTimeInMs: testCaseEnd - testCaseStart,
-                            input: input[i],
-                            expectedOutput: expected[i],
-                            actualOutput: result,
-                            isHidden: false
-                        });
+                        for (let i = 0; i < input.length; i++) {
+                            testCases.push({
+                                input: input[i],
+                                expectedOutput: expectedOutput[i]
+                            });
+                        }
+                        
+                        return testCases;
                     }
-                    */
 
-                    // Implement your test logic here
-                    throw new Error('Implement your test logic here and populate testCaseResults.');
+                    /**
+                     * Execute the solution function with the test case input.
+                     * TODO: Update to call your specific solution function.
+                     */
+                    executeTestCase(testCase) {
+                        // Example: return add(testCase.input.a, testCase.input.b);
+                        throw new Error('Implement executeTestCase method');
+                    }
 
-                    // return example:
-                    return {
-                        pass: true,
-                        testCaseCount: 1,
-                        passedTestCases: 1,
-                        failedTestCases: 0,
-                        testCaseResults
-                    };
+                    /**
+                     * Compare actual and expected results.
+                     * TODO: Implement comparison logic for your specific problem.
+                     */
+                    compareResults(actual, expected) {
+                        return actual === expected; // Update comparison logic as needed
+                    }
+
+                    /**
+                     * Format error message for failed tests.
+                     */
+                    formatErrorMessage(actual, expected) {
+                        return `Expected ${expected} but got ${actual}`;
+                    }
                 }
 
-                main();
+                // Create and run the driver
+                const driver = new BaseDriver(new NewProblemDriver());
+                driver.run();
                 """,
             UITemplate = """
                 export function add(a, b) { // update the function signature to match your requirements
@@ -445,117 +406,37 @@ public static class DriverTemplateData
             Id = 5,
             Language = LanguageType.Python,
             Template = """
-            import json
-            import sys
-            import time
-            from typing import Any, Dict, List, Optional
+            from base_driver import BaseDriver, IProblemDriver
+            from solution import Solution
 
-            class TestCaseResult:
-                def __init__(self, test_case_index: int, pass_test: bool, error_message: Optional[str], 
-                            execution_time_in_ms: int, input_data: Any, expected_output: Any, 
-                            actual_output: Any, is_hidden: bool):
-                    self.test_case_index = test_case_index
-                    self.pass_test = pass_test
-                    self.error_message = error_message
-                    self.execution_time_in_ms = execution_time_in_ms
-                    self.input = input_data
-                    self.expected_output = expected_output
-                    self.actual_output = actual_output
-                    self.is_hidden = is_hidden
-
-                def to_dict(self) -> Dict[str, Any]:
-                    return {
-                        "testCaseIndex": self.test_case_index,
-                        "pass": self.pass_test,
-                        "errorMessage": self.error_message,
-                        "executionTimeInMs": self.execution_time_in_ms,
-                        "input": self.input,
-                        "expectedOutput": self.expected_output,
-                        "actualOutput": self.actual_output,
-                        "isHidden": self.is_hidden
-                    }
-
-            class SubmissionResult:
-                def __init__(self):
-                    self.pass_test = False
-                    self.test_case_count = 0
-                    self.passed_test_cases = 0
-                    self.failed_test_cases = 0
-                    self.error_message = ""
-                    self.execution_time_in_ms = 0
-                    self.test_case_results: List[TestCaseResult] = []
-
-                def to_dict(self) -> Dict[str, Any]:
-                    return {
-                        "pass": self.pass_test,
-                        "testCaseCount": self.test_case_count,
-                        "passedTestCases": self.passed_test_cases,
-                        "failedTestCases": self.failed_test_cases,
-                        "errorMessage": self.error_message,
-                        "executionTimeInMs": self.execution_time_in_ms,
-                        "testCaseResults": [tcr.to_dict() for tcr in self.test_case_results]
-                    }
-
-            def main():
-                if len(sys.argv) < 4:
-                    print("Usage: python main.py <inputFilePath> <expectedOutputFilePath> <resultFilePath>", file=sys.stderr)
-                    sys.exit(1)
-
-                input_path = sys.argv[1]
-                expected_path = sys.argv[2]
-                result_path = sys.argv[3]
-
-                result = SubmissionResult()
-
-                try:
-                    with open(input_path, 'r') as f:
-                        input_data = f.read()
-                    with open(expected_path, 'r') as f:
-                        expected_output = f.read()
-
-                    start_time = time.time()
+            class NewProblemDriver(IProblemDriver):
+                \"\"\"Problem-specific driver for NewProblem.\"\"\"
+                
+                def parse_test_cases(self, input_data, expected_output):
+                    test_cases = []
                     
-                    test_results = run_tests(input_data, expected_output)
+                    # TODO: Implement parsing logic for your specific problem
+                    for i in range(len(input_data)):
+                        # Example: test_cases.append({'input': input_data[i], 'expectedOutput': expected_output[i]})
+                        raise NotImplementedError("Implement parse_test_cases method")
                     
-                    result.pass_test = test_results["pass"]
-                    result.test_case_count = test_results["testCaseCount"]
-                    result.passed_test_cases = test_results["passedTestCases"]
-                    result.failed_test_cases = test_results["failedTestCases"]
-                    result.test_case_results = test_results["testCaseResults"]
-                    result.execution_time_in_ms = int((time.time() - start_time) * 1000)
-
-                except Exception as e:
-                    print(f"Error reading files: {e}", file=sys.stderr)
-                    result.error_message = str(e)
-
-                with open(result_path, 'w') as f:
-                    json.dump(result.to_dict(), f, indent=2)
-
-            def run_tests(input_json_str: str, expected_output_json_str: str) -> Dict[str, Any]:
-                # Example logic: parse and compare
-                input_data = json.loads(input_json_str)
-                expected = json.loads(expected_output_json_str)
-
-                # TODO: Implement your test logic here and populate test_case_results
-                # Each test case should create a TestCaseResult with detailed information
-                test_case_results = []
-
-                print(f"|derpcode-start-test-{i}|")
-                # Implement your test logic here
-                raise NotImplementedError("Implement your test logic here and populate test_case_results.")
-                print(f"|derpcode-end-test-{i}|")
-
-                # return example:
-                return {
-                    "pass": True,
-                    "testCaseCount": 1,
-                    "passedTestCases": 1,
-                    "failedTestCases": 0,
-                    "testCaseResults": test_case_results
-                }
+                    return test_cases
+                
+                def execute_test_case(self, test_case, index):
+                    # TODO: Execute your solution function with the test case input
+                    # Example: return Solution.add(test_case['input']['a'], test_case['input']['b'])
+                    raise NotImplementedError("Implement execute_test_case method")
+                
+                def compare_results(self, actual, expected):
+                    return actual == expected  # Update comparison logic as needed
+                
+                def format_error_message(self, actual, expected):
+                    return f"Expected {expected} but got {actual}"
 
             if __name__ == "__main__":
-                main()
+                # Create and run the driver
+                driver = BaseDriver(NewProblemDriver())
+                driver.run()
             """,
             UITemplate = """
             def add(a, b):  # update the function signature to match your requirements
@@ -568,137 +449,46 @@ public static class DriverTemplateData
             Id = 6,
             Language = LanguageType.Java,
             Template = """
-            import com.fasterxml.jackson.annotation.JsonProperty;
-            import com.fasterxml.jackson.databind.ObjectMapper;
-            import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-            import java.io.IOException;
-            import java.nio.file.Files;
-            import java.nio.file.Paths;
-            import java.util.ArrayList;
-            import java.util.List;
+            import java.util.*;
+            import com.google.gson.JsonArray;
+            import com.google.gson.JsonElement;
+            import com.google.gson.JsonParser;
 
-            public class Main {
-                
-                public static class SubmissionResult {
-                    @JsonProperty("pass")
-                    public boolean pass = false;
+            /**
+             * Problem-specific driver for NewProblem.
+             */
+            class NewProblemDriver extends ProblemDriverBase {
+                @Override
+                public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+                    List<TestCase> testCases = new ArrayList<>();
                     
-                    @JsonProperty("testCaseCount")
-                    public int testCaseCount = 0;
-                    
-                    @JsonProperty("passedTestCases")
-                    public int passedTestCases = 0;
-                    
-                    @JsonProperty("failedTestCases")
-                    public int failedTestCases = 0;
-                    
-                    @JsonProperty("errorMessage")
-                    public String errorMessage = "";
-                    
-                    @JsonProperty("executionTimeInMs")
-                    public long executionTimeInMs = 0;
-                    
-                    @JsonProperty("testCaseResults")
-                    public List<TestCaseResult> testCaseResults = new ArrayList<>();
-                }
-
-                public static class TestCaseResult {
-                    @JsonProperty("testCaseIndex")
-                    public int testCaseIndex;
-                    
-                    @JsonProperty("pass")
-                    public boolean pass;
-                    
-                    @JsonProperty("errorMessage")
-                    public String errorMessage;
-                    
-                    @JsonProperty("executionTimeInMs")
-                    public long executionTimeInMs;
-                    
-                    @JsonProperty("input")
-                    public Object input;
-                    
-                    @JsonProperty("expectedOutput")
-                    public Object expectedOutput;
-                    
-                    @JsonProperty("actualOutput")
-                    public Object actualOutput;
-                    
-                    @JsonProperty("isHidden")
-                    public boolean isHidden;
-
-                    public TestCaseResult(int testCaseIndex, boolean pass, String errorMessage, 
-                                        long executionTimeInMs, Object input, Object expectedOutput, 
-                                        Object actualOutput, boolean isHidden) {
-                        this.testCaseIndex = testCaseIndex;
-                        this.pass = pass;
-                        this.errorMessage = errorMessage;
-                        this.executionTimeInMs = executionTimeInMs;
-                        this.input = input;
-                        this.expectedOutput = expectedOutput;
-                        this.actualOutput = actualOutput;
-                        this.isHidden = isHidden;
+                    // TODO: Implement parsing logic for your specific problem
+                    for (int i = 0; i < input.size(); i++) {
+                        // Example: testCases.add(new TestCase(input.get(i), expectedOutput.get(i)));
+                        throw new UnsupportedOperationException("Implement parseTestCases method");
                     }
+                    
+                    return testCases;
                 }
 
+                @Override
+                public Object executeTestCase(TestCase testCase, int index) throws Exception {
+                    // TODO: Execute your solution function with the test case input
+                    // Example: return Solution.add((Integer) testCase.getInput(), ...);
+                    throw new UnsupportedOperationException("Implement executeTestCase method");
+                }
+
+                @Override
+                public boolean compareResults(Object actual, Object expected) {
+                    return Objects.equals(actual, expected); // Update comparison logic as needed
+                }
+            }
+
+            class Program {
                 public static void main(String[] args) {
-                    if (args.length < 3) {
-                        System.err.println("Usage: java Main <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-                        System.exit(1);
-                    }
-
-                    String inputPath = args[0];
-                    String expectedPath = args[1];
-                    String resultPath = args[2];
-
-                    SubmissionResult result = new SubmissionResult();
-                    ObjectMapper mapper = new ObjectMapper();
-                    mapper.setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
-
-                    try {
-                        String input = new String(Files.readAllBytes(Paths.get(inputPath)));
-                        String expectedOutput = new String(Files.readAllBytes(Paths.get(expectedPath)));
-
-                        long startTime = System.currentTimeMillis();
-
-                        SubmissionResult testResults = runTests(input, expectedOutput);
-
-                        result.pass = testResults.pass;
-                        result.testCaseCount = testResults.testCaseCount;
-                        result.passedTestCases = testResults.passedTestCases;
-                        result.failedTestCases = testResults.failedTestCases;
-                        result.testCaseResults = testResults.testCaseResults;
-                        result.executionTimeInMs = System.currentTimeMillis() - startTime;
-
-                    } catch (Exception e) {
-                        System.err.println("Error reading files: " + e.getMessage());
-                        result.errorMessage = e.getMessage();
-                    }
-
-                    try {
-                        String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
-                        Files.write(Paths.get(resultPath), json.getBytes());
-                    } catch (IOException e) {
-                        System.err.println("Error writing result file: " + e.getMessage());
-                        System.exit(1);
-                    }
-                }
-
-                private static SubmissionResult runTests(String inputJsonStr, String expectedOutputJsonStr) throws Exception {
-                    ObjectMapper mapper = new ObjectMapper();
-                    
-                    // Example logic: parse and compare
-                    Object input = mapper.readValue(inputJsonStr, Object.class);
-                    Object expected = mapper.readValue(expectedOutputJsonStr, Object.class);
-
-                    // TODO: Implement your test logic here and populate testCaseResults
-                    // Each test case should create a TestCaseResult with detailed information
-                    List<TestCaseResult> testCaseResults = new ArrayList<>();
-
-                    System.out.println("|derpcode-start-test-" + i + "|");
-                    System.out.println("|derpcode-end-test-" + i + "|");
-                    // Implement your test logic here
-                    throw new UnsupportedOperationException("Implement your test logic here and populate testCaseResults.");
+                    // Create and run the driver
+                    BaseDriver driver = new BaseDriver(new NewProblemDriver());
+                    driver.run(args);
                 }
             }
             """,

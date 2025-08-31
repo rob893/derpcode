@@ -1,11 +1,14 @@
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
-public abstract class ProblemDriverBase {
-    public abstract List<TestCase> parseTestCases(JsonNode input, JsonNode expectedOutput);
+abstract class ProblemDriverBase {
+    public abstract List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput);
     public abstract Object executeTestCase(TestCase testCase, int index) throws Exception;
     public abstract boolean compareResults(Object actual, Object expected);
 }
@@ -95,11 +98,11 @@ class SubmissionResult {
 
 public class BaseDriver {
     private ProblemDriverBase problemDriver;
-    private ObjectMapper objectMapper;
+    private Gson gson;
     
     public BaseDriver(ProblemDriverBase problemDriver) {
         this.problemDriver = problemDriver;
-        this.objectMapper = new ObjectMapper();
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
     
     public void run(String[] args) {
@@ -133,7 +136,7 @@ public class BaseDriver {
         }
         
         try {
-            String jsonResult = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+            String jsonResult = gson.toJson(result);
             Files.write(Paths.get(resultPath), jsonResult.getBytes());
         } catch (Exception err) {
             System.err.println("Error writing result file: " + err.getMessage());
@@ -141,8 +144,8 @@ public class BaseDriver {
     }
     
     private SubmissionResult runTests(String inputJsonStr, String expectedOutputJsonStr) throws Exception {
-        JsonNode input = objectMapper.readTree(inputJsonStr);
-        JsonNode expectedOutput = objectMapper.readTree(expectedOutputJsonStr);
+        JsonArray input = JsonParser.parseString(inputJsonStr).getAsJsonArray();
+        JsonArray expectedOutput = JsonParser.parseString(expectedOutputJsonStr).getAsJsonArray();
         
         List<TestCase> testCases = problemDriver.parseTestCases(input, expectedOutput);
         List<TestResult> results = executeTestCases(testCases);

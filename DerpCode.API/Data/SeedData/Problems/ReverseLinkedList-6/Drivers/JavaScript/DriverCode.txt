@@ -1,175 +1,106 @@
-import fs from 'fs';
-import path from 'path';
+import { BaseDriver, IProblemDriver } from './base-driver.js';
 import pkg from './solution.js';
 const { reverseList, ListNode } = pkg;
 
-function main() {
-    const args = process.argv.slice(2);
-
-    if (args.length < 3) {
-        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
-        process.exit(1);
+/**
+ * Problem-specific driver for ReverseLinkedList problem.
+ */
+class ReverseLinkedListDriver extends IProblemDriver {
+    /**
+     * Parse input as linked list arrays and expected output as linked list arrays.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : []
+            });
+        }
+        
+        return testCases;
     }
 
-    const [inputPath, expectedPath, resultPath] = args;
-
-    const result = {
-        pass: false,
-        testCaseCount: 0,
-        passedTestCases: 0,
-        failedTestCases: 0,
-        errorMessage: '',
-        executionTimeInMs: 0,
-        testCaseResults: []
-    };
-
-    try {
-        const input = fs.readFileSync(inputPath, 'utf8');
-        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
-
-        const start = Date.now();
-
-        const testResults = runTests(input, expectedOutput);
-
-        result.pass = testResults.pass;
-        result.testCaseCount = testResults.testCaseCount;
-        result.passedTestCases = testResults.passedTestCases;
-        result.failedTestCases = testResults.failedTestCases;
-        result.testCaseResults = testResults.testCaseResults;
-        result.executionTimeInMs = Date.now() - start;
-
-    } catch (err) {
-        console.error('Error reading files:' + err.message);
-        result.errorMessage = err.message;
+    /**
+     * Execute the reverseList function with the test case input.
+     */
+    executeTestCase(testCase) {
+        // Build linked list from array
+        const inputList = this.buildListFromArray(testCase.input);
+        
+        // Run the solution
+        const result = reverseList(inputList);
+        
+        // Convert result back to array for comparison
+        return this.listToArray(result);
     }
 
-    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
-}
+    /**
+     * Compare linked list arrays.
+     */
+    compareResults(actual, expected) {
+        return this.arraysEqual(actual, expected);
+    }
 
-function runTests(inputJsonStr, expectedOutputJsonStr) {
-    const input = JSON.parse(inputJsonStr);
-    const expectedOutput = JSON.parse(expectedOutputJsonStr);
-    
-    const testCaseCount = input.length;
-    let passedTestCases = 0;
-    let failedTestCases = 0;
-    const testCaseResults = [];
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected ${JSON.stringify(expected)} but got ${JSON.stringify(actual)}`;
+    }
 
-    for (let i = 0; i < testCaseCount; i++) {
-        console.log(`|derpcode-start-test-${i}|`);
-        const start = Date.now();
+    buildListFromArray(arr) {
+        if (!arr || arr.length === 0) {
+            return null;
+        }
+        
+        let head = null;
+        let current = null;
 
-        const testCaseResult = {
-            testCaseIndex: i,
-            pass: false,
-            errorMessage: '',
-            executionTimeInMs: 0,
-            input: input[i],
-            expectedOutput: expectedOutput[i],
-            actualOutput: null,
-            isHidden: false
-        };
-
-        try {
-            // Convert input array to linked list
-            const head = arrayToLinkedList(input[i]);
-            
-            // Run the solution
-            const reversedHead = reverseList(head);
-            
-            // Convert result back to array
-            const actualOutput = linkedListToArray(reversedHead);
-
-            testCaseResult.actualOutput = actualOutput;
-            testCaseResult.executionTimeInMs = Date.now() - start;
-
-            // Compare results
-            const testPassed = arraysEqual(actualOutput, expectedOutput[i]);
-            testCaseResult.pass = testPassed;
-
-            if (testPassed) {
-                passedTestCases++;
-            } else {
-                failedTestCases++;
-                testCaseResult.errorMessage = `Expected: ${JSON.stringify(expectedOutput[i])}, but got: ${JSON.stringify(actualOutput)}`;
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] !== null) {
+                const node = new ListNode(arr[i]);
+                if (head === null) {
+                    head = node;
+                    current = node;
+                } else {
+                    current.next = node;
+                    current = node;
+                }
             }
-
-        } catch (err) {
-            failedTestCases++;
-            testCaseResult.pass = false;
-            testCaseResult.errorMessage = `Runtime error: ${err.message}`;
-            testCaseResult.executionTimeInMs = Date.now() - start;
         }
 
-        console.log(`|derpcode-end-test-${i}|`);
-        testCaseResults.push(testCaseResult);
+        return head;
     }
 
-    return {
-        pass: failedTestCases === 0,
-        testCaseCount,
-        passedTestCases,
-        failedTestCases,
-        testCaseResults
-    };
-}
+    listToArray(head) {
+        const result = [];
+        let current = head;
 
-/**
- * Converts an array to a linked list
- * @param {number[]} arr
- * @return {ListNode|null}
- */
-function arrayToLinkedList(arr) {
-    if (!arr || arr.length === 0) {
-        return null;
-    }
-    
-    const head = new ListNode(arr[0]);
-    let current = head;
-    
-    for (let i = 1; i < arr.length; i++) {
-        current.next = new ListNode(arr[i]);
-        current = current.next;
-    }
-    
-    return head;
-}
+        while (current !== null) {
+            result.push(current.val);
+            current = current.next;
+        }
 
-/**
- * Converts a linked list to an array
- * @param {ListNode|null} head
- * @return {number[]}
- */
-function linkedListToArray(head) {
-    const result = [];
-    let current = head;
-    
-    while (current !== null) {
-        result.push(current.val);
-        current = current.next;
+        return result;
     }
-    
-    return result;
-}
 
-/**
- * Compare two arrays for equality
- * @param {number[]} arr1
- * @param {number[]} arr2
- * @return {boolean}
- */
-function arraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-    
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
+    arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) {
             return false;
         }
+
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
-    
-    return true;
 }
 
-main();
+// Create and run the driver
+const driver = new BaseDriver(new ReverseLinkedListDriver());
+driver.run();

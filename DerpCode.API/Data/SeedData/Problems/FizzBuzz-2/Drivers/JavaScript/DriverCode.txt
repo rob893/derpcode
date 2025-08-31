@@ -1,95 +1,48 @@
-import fs from 'fs';
-import path from 'path';
-import { fizzBuzz } from './solution.js'
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { fizzBuzz } from './solution.js';
 
-function main() {
-    const args = process.argv.slice(2);
-
-    if (args.length < 3) {
-        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
-        process.exit(1);
-    }
-
-    const [inputPath, expectedPath, resultPath] = args;
-
-    const result = {
-        pass: false,
-        testCaseCount: 0,
-        passedTestCases: 0,
-        failedTestCases: 0,
-        errorMessage: '',
-        executionTimeInMs: 0,
-        testCaseResults: []
-    };
-
-    try {
-        const input = fs.readFileSync(inputPath, 'utf8');
-        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
-
-        const start = Date.now();
-
-        const testResults = runTests(input, expectedOutput);
-
-        result.pass = testResults.pass;
-        result.testCaseCount = testResults.testCaseCount;
-        result.passedTestCases = testResults.passedTestCases;
-        result.failedTestCases = testResults.failedTestCases;
-        result.testCaseResults = testResults.testCaseResults;
-        result.executionTimeInMs = Date.now() - start;
-
-    } catch (err) {
-        console.error('Error reading files:' + err.message);
-        result.errorMessage = err.message;
-    }
-
-    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
-}
-
-function runTests(inputJsonStr, expectedOutputJsonStr) {
-    const input = JSON.parse(inputJsonStr);         // array of integers
-    const expectedOutput = JSON.parse(expectedOutputJsonStr); // array of strings
-    const testCaseCount = input.length;
-    let passedTestCases = 0;
-    let failedTestCases = 0;
-    const testCaseResults = [];
-
-    for (let i = 0; i < input.length; i++) {
-        const number = input[i];
+/**
+ * Problem-specific driver for FizzBuzz problem.
+ */
+class FizzBuzzDriver extends IProblemDriver {
+    /**
+     * Parse input as array of integers and expected output as array of strings.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
         
-        console.log(`|derpcode-start-test-${i}|`);
-        const testCaseStart = Date.now();
-        const result = fizzBuzz(number);           // your test function
-        const testCaseEnd = Date.now();
-        console.log(`|derpcode-end-test-${i}|`);
-        
-        const expected = expectedOutput[i];
-        const passed = result === expected;
-
-        testCaseResults.push({
-            testCaseIndex: i,
-            pass: passed,
-            errorMessage: passed ? null : `Expected '${expected}' but got '${result}'`,
-            executionTimeInMs: testCaseEnd - testCaseStart,
-            input: number,
-            expectedOutput: expected,
-            actualOutput: result,
-            isHidden: false
-        });
-
-        if (passed) {
-            passedTestCases++;
-        } else {
-            failedTestCases++;
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
         }
+        
+        return testCases;
     }
 
-    return {
-        testCaseCount,
-        passedTestCases,
-        failedTestCases,
-        pass: passedTestCases === testCaseCount,
-        testCaseResults
-    };
+    /**
+     * Execute the fizzBuzz function with the test case input.
+     */
+    executeTestCase(testCase) {
+        return fizzBuzz(testCase.input);
+    }
+
+    /**
+     * Compare results using string equality.
+     */
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected '${expected}' but got '${actual}'`;
+    }
 }
 
-main();
+// Create and run the driver
+const driver = new BaseDriver(new FizzBuzzDriver());
+driver.run();

@@ -1,275 +1,84 @@
-import java.io.*;
-import java.nio.file.*;
 import java.util.*;
-import com.google.gson.*;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
-public class Program {
-    private static class SubmissionResult {
-        private boolean pass;
-        @SerializedName("testCaseCount")
-        private int testCaseCount;
-        @SerializedName("passedTestCases")
-        private int passedTestCases;
-        @SerializedName("failedTestCases")
-        private int failedTestCases;
-        @SerializedName("errorMessage")
-        private String errorMessage = "";
-        @SerializedName("executionTimeInMs")
-        private long executionTimeInMs;
-        @SerializedName("testCaseResults")
-        private List<TestCaseResult> testCaseResults = new ArrayList<>();
-
-        // Getters and setters
-        public boolean isPass() { return pass; }
-        public void setPass(boolean pass) { this.pass = pass; }
-        public int getTestCaseCount() { return testCaseCount; }
-        public void setTestCaseCount(int testCaseCount) { this.testCaseCount = testCaseCount; }
-        public int getPassedTestCases() { return passedTestCases; }
-        public void setPassedTestCases(int passedTestCases) { this.passedTestCases = passedTestCases; }
-        public int getFailedTestCases() { return failedTestCases; }
-        public void setFailedTestCases(int failedTestCases) { this.failedTestCases = failedTestCases; }
-        public String getErrorMessage() { return errorMessage; }
-        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-        public long getExecutionTimeInMs() { return executionTimeInMs; }
-        public void setExecutionTimeInMs(long executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
-        public List<TestCaseResult> getTestCaseResults() { return testCaseResults; }
-        public void setTestCaseResults(List<TestCaseResult> testCaseResults) { this.testCaseResults = testCaseResults; }
-    }
-
-    private static class TestCaseResult {
-        @SerializedName("testCaseIndex")
-        private int testCaseIndex;
-        private boolean pass;
-        @SerializedName("errorMessage")
-        private String errorMessage;
-        @SerializedName("executionTimeInMs")
-        private int executionTimeInMs;
-        private Object input;
-        @SerializedName("expectedOutput")
-        private Object expectedOutput;
-        @SerializedName("actualOutput")
-        private Object actualOutput;
-        @SerializedName("isHidden")
-        private boolean isHidden;
-
-        // Getters and setters
-        public int getTestCaseIndex() { return testCaseIndex; }
-        public void setTestCaseIndex(int testCaseIndex) { this.testCaseIndex = testCaseIndex; }
-        public boolean isPass() { return pass; }
-        public void setPass(boolean pass) { this.pass = pass; }
-        public String getErrorMessage() { return errorMessage; }
-        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-        public int getExecutionTimeInMs() { return executionTimeInMs; }
-        public void setExecutionTimeInMs(int executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
-        public Object getInput() { return input; }
-        public void setInput(Object input) { this.input = input; }
-        public Object getExpectedOutput() { return expectedOutput; }
-        public void setExpectedOutput(Object expectedOutput) { this.expectedOutput = expectedOutput; }
-        public Object getActualOutput() { return actualOutput; }
-        public void setActualOutput(Object actualOutput) { this.actualOutput = actualOutput; }
-        public boolean isHidden() { return isHidden; }
-        public void setHidden(boolean hidden) { isHidden = hidden; }
-    }
-
-    public static void main(String[] args) {
-        if (args.length < 3) {
-            System.err.println("Usage: java Program <inputFilePath> <expectedOutputFilePath> <resultFilePath>");
-            System.exit(1);
-        }
-
-        String inputPath = args[0];
-        String expectedPath = args[1];
-        String resultPath = args[2];
-
-        try {
-            String input = new String(Files.readAllBytes(Paths.get(inputPath)));
-            String expectedOutput = new String(Files.readAllBytes(Paths.get(expectedPath)));
-            
-            long start = System.currentTimeMillis();
-            
-            SubmissionResult result = runTests(input, expectedOutput);
-            
-            result.setExecutionTimeInMs(System.currentTimeMillis() - start);
-
-            Gson gson = new Gson();
-            String json = gson.toJson(result);
-
-            Files.write(Paths.get(resultPath), json.getBytes());
-        } catch (Exception ex) {
-            SubmissionResult errorResult = new SubmissionResult();
-            errorResult.setPass(false);
-            errorResult.setTestCaseCount(0);
-            errorResult.setPassedTestCases(0);
-            errorResult.setFailedTestCases(0);
-            errorResult.setErrorMessage(ex.getMessage());
-            errorResult.setExecutionTimeInMs(0);
-            errorResult.setTestCaseResults(new ArrayList<>());
-
-            try {
-                Gson gson = new Gson();
-                String json = gson.toJson(errorResult);
-                Files.write(Paths.get(args[2]), json.getBytes());
-            } catch (Exception writeEx) {
-                writeEx.printStackTrace();
-            }
-        }
-    }
-
-    private static SubmissionResult runTests(String inputJsonStr, String expectedOutputJsonStr) {
-        Gson gson = new Gson();
-        JsonElement inputElement = gson.fromJson(inputJsonStr, JsonElement.class);
-        JsonElement expectedElement = gson.fromJson(expectedOutputJsonStr, JsonElement.class);
+/**
+ * Problem-specific driver for InvertBinaryTree problem.
+ */
+class InvertBinaryTreeDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
         
-        JsonArray inputArray = inputElement.getAsJsonArray();
-        JsonArray expectedArray = expectedElement.getAsJsonArray();
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray inputArray = input.get(i).getAsJsonArray();
+            JsonArray expectedArray = expectedOutput.get(i).getAsJsonArray();
+            
+            TreeNode inputTree = parseTree(inputArray);
+            TreeNode expectedTree = parseTree(expectedArray);
+            
+            testCases.add(new TestCase(inputTree, expectedTree));
+        }
+        
+        return testCases;
+    }
 
-        int testCaseCount = inputArray.size();
-        int passedTestCases = 0;
-        int failedTestCases = 0;
-        List<TestCaseResult> testCaseResults = new ArrayList<>();
-
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        TreeNode input = (TreeNode) testCase.getInput();
         Solution solution = new Solution();
-
-        for (int i = 0; i < testCaseCount; i++) {
-            System.out.println("|derpcode-start-test-" + i + "|");
-            long start = System.currentTimeMillis();
-            
-            try {
-                // Build input tree from array
-                TreeNode inputTree = buildTreeFromArray(inputArray.get(i).getAsJsonArray());
-                
-                // Run the solution
-                TreeNode result = solution.invertTree(inputTree);
-                
-                // Convert result back to array for comparison
-                List<Integer> actualOutput = treeToArray(result);
-                
-                System.out.println("|derpcode-end-test-" + i + "|");
-                
-                // Get expected output
-                List<Integer> expected = jsonArrayToIntegerList(expectedArray.get(i).getAsJsonArray());
-                
-                // Compare arrays
-                boolean passed = listsEqual(actualOutput, expected);
-
-                TestCaseResult testResult = new TestCaseResult();
-                testResult.setTestCaseIndex(i);
-                testResult.setPass(passed);
-                testResult.setErrorMessage(passed ? null : "Expected " + expected + " but got " + actualOutput);
-                testResult.setExecutionTimeInMs((int)(System.currentTimeMillis() - start));
-                testResult.setInput(jsonArrayToIntegerList(inputArray.get(i).getAsJsonArray()));
-                testResult.setExpectedOutput(expected);
-                testResult.setActualOutput(actualOutput);
-                testResult.setHidden(false);
-                
-                testCaseResults.add(testResult);
-
-                if (passed) {
-                    passedTestCases++;
-                } else {
-                    failedTestCases++;
-                }
-                
-            } catch (Exception ex) {
-                System.out.println("|derpcode-end-test-" + i + "|");
-                
-                TestCaseResult testResult = new TestCaseResult();
-                testResult.setTestCaseIndex(i);
-                testResult.setPass(false);
-                testResult.setErrorMessage(ex.getMessage());
-                testResult.setExecutionTimeInMs((int)(System.currentTimeMillis() - start));
-                testResult.setInput(i < inputArray.size() ? jsonArrayToIntegerList(inputArray.get(i).getAsJsonArray()) : null);
-                testResult.setExpectedOutput(i < expectedArray.size() ? jsonArrayToIntegerList(expectedArray.get(i).getAsJsonArray()) : null);
-                testResult.setActualOutput(null);
-                testResult.setHidden(false);
-                
-                testCaseResults.add(testResult);
-                
-                failedTestCases++;
-            }
-        }
-
-        SubmissionResult result = new SubmissionResult();
-        result.setTestCaseCount(testCaseCount);
-        result.setPassedTestCases(passedTestCases);
-        result.setFailedTestCases(failedTestCases);
-        result.setPass(passedTestCases == testCaseCount);
-        result.setTestCaseResults(testCaseResults);
-        
-        return result;
+        return solution.invertTree(input);
     }
 
-    private static TreeNode buildTreeFromArray(JsonArray arr) {
-        if (arr.size() == 0 || arr.get(0).isJsonNull()) {
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return compareTrees((TreeNode) actual, (TreeNode) expected);
+    }
+    
+    private TreeNode parseTree(JsonArray node) {
+        if (node == null || node.size() == 0) {
             return null;
         }
         
-        return buildTree(arr, 0);
-    }
-
-    private static TreeNode buildTree(JsonArray values, int index) {
-        if (index >= values.size() || values.get(index).isJsonNull()) {
-            return null;
-        }
-        
-        TreeNode node = new TreeNode(values.get(index).getAsInt());
-        node.left = buildTree(values, 2 * index + 1);
-        node.right = buildTree(values, 2 * index + 2);
-        return node;
-    }
-
-    private static List<Integer> treeToArray(TreeNode root) {
-        if (root == null) {
-            return new ArrayList<>();
-        }
-        
-        List<Integer> result = new ArrayList<>();
         Queue<TreeNode> queue = new LinkedList<>();
+        TreeNode root = new TreeNode(node.get(0).getAsInt());
         queue.offer(root);
         
-        while (!queue.isEmpty()) {
-            TreeNode node = queue.poll();
-            if (node == null) {
-                result.add(null);
-            } else {
-                result.add(node.val);
-                queue.offer(node.left);
-                queue.offer(node.right);
+        int index = 1;
+        while (!queue.isEmpty() && index < node.size()) {
+            TreeNode current = queue.poll();
+            
+            if (index < node.size() && !node.get(index).isJsonNull()) {
+                current.left = new TreeNode(node.get(index).getAsInt());
+                queue.offer(current.left);
             }
+            index++;
+            
+            if (index < node.size() && !node.get(index).isJsonNull()) {
+                current.right = new TreeNode(node.get(index).getAsInt());
+                queue.offer(current.right);
+            }
+            index++;
         }
         
-        // Remove trailing nulls
-        while (!result.isEmpty() && result.get(result.size() - 1) == null) {
-            result.remove(result.size() - 1);
-        }
-        
-        return result;
+        return root;
     }
-
-    private static List<Integer> jsonArrayToIntegerList(JsonArray arr) {
-        List<Integer> result = new ArrayList<>();
-        for (JsonElement element : arr) {
-            if (element.isJsonNull()) {
-                result.add(null);
-            } else {
-                result.add(element.getAsInt());
-            }
-        }
-        return result;
+    
+    private boolean compareTrees(TreeNode tree1, TreeNode tree2) {
+        if (tree1 == null && tree2 == null) return true;
+        if (tree1 == null || tree2 == null) return false;
+        
+        return tree1.val == tree2.val && 
+               compareTrees(tree1.left, tree2.left) && 
+               compareTrees(tree1.right, tree2.right);
     }
+}
 
-    private static boolean listsEqual(List<Integer> list1, List<Integer> list2) {
-        if (list1.size() != list2.size()) {
-            return false;
-        }
-        
-        for (int i = 0; i < list1.size(); i++) {
-            if (!Objects.equals(list1.get(i), list2.get(i))) {
-                return false;
-            }
-        }
-        
-        return true;
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new InvertBinaryTreeDriver());
+        driver.run(args);
     }
 }

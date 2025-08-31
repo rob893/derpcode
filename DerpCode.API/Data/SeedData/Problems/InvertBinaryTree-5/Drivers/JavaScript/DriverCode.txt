@@ -1,184 +1,116 @@
-import fs from 'fs';
-import path from 'path';
+import { BaseDriver, IProblemDriver } from './base-driver.js';
 import pkg from './solution.js';
 const { invertTree, TreeNode } = pkg;
 
-function main() {
-    const args = process.argv.slice(2);
-
-    if (args.length < 3) {
-        console.error('Usage: node index.js <inputFilePath> <expectedOutputFilePath> <resultFilePath>');
-        process.exit(1);
-    }
-
-    const [inputPath, expectedPath, resultPath] = args;
-
-    const result = {
-        pass: false,
-        testCaseCount: 0,
-        passedTestCases: 0,
-        failedTestCases: 0,
-        errorMessage: '',
-        executionTimeInMs: 0,
-        testCaseResults: []
-    };
-
-    try {
-        const input = fs.readFileSync(inputPath, 'utf8');
-        const expectedOutput = fs.readFileSync(expectedPath, 'utf8');
-
-        const start = Date.now();
-
-        const testResults = runTests(input, expectedOutput);
-
-        result.pass = testResults.pass;
-        result.testCaseCount = testResults.testCaseCount;
-        result.passedTestCases = testResults.passedTestCases;
-        result.failedTestCases = testResults.failedTestCases;
-        result.testCaseResults = testResults.testCaseResults;
-        result.executionTimeInMs = Date.now() - start;
-
-    } catch (err) {
-        console.error('Error reading files:' + err.message);
-        result.errorMessage = err.message;
-    }
-
-    fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
-}
-
-function runTests(inputJsonStr, expectedOutputJsonStr) {
-    const input = JSON.parse(inputJsonStr);
-    const expectedOutput = JSON.parse(expectedOutputJsonStr);
-    
-    const testCaseCount = input.length;
-    let passedTestCases = 0;
-    let failedTestCases = 0;
-    const testCaseResults = [];
-
-    for (let i = 0; i < testCaseCount; i++) {
-        console.log(`|derpcode-start-test-${i}|`);
-        const start = Date.now();
+/**
+ * Problem-specific driver for InvertBinaryTree problem.
+ */
+class InvertBinaryTreeDriver extends IProblemDriver {
+    /**
+     * Parse input as tree arrays and expected output as tree arrays.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
         
-        try {
-            // Build input tree from array
-            const inputTree = buildTreeFromArray(input[i]);
-            
-            // Run the solution
-            const result = invertTree(inputTree);
-            
-            // Convert result back to array for comparison
-            const actualOutput = treeToArray(result);
-            
-            console.log(`|derpcode-end-test-${i}|`);
-            
-            // Get expected output
-            const expected = i < expectedOutput.length ? expectedOutput[i] : [];
-            
-            // Compare arrays
-            const passed = arraysEqual(actualOutput, expected);
-
-            testCaseResults.push({
-                testCaseIndex: i,
-                pass: passed,
-                errorMessage: passed ? null : `Expected ${JSON.stringify(expected)} but got ${JSON.stringify(actualOutput)}`,
-                executionTimeInMs: Date.now() - start,
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
                 input: input[i],
-                expectedOutput: expected,
-                actualOutput: actualOutput,
-                isHidden: false
+                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : []
             });
-
-            if (passed) {
-                passedTestCases++;
-            } else {
-                failedTestCases++;
-            }
-            
-        } catch (err) {
-            console.log(`|derpcode-end-test-${i}|`);
-            
-            testCaseResults.push({
-                testCaseIndex: i,
-                pass: false,
-                errorMessage: err.message,
-                executionTimeInMs: Date.now() - start,
-                input: i < input.length ? input[i] : null,
-                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : null,
-                actualOutput: null,
-                isHidden: false
-            });
-            
-            failedTestCases++;
         }
+        
+        return testCases;
     }
 
-    return {
-        testCaseCount: testCaseCount,
-        passedTestCases: passedTestCases,
-        failedTestCases: failedTestCases,
-        pass: passedTestCases === testCaseCount,
-        testCaseResults: testCaseResults
-    };
-}
-
-function buildTreeFromArray(arr) {
-    if (!arr || arr.length === 0 || arr[0] === null) {
-        return null;
+    /**
+     * Execute the invertTree function with the test case input.
+     */
+    executeTestCase(testCase) {
+        // Build tree from array
+        const inputTree = this.buildTreeFromArray(testCase.input);
+        
+        // Run the solution
+        const result = invertTree(inputTree);
+        
+        // Convert result back to array for comparison
+        return this.treeToArray(result);
     }
-    
-    function buildTree(values, index) {
-        if (index >= values.length || values[index] === null) {
+
+    /**
+     * Compare tree arrays.
+     */
+    compareResults(actual, expected) {
+        return this.arraysEqual(actual, expected);
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected ${JSON.stringify(expected)} but got ${JSON.stringify(actual)}`;
+    }
+
+    buildTreeFromArray(arr) {
+        if (!arr || arr.length === 0 || arr[0] === null) {
             return null;
         }
         
-        const node = new TreeNode(values[index]);
-        node.left = buildTree(values, 2 * index + 1);
-        node.right = buildTree(values, 2 * index + 2);
-        return node;
-    }
-    
-    return buildTree(arr, 0);
-}
-
-function treeToArray(root) {
-    if (!root) {
-        return [];
-    }
-    
-    const result = [];
-    const queue = [root];
-    
-    while (queue.length > 0) {
-        const node = queue.shift();
-        if (node === null) {
-            result.push(null);
-        } else {
-            result.push(node.val);
-            queue.push(node.left);
-            queue.push(node.right);
+        function buildTree(values, index) {
+            if (index >= values.length || values[index] === null) {
+                return null;
+            }
+            
+            const node = new TreeNode(values[index]);
+            node.left = buildTree(values, 2 * index + 1);
+            node.right = buildTree(values, 2 * index + 2);
+            return node;
         }
+        
+        return buildTree(arr, 0);
     }
-    
-    // Remove trailing nulls
-    while (result.length > 0 && result[result.length - 1] === null) {
-        result.pop();
-    }
-    
-    return result;
-}
 
-function arraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) {
-        return false;
+    treeToArray(root) {
+        if (!root) {
+            return [];
+        }
+        
+        const result = [];
+        const queue = [root];
+        
+        while (queue.length > 0) {
+            const node = queue.shift();
+            if (node === null) {
+                result.push(null);
+            } else {
+                result.push(node.val);
+                queue.push(node.left);
+                queue.push(node.right);
+            }
+        }
+        
+        // Remove trailing nulls
+        while (result.length > 0 && result[result.length - 1] === null) {
+            result.pop();
+        }
+        
+        return result;
     }
-    
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
+
+    arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) {
             return false;
         }
+        
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+        
+        return true;
     }
-    
-    return true;
 }
 
-main();
+// Create and run the driver
+const driver = new BaseDriver(new InvertBinaryTreeDriver());
+driver.run();

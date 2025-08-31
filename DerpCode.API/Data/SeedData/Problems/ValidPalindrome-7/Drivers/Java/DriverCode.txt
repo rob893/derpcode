@@ -1,185 +1,43 @@
-import java.io.*;
-import java.nio.file.*;
 import java.util.*;
-import com.google.gson.*;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+/**
+ * Problem-specific driver for ValidPalindrome problem.
+ */
+class ValidPalindromeDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            String s = input.get(i).getAsString();
+            boolean expected = expectedOutput.get(i).getAsBoolean();
+            
+            testCases.add(new TestCase(s, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        String input = (String) testCase.getInput();
+        Solution solution = new Solution();
+        return solution.isPalindrome(input);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+}
 
 class Program {
-    private static class SubmissionResult {
-        private boolean pass;
-        @SerializedName("testCaseCount")
-        private int testCaseCount;
-        @SerializedName("passedTestCases")
-        private int passedTestCases;
-        @SerializedName("failedTestCases")
-        private int failedTestCases;
-        @SerializedName("errorMessage")
-        private String errorMessage = "";
-        @SerializedName("executionTimeInMs")
-        private long executionTimeInMs;
-        @SerializedName("testCaseResults")
-        private List<TestCaseResult> testCaseResults = new ArrayList<>();
-
-        // Getters and setters
-        public boolean isPass() { return pass; }
-        public void setPass(boolean pass) { this.pass = pass; }
-        public int getTestCaseCount() { return testCaseCount; }
-        public void setTestCaseCount(int testCaseCount) { this.testCaseCount = testCaseCount; }
-        public int getPassedTestCases() { return passedTestCases; }
-        public void setPassedTestCases(int passedTestCases) { this.passedTestCases = passedTestCases; }
-        public int getFailedTestCases() { return failedTestCases; }
-        public void setFailedTestCases(int failedTestCases) { this.failedTestCases = failedTestCases; }
-        public String getErrorMessage() { return errorMessage; }
-        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-        public long getExecutionTimeInMs() { return executionTimeInMs; }
-        public void setExecutionTimeInMs(long executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
-        public List<TestCaseResult> getTestCaseResults() { return testCaseResults; }
-        public void setTestCaseResults(List<TestCaseResult> testCaseResults) { this.testCaseResults = testCaseResults; }
-    }
-
-    private static class TestCaseResult {
-        @SerializedName("testCaseIndex")
-        private int testCaseIndex;
-        private boolean pass;
-        @SerializedName("errorMessage")
-        private String errorMessage;
-        @SerializedName("executionTimeInMs")
-        private int executionTimeInMs;
-        private Object input;
-        @SerializedName("expectedOutput")
-        private Object expectedOutput;
-        @SerializedName("actualOutput")
-        private Object actualOutput;
-        @SerializedName("isHidden")
-        private boolean isHidden;
-
-        // Getters and setters
-        public int getTestCaseIndex() { return testCaseIndex; }
-        public void setTestCaseIndex(int testCaseIndex) { this.testCaseIndex = testCaseIndex; }
-        public boolean isPass() { return pass; }
-        public void setPass(boolean pass) { this.pass = pass; }
-        public String getErrorMessage() { return errorMessage; }
-        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-        public int getExecutionTimeInMs() { return executionTimeInMs; }
-        public void setExecutionTimeInMs(int executionTimeInMs) { this.executionTimeInMs = executionTimeInMs; }
-        public Object getInput() { return input; }
-        public void setInput(Object input) { this.input = input; }
-        public Object getExpectedOutput() { return expectedOutput; }
-        public void setExpectedOutput(Object expectedOutput) { this.expectedOutput = expectedOutput; }
-        public Object getActualOutput() { return actualOutput; }
-        public void setActualOutput(Object actualOutput) { this.actualOutput = actualOutput; }
-        public boolean isHidden() { return isHidden; }
-        public void setHidden(boolean isHidden) { this.isHidden = isHidden; }
-    }
-
     public static void main(String[] args) {
-        String inputPath = args[0];
-        String expectedPath = args[1];
-        String resultPath = args[2];
-
-        try {
-            String input = new String(Files.readAllBytes(Paths.get(inputPath)));
-            String expectedOutput = new String(Files.readAllBytes(Paths.get(expectedPath)));
-            long startTime = System.currentTimeMillis();
-
-            SubmissionResult results = runTests(input, expectedOutput);
-            results.setExecutionTimeInMs(System.currentTimeMillis() - startTime);
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(results);
-
-            Files.write(Paths.get(resultPath), json.getBytes());
-        } catch (Exception ex) {
-            System.err.println("Error reading files: " + ex.getMessage());
-
-            SubmissionResult results = new SubmissionResult();
-            results.setPass(false);
-            results.setTestCaseCount(0);
-            results.setPassedTestCases(0);
-            results.setFailedTestCases(0);
-            results.setErrorMessage("Error reading input files: " + ex.getMessage());
-            results.setExecutionTimeInMs(0);
-
-            try {
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                String json = gson.toJson(results);
-                Files.write(Paths.get(resultPath), json.getBytes());
-            } catch (Exception writeEx) {
-                System.err.println("Error writing results: " + writeEx.getMessage());
-            }
-        }
-    }
-
-    private static SubmissionResult runTests(String input, String expectedOutput) {
-        SubmissionResult result = new SubmissionResult();
-        List<TestCaseResult> testCaseResults = new ArrayList<>();
-
-        try {
-            Gson gson = new Gson();
-            String[] inputs = gson.fromJson(input, String[].class);
-            Boolean[] expectedOutputs = gson.fromJson(expectedOutput, Boolean[].class);
-
-            int testCaseCount = inputs.length;
-            int passedTests = 0;
-            int failedTests = 0;
-
-            Solution solution = new Solution();
-
-            for (int i = 0; i < testCaseCount; i++) {
-                System.out.println("|derpcode-start-test-" + i + "|");
-                TestCaseResult testResult = new TestCaseResult();
-                testResult.setTestCaseIndex(i);
-                testResult.setHidden(false);
-
-                try {
-                    long testStartTime = System.currentTimeMillis();
-
-                    String inputString = inputs[i];
-                    Boolean expectedBool = expectedOutputs[i];
-
-                    // Run the solution
-                    boolean actualOutput = solution.isPalindrome(inputString);
-
-                    testResult.setExecutionTimeInMs((int)(System.currentTimeMillis() - testStartTime));
-                    testResult.setInput(inputString);
-                    testResult.setExpectedOutput(expectedBool);
-                    testResult.setActualOutput(actualOutput);
-
-                    boolean testPassed = actualOutput == expectedBool;
-                    testResult.setPass(testPassed);
-
-                    if (testPassed) {
-                        passedTests++;
-                    } else {
-                        failedTests++;
-                        testResult.setErrorMessage("Expected: " + expectedBool + ", but got: " + actualOutput);
-                    }
-
-                } catch (Exception ex) {
-                    failedTests++;
-                    testResult.setPass(false);
-                    testResult.setErrorMessage("Runtime error: " + ex.getMessage());
-                    testResult.setExecutionTimeInMs(0);
-                }
-
-                System.out.println("|derpcode-end-test-" + i + "|");
-                testCaseResults.add(testResult);
-            }
-
-            result.setPass(failedTests == 0);
-            result.setTestCaseCount(testCaseCount);
-            result.setPassedTestCases(passedTests);
-            result.setFailedTestCases(failedTests);
-            result.setTestCaseResults(testCaseResults);
-
-        } catch (Exception ex) {
-            result.setPass(false);
-            result.setTestCaseCount(0);
-            result.setPassedTestCases(0);
-            result.setFailedTestCases(0);
-            result.setErrorMessage("Error parsing input: " + ex.getMessage());
-        }
-
-        return result;
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new ValidPalindromeDriver());
+        driver.run(args);
     }
 }

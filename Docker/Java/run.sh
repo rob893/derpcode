@@ -14,7 +14,7 @@ cp /home/runner/submission/expectedOutput.json /home/runner/expectedOutput.json
 
 cd /home/runner/App
 
-timeout 15s javac -cp "/home/runner/lib/gson-2.10.1.jar" Solution.java Program.java >> /home/runner/submission/output.txt 2>> /home/runner/submission/error.txt
+timeout 15s javac -cp "/home/runner/lib/gson-2.10.1.jar" Solution.java Program.java BaseDriver.java >> /home/runner/submission/output.txt 2>> /home/runner/submission/error.txt
 
 if [ $? -ne 0 ]; then
   echo "Compilation failed" >> /home/runner/submission/error.txt
