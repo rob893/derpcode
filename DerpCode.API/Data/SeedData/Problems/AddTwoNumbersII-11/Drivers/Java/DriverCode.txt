@@ -83,7 +83,7 @@ class AddTwoNumbersIIDriver extends ProblemDriverBase {
             
             for (String pattern : prohibitedPatterns) {
                 if (Pattern.compile(pattern).matcher(cleanCode).find()) {
-                    throw new RuntimeException("Prohibited operator detected in solution. You must use only bitwise operations.");
+                    throw new RuntimeException("Prohibited operator detected in solution.");
                 }
             }
         } catch (Exception e) {

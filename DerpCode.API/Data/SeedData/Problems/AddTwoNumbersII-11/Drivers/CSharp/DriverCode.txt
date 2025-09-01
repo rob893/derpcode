@@ -57,7 +57,7 @@ namespace DerpCode.Driver.AddTwoNumbersII
         {
             try
             {
-                string solutionCode = File.ReadAllText("solution.cs");
+                string solutionCode = File.ReadAllText("Solution.cs");
                 
                 // Remove comments to avoid false positives
                 var lines = solutionCode.Split('\n');
@@ -106,7 +106,7 @@ namespace DerpCode.Driver.AddTwoNumbersII
                 {
                     if (Regex.IsMatch(cleanCode, pattern))
                     {
-                        throw new InvalidOperationException($"Prohibited operator detected in solution. You must use only bitwise operations.");
+                        throw new InvalidOperationException($"Prohibited operator detected in solution.");
                     }
                 }
             }

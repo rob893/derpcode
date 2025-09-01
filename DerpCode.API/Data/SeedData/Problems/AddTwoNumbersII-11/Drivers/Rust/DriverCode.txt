@@ -57,7 +57,10 @@ impl AddTwoNumbersIIDriver {
         match fs::read_to_string("solution.rs") {
             Ok(solution_code) => {
                 // Remove comments to avoid false positives
-                let lines: Vec<&str> = solution_code.lines().collect();
+                let mut clean_code = solution_code.clone();
+                
+                // Remove single-line comments
+                let lines: Vec<&str> = clean_code.lines().collect();
                 let mut clean_lines = Vec::new();
                 
                 for line in lines {
@@ -68,16 +71,88 @@ impl AddTwoNumbersIIDriver {
                     }
                 }
                 
-                let clean_code = clean_lines.join("\n");
+                clean_code = clean_lines.join("\n");
                 
-                // Check for prohibited operators using simple string matching
-                let prohibited_operators = vec![" + ", " +)", "(+ ", " - ", " -)", "(- ", "+=", "-=", "++", "--"];
-                
-                for op in prohibited_operators {
-                    if clean_code.contains(op) {
-                        return Err("Prohibited operator detected in solution.".into());
+                // Remove multi-line comments
+                while let Some(start) = clean_code.find("/*") {
+                    if let Some(end) = clean_code[start..].find("*/") {
+                        clean_code.replace_range(start..start + end + 2, "");
+                    } else {
+                        break;
                     }
                 }
+                
+                // Remove string literals
+                while let Some(start) = clean_code.find('"') {
+                    if let Some(end) = clean_code[start + 1..].find('"') {
+                        clean_code.replace_range(start..start + end + 2, "\"\"");
+                    } else {
+                        break;
+                    }
+                }
+                
+                while let Some(start) = clean_code.find('\'') {
+                    if let Some(end) = clean_code[start + 1..].find('\'') {
+                        clean_code.replace_range(start..start + end + 2, "''");
+                    } else {
+                        break;
+                    }
+                }
+                
+                // Check for prohibited operators using regex-like pattern matching
+                let chars: Vec<char> = clean_code.chars().collect();
+                let len = chars.len();
+                
+                for i in 0..len {
+                    match chars[i] {
+                        '+' => {
+                            // Check various + operator patterns
+                            if i > 0 && i < len - 1 {
+                                let prev_char = chars[i - 1];
+                                let next_char = chars[i + 1];
+                                
+                                // + surrounded by spaces, digits, parentheses
+                                if prev_char == ' ' && next_char == ' ' ||  // " + "
+                                   prev_char.is_ascii_digit() ||            // "5+"
+                                   next_char.is_ascii_digit() ||            // "+5"
+                                   prev_char == ')' ||                      // ")+"
+                                   next_char == '(' ||                      // "+("
+                                   next_char == '=' {                       // "+="
+                                    return Err("Prohibited operator detected in solution.".into());
+                                }
+                            }
+                            
+                            // Check for ++ operator
+                            if i < len - 1 && chars[i + 1] == '+' {
+                                return Err("Prohibited operator detected in solution.".into());
+                            }
+                        }
+                        '-' => {
+                            // Check various - operator patterns (but not negative numbers)
+                            if i > 0 && i < len - 1 {
+                                let prev_char = chars[i - 1];
+                                let next_char = chars[i + 1];
+                                
+                                // Only flag as subtraction if preceded by identifier, digit, or )
+                                if (prev_char.is_ascii_alphanumeric() || prev_char == ')') &&
+                                   (next_char == ' ' || next_char.is_ascii_digit() || next_char == '(') {
+                                    return Err("Prohibited operator detected in solution.".into());
+                                }
+                                
+                                if next_char == '=' {  // "-="
+                                    return Err("Prohibited operator detected in solution.".into());
+                                }
+                            }
+                            
+                            // Check for -- operator
+                            if i < len - 1 && chars[i + 1] == '-' {
+                                return Err("Prohibited operator detected in solution.".into());
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                
                 Ok(())
             }
             Err(_) => {
