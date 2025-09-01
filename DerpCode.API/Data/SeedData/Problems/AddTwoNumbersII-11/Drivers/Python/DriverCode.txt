@@ -1,0 +1,102 @@
+import json
+import sys
+import re
+import os
+from typing import List, Dict, Any
+from base_driver import BaseDriver, BaseProblemDriver
+from solution import Solution
+
+
+class AddTwoNumbersIIDriver(BaseProblemDriver):
+    """Problem-specific driver for AddTwoNumbersII problem."""
+
+    def parse_test_cases(self, input_data: Any, expected_output: Any) -> List[Dict[str, Any]]:
+        """Parse input as array of pairs and expected output as array of integers."""
+        input_array = json.loads(input_data) if isinstance(input_data, str) else input_data
+        expected_array = json.loads(expected_output) if isinstance(expected_output, str) else expected_output
+        
+        test_cases = []
+        
+        for i in range(len(input_array)):
+            test_cases.append({
+                'input': [input_array[i][0], input_array[i][1]],
+                'expectedOutput': expected_array[i]
+            })
+        
+        return test_cases
+
+    def execute_test_case(self, test_case: Dict[str, Any], index: int) -> Any:
+        """Execute the add method with the test case inputs, but first validate no + operator is used."""
+        # First, validate that the solution doesn't use prohibited operators
+        self.validate_source_code()
+        
+        input_data = test_case['input']
+        a = input_data[0]
+        b = input_data[1]
+        
+        return Solution.add(a, b)
+
+    def validate_source_code(self) -> None:
+        """Validate that the source code doesn't contain prohibited operators."""
+        try:
+            with open('solution.py', 'r') as f:
+                solution_code = f.read()
+            
+            # Remove comments and strings to avoid false positives
+            # Remove single-line comments
+            lines = solution_code.split('\n')
+            code_lines = []
+            for line in lines:
+                # Remove everything after # (comment)
+                if '#' in line:
+                    line = line[:line.index('#')]
+                code_lines.append(line)
+            
+            clean_code = '\n'.join(code_lines)
+            
+            # Remove string literals (both single and double quotes)
+            clean_code = re.sub(r'"[^"]*"', '', clean_code)
+            clean_code = re.sub(r"'[^']*'", '', clean_code)
+            
+            # Check for prohibited operators using regex
+            prohibited_patterns = [
+                r'\s\+\s',     # + surrounded by whitespace
+                r'\+\d',       # + followed by digit  
+                r'\d\+',       # digit followed by +
+                r'\)\+',       # ) followed by +
+                r'\+\(',       # + followed by (
+                r'\s-\s',      # - surrounded by whitespace (but not in ranges)
+                r'\)-',        # ) followed by -
+                r'-\(',        # - followed by (
+                r'\+=',        # +=
+                r'-=',         # -=
+                r'\+\+',       # ++
+                r'--'          # --
+            ]
+            
+            for pattern in prohibited_patterns:
+                if re.search(pattern, clean_code):
+                    raise RuntimeError('Prohibited operator detected in solution.')
+                    
+        except FileNotFoundError:
+            # If solution file doesn't exist, skip validation
+            pass
+
+    def compare_results(self, actual: Any, expected: Any) -> bool:
+        """Compare results using simple equality."""
+        return actual == expected
+
+    def format_error_message(self, actual: Any, expected: Any) -> str:
+        """Format error message for failed tests."""
+        return f"Expected {expected} but got {actual}"
+
+
+def main():
+    """Main entry point for the driver."""
+    # Create and run the driver
+    driver = BaseDriver(AddTwoNumbersIIDriver())
+    driver.run()
+
+
+if __name__ == "__main__":
+    main()

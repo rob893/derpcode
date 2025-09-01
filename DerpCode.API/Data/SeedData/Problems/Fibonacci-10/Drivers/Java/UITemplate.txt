@@ -1,0 +1,6 @@
+public class Solution {
+    public static int fib(int n) {
+        // Your code here
+        return 0;
+    }
+}

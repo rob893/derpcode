@@ -1,0 +1,10 @@
+using System;
+
+public class Solution
+{
+    public static int Fib(int n)
+    {
+        // Your code here
+        return 0;
+    }
+}

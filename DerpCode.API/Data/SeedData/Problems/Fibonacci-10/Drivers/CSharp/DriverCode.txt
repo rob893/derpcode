@@ -1,0 +1,71 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.Fibonacci
+{
+    /// <summary>
+    /// Problem-specific driver for Fibonacci problem.
+    /// </summary>
+    public class FibonacciDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as array of integers and expected output as array of integers.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputArray = JsonSerializer.Deserialize<int[]>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<int[]>(expectedOutput.ToString()!);
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray!.Length; i++)
+            {
+                testCases.Add(new TestCase
+                {
+                    Input = inputArray[i],
+                    ExpectedOutput = expectedArray![i]
+                });
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the Fib method with the test case input.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var n = (int)testCase.Input;
+            return Solution.Fib(n);
+        }
+
+        /// <summary>
+        /// Compare results using simple equality.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return (int)actual == (int)expected;
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new FibonacciDriver());
+            driver.Run(args);
+        }
+    }
+}

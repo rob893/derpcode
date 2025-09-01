@@ -1,0 +1,13 @@
+class Solution:
+    @staticmethod
+    def add(a: int, b: int) -> int:
+        # Handle negative numbers by using unsigned 32-bit arithmetic
+        mask = 0xFFFFFFFF
+        
+        while b & mask:
+            carry = (a & b) << 1
+            a = (a ^ b) & mask
+            b = carry & mask
+        
+        # Convert back to signed 32-bit integer
+        return a if a <= 0x7FFFFFFF else ~(a ^ mask)

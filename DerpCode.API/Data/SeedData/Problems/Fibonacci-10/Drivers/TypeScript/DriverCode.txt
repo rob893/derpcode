@@ -1,0 +1,41 @@
+import { BaseDriver, ProblemDriverBase } from './base-driver';
+import { fib } from './solution';
+
+/**
+ * Problem-specific driver for Fibonacci problem.
+ */
+class FibonacciDriver extends ProblemDriverBase {
+    /**
+     * Parse input as array of integers and expected output as array of integers.
+     */
+    parseTestCases(input: any, expectedOutput: any): any[] {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the fib function with the test case input.
+     */
+    executeTestCase(testCase: any, index: number): any {
+        return fib(testCase.input);
+    }
+
+    /**
+     * Compare results using simple equality.
+     */
+    compareResults(actual: any, expected: any): boolean {
+        return actual === expected;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new FibonacciDriver());
+driver.run();

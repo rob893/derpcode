@@ -1,0 +1,48 @@
+import json
+import sys
+from typing import List, Dict, Any
+from base_driver import BaseDriver, BaseProblemDriver
+from solution import Solution
+
+
+class FibonacciDriver(BaseProblemDriver):
+    """Problem-specific driver for Fibonacci problem."""
+
+    def parse_test_cases(self, input_data: Any, expected_output: Any) -> List[Dict[str, Any]]:
+        """Parse input as array of integers and expected output as array of integers."""
+        input_array = json.loads(input_data) if isinstance(input_data, str) else input_data
+        expected_array = json.loads(expected_output) if isinstance(expected_output, str) else expected_output
+        
+        test_cases = []
+        
+        for i in range(len(input_array)):
+            test_cases.append({
+                'input': input_array[i],
+                'expectedOutput': expected_array[i]
+            })
+        
+        return test_cases
+
+    def execute_test_case(self, test_case: Dict[str, Any], index: int) -> Any:
+        """Execute the fib method with the test case input."""
+        n = test_case['input']
+        return Solution.fib(n)
+
+    def compare_results(self, actual: Any, expected: Any) -> bool:
+        """Compare results using simple equality."""
+        return actual == expected
+
+    def format_error_message(self, actual: Any, expected: Any) -> str:
+        """Format error message for failed tests."""
+        return f"Expected {expected} but got {actual}"
+
+
+def main():
+    """Main entry point for the driver."""
+    # Create and run the driver
+    driver = BaseDriver(FibonacciDriver())
+    driver.run()
+
+
+if __name__ == "__main__":
+    main()

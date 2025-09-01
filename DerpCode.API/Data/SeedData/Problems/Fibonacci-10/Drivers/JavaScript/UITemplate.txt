@@ -1,0 +1,8 @@
+/**
+ * @param {number} n
+ * @return {number}
+ */
+export function fib(n) {
+    // Your code here
+    return 0;
+}

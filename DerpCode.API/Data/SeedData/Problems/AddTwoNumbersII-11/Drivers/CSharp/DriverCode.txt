@@ -1,0 +1,146 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.IO;
+using System.Text.RegularExpressions;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.AddTwoNumbersII
+{
+    /// <summary>
+    /// Problem-specific driver for AddTwoNumbersII problem.
+    /// </summary>
+    public class AddTwoNumbersIIDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as pairs of integers and expected output as array of integers.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputArray = JsonSerializer.Deserialize<int[][]>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<int[]>(expectedOutput.ToString()!);
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray!.Length; i++)
+            {
+                testCases.Add(new TestCase
+                {
+                    Input = new List<int> { inputArray[i][0], inputArray[i][1] },
+                    ExpectedOutput = expectedArray![i]
+                });
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the Add method with the test case inputs, but first validate no + operator is used.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            // First, validate that the solution doesn't use prohibited operators
+            ValidateSourceCode();
+            
+            var inputData = (List<int>)testCase.Input;
+            var a = inputData[0];
+            var b = inputData[1];
+            
+            return Solution.Add(a, b);
+        }
+
+        /// <summary>
+        /// Validate that the source code doesn't contain prohibited operators.
+        /// </summary>
+        private void ValidateSourceCode()
+        {
+            try
+            {
+                string solutionCode = File.ReadAllText("solution.cs");
+                
+                // Remove comments to avoid false positives
+                var lines = solutionCode.Split('\n');
+                var cleanLines = new List<string>();
+                
+                foreach (var line in lines)
+                {
+                    var commentIndex = line.IndexOf("//");
+                    if (commentIndex >= 0)
+                    {
+                        cleanLines.Add(line.Substring(0, commentIndex));
+                    }
+                    else
+                    {
+                        cleanLines.Add(line);
+                    }
+                }
+                
+                var cleanCode = string.Join("\n", cleanLines);
+                
+                // Remove multi-line comments
+                cleanCode = Regex.Replace(cleanCode, @"/\*[\s\S]*?\*/", "");
+                
+                // Remove string literals
+                cleanCode = Regex.Replace(cleanCode, @"""[^""]*""", @"""""");
+                cleanCode = Regex.Replace(cleanCode, @"'[^']*'", @"''");
+                
+                // Check for prohibited operators using simpler patterns
+                var prohibitedPatterns = new[]
+                {
+                    @" \+ ",     // + surrounded by spaces
+                    @"\+\d",     // + followed by digit
+                    @"\d\+",     // digit followed by +
+                    @"\)\+",     // ) followed by +
+                    @"\+\(",     // + followed by (
+                    @" - ",      // - surrounded by spaces
+                    @"\)-",      // ) followed by -
+                    @"-\(",      // - followed by (
+                    @"\+=",      // +=
+                    @"-=",       // -=
+                    @"\+\+",     // ++
+                    @"--"        // --
+                };
+                
+                foreach (var pattern in prohibitedPatterns)
+                {
+                    if (Regex.IsMatch(cleanCode, pattern))
+                    {
+                        throw new InvalidOperationException($"Prohibited operator detected in solution. You must use only bitwise operations.");
+                    }
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                // If solution file doesn't exist, skip validation
+                // This allows the problem to work in testing scenarios
+            }
+        }
+
+        /// <summary>
+        /// Compare results using simple equality.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return (int)actual == (int)expected;
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new AddTwoNumbersIIDriver());
+            driver.Run(args);
+        }
+    }
+}

@@ -1,0 +1,5 @@
+class Solution:
+    @staticmethod
+    def add(a: int, b: int) -> int:
+        # Your code here - remember, no + or - operators allowed!
+        return 0

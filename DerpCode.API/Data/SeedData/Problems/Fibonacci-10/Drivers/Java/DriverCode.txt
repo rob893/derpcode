@@ -1,0 +1,42 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+/**
+ * Problem-specific driver for Fibonacci problem.
+ */
+class FibonacciDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            int n = input.get(i).getAsInt();
+            int expected = expectedOutput.get(i).getAsInt();
+            
+            testCases.add(new TestCase(n, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        int n = (Integer) testCase.getInput();
+        return Solution.fib(n);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new FibonacciDriver());
+        driver.run(args);
+    }
+}

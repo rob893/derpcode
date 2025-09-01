@@ -1,0 +1,95 @@
+use serde_json::Value;
+use std::fs;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::Solution;
+
+/// Problem-specific driver for AddTwoNumbersII problem.
+pub struct AddTwoNumbersIIDriver;
+
+impl ProblemDriver for AddTwoNumbersIIDriver {
+    /// Parse input as array of pairs and expected output as array of integers.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in 0..input_array.len() {
+            let pair = input_array[i].as_array().expect("Input item should be a pair");
+            let a = pair[0].as_i64().expect("Input should be integer") as i32;
+            let b = pair[1].as_i64().expect("Input should be integer") as i32;
+            let expected = expected_array[i].clone();
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!({ "a": a, "b": b }),
+                expected_output: expected,
+            });
+        }
+        
+        test_cases
+    }
+
+    /// Execute the add function with the test case inputs, but first validate no + operator is used.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        // First, validate that the solution doesn't use prohibited operators
+        self.validate_source_code()?;
+        
+        let a = test_case.input["a"].as_i64().ok_or("Missing 'a' input")? as i32;
+        let b = test_case.input["b"].as_i64().ok_or("Missing 'b' input")? as i32;
+        
+        let result = Solution::add(a, b);
+        Ok(serde_json::json!(result))
+    }
+
+    /// Compare results using simple equality.
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+impl AddTwoNumbersIIDriver {
+    /// Validate that the source code doesn't contain prohibited operators.
+    fn validate_source_code(&self) -> Result<(), Box<dyn std::error::Error>> {
+        match fs::read_to_string("solution.rs") {
+            Ok(solution_code) => {
+                // Remove comments to avoid false positives
+                let lines: Vec<&str> = solution_code.lines().collect();
+                let mut clean_lines = Vec::new();
+                
+                for line in lines {
+                    if let Some(comment_pos) = line.find("//") {
+                        clean_lines.push(&line[..comment_pos]);
+                    } else {
+                        clean_lines.push(line);
+                    }
+                }
+                
+                let clean_code = clean_lines.join("\n");
+                
+                // Check for prohibited operators using simple string matching
+                let prohibited_operators = vec![" + ", " +)", "(+ ", " - ", " -)", "(- ", "+=", "-=", "++", "--"];
+                
+                for op in prohibited_operators {
+                    if clean_code.contains(op) {
+                        return Err("Prohibited operator detected in solution.".into());
+                    }
+                }
+                Ok(())
+            }
+            Err(_) => {
+                // If solution file doesn't exist, skip validation
+                Ok(())
+            }
+        }
+    }
+}
+
+fn main() {
+    // Create and run the driver
+    let driver = BaseDriver::new(AddTwoNumbersIIDriver);
+    driver.run();
+}

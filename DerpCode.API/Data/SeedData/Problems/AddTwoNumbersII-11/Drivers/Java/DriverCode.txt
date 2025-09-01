@@ -1,0 +1,119 @@
+import java.util.*;
+import java.util.regex.Pattern;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+/**
+ * Problem-specific driver for AddTwoNumbersII problem.
+ */
+class AddTwoNumbersIIDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray pair = input.get(i).getAsJsonArray();
+            int a = pair.get(0).getAsInt();
+            int b = pair.get(1).getAsInt();
+            TestInput testInput = new TestInput(a, b);
+            int expected = expectedOutput.get(i).getAsInt();
+            
+            testCases.add(new TestCase(testInput, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        // First, validate that the solution doesn't use prohibited operators
+        validateSourceCode();
+        
+        TestInput input = (TestInput) testCase.getInput();
+        return Solution.add(input.a, input.b);
+    }
+
+    /**
+     * Validate that the source code doesn't contain prohibited operators.
+     */
+    private void validateSourceCode() throws Exception {
+        try {
+            String solutionCode = new String(Files.readAllBytes(Paths.get("Solution.java")));
+            
+            // Remove comments to avoid false positives
+            String[] lines = solutionCode.split("\n");
+            StringBuilder cleanCodeBuilder = new StringBuilder();
+            
+            for (String line : lines) {
+                int commentIndex = line.indexOf("//");
+                if (commentIndex >= 0) {
+                    cleanCodeBuilder.append(line.substring(0, commentIndex)).append("\n");
+                } else {
+                    cleanCodeBuilder.append(line).append("\n");
+                }
+            }
+            
+            String cleanCode = cleanCodeBuilder.toString();
+            
+            // Remove multi-line comments
+            cleanCode = cleanCode.replaceAll("/\\*[\\s\\S]*?\\*/", "");
+            
+            // Remove string literals
+            cleanCode = cleanCode.replaceAll("\"[^\"]*\"", "\"\"");
+            cleanCode = cleanCode.replaceAll("'[^']*'", "''");
+            
+            // Check for prohibited operators using simpler patterns
+            String[] prohibitedPatterns = {
+                " \\+ ",     // + surrounded by spaces
+                "\\+\\d",    // + followed by digit
+                "\\d\\+",    // digit followed by +
+                "\\)\\+",    // ) followed by +
+                "\\+\\(",    // + followed by (
+                " - ",       // - surrounded by spaces
+                "\\)-",      // ) followed by -
+                "-\\(",      // - followed by (
+                "\\+=",      // +=
+                "-=",        // -=
+                "\\+\\+",    // ++
+                "--"         // --
+            };
+            
+            for (String pattern : prohibitedPatterns) {
+                if (Pattern.compile(pattern).matcher(cleanCode).find()) {
+                    throw new RuntimeException("Prohibited operator detected in solution. You must use only bitwise operations.");
+                }
+            }
+        } catch (Exception e) {
+            if (!(e instanceof java.nio.file.NoSuchFileException)) {
+                throw e;
+            }
+            // If solution file doesn't exist, skip validation
+        }
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+    
+    private static class TestInput {
+        public int a;
+        public int b;
+        
+        public TestInput(int a, int b) {
+            this.a = a;
+            this.b = b;
+        }
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new AddTwoNumbersIIDriver());
+        driver.run(args);
+    }
+}

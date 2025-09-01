@@ -1,0 +1,102 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { add } from './solution.js';
+import fs from 'fs';
+
+/**
+ * Problem-specific driver for AddTwoNumbersII problem.
+ */
+class AddTwoNumbersIIDriver extends IProblemDriver {
+    /**
+     * Parse input as array of pairs and expected output as array of integers.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: { a: input[i][0], b: input[i][1] },
+                expectedOutput: expectedOutput[i]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the add function with the test case inputs, but first validate no + operator is used.
+     */
+    executeTestCase(testCase, index) {
+        // First, validate that the solution doesn't use prohibited operators
+        this.validateSourceCode();
+        
+        const { a, b } = testCase.input;
+        return add(a, b);
+    }
+
+    /**
+     * Validate that the source code doesn't contain prohibited operators.
+     */
+    validateSourceCode() {
+        try {
+            const solutionCode = fs.readFileSync('solution.js', 'utf8');
+            
+            // Remove comments and strings to avoid false positives
+            let cleanCode = solutionCode;
+            
+            // Remove single-line comments
+            cleanCode = cleanCode.replace(/\/\/.*$/gm, '');
+            
+            // Remove multi-line comments
+            cleanCode = cleanCode.replace(/\/\*[\s\S]*?\*\//g, '');
+            
+            // Remove string literals
+            cleanCode = cleanCode.replace(/"[^"]*"/g, '""');
+            cleanCode = cleanCode.replace(/'[^']*'/g, "''");
+            
+            // Check for prohibited operators using simple patterns
+            const prohibitedPatterns = [
+                / \+ /,      // + surrounded by spaces
+                /\+\d/,      // + followed by digit
+                /\d\+/,      // digit followed by +
+                /\)\+/,      // ) followed by +
+                /\+\(/,      // + followed by (
+                / - /,       // - surrounded by spaces
+                /\)-/,       // ) followed by -
+                /-\(/,       // - followed by (
+                /\+=/,       // +=
+                /-=/,        // -=
+                /\+\+/,      // ++
+                /--/         // --
+            ];
+            
+            for (const pattern of prohibitedPatterns) {
+                if (pattern.test(cleanCode)) {
+                    throw new Error('Prohibited operator detected in solution.');
+                }
+            }
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                throw err;
+            }
+            // If solution file doesn't exist, skip validation
+        }
+    }
+
+    /**
+     * Compare results using simple equality.
+     */
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new AddTwoNumbersIIDriver());
+driver.run();
