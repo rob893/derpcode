@@ -1,0 +1,123 @@
+{
+  "Id": 8,
+  "Name": "Target Pair",
+  "Description": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 8,
+    "UserId": 1,
+    "Title": "Target Pair Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-09-01T12:00:00.000000+00:00",
+    "UpdatedAt": "2025-09-01T12:00:00.000000+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 4,
+        "Name": "Hash Table"
+      },
+      {
+        "Id": 7,
+        "Name": "Array"
+      },
+      {
+        "Id": 8,
+        "Name": "Two Pointers"
+      }
+    ]
+  },
+  "Difficulty": "Easy",
+  "ExpectedOutput": [
+    [0, 1],
+    [1, 2],
+    [0, 1]
+  ],
+  "Input": [
+    [[2, 7, 11, 15], 9],
+    [[3, 2, 4], 6],
+    [[3, 3], 6]
+  ],
+  "Hints": [
+    "Think about what you've seen before as you iterate through the array.",
+    "A hash table is a good way to keep track of what you've seen.",
+    "Consider what the complement of each number would be."
+  ],
+  "Tags": [
+    {
+      "Id": 4,
+      "Name": "Hash Table"
+    },
+    {
+      "Id": 7,
+      "Name": "Array"
+    },
+    {
+      "Id": 8,
+      "Name": "Two Pointers"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 33,
+      "ProblemId": 8,
+      "Language": "JavaScript",
+      "Image": "code-executor-javascript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/JavaScript/UITemplate.txt",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 34,
+      "ProblemId": 8,
+      "Language": "Python",
+      "Image": "code-executor-python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Python/UITemplate.txt",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 35,
+      "ProblemId": 8,
+      "Language": "CSharp",
+      "Image": "code-executor-csharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/CSharp/UITemplate.txt",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 36,
+      "ProblemId": 8,
+      "Language": "Java",
+      "Image": "code-executor-java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Java/UITemplate.txt",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Java/Answer.txt"
+    },
+    {
+      "Id": 37,
+      "ProblemId": 8,
+      "Language": "TypeScript",
+      "Image": "code-executor-typescript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/TypeScript/UITemplate.txt",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 38,
+      "ProblemId": 8,
+      "Language": "Rust",
+      "Image": "code-executor-rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Rust/UITemplate.txt",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/TargetPair-8/Drivers/Rust/Answer.txt"
+    }
+  ],
+  "IsDeleted": false,
+  "CreatedAt": "2025-09-01T12:00:00.000000+00:00",
+  "UpdatedAt": "2025-09-01T12:00:00.000000+00:00",
+  "LastEditedById": 1,
+  "CreatedById": 1
+}

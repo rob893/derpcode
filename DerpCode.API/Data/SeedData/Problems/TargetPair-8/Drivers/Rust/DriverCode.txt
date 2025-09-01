@@ -1,0 +1,94 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::target_pair;
+
+/// Problem-specific driver for Target Pair problem.
+pub struct TargetPairDriver;
+
+impl ProblemDriver for TargetPairDriver {
+    /// Parse input as arrays with nums and target.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for (i, test_input) in input_array.iter().enumerate() {
+            let test_input_array = test_input.as_array().expect("Test input should be an array");
+            let nums = test_input_array[0].as_array().expect("Nums should be an array");
+            let target = test_input_array[1].as_i64().expect("Target should be an integer") as i32;
+            
+            // Convert nums to Vec<i32>
+            let nums_vec: Vec<i32> = nums.iter()
+                .map(|v| v.as_i64().expect("Number should be integer") as i32)
+                .collect();
+            
+            let expected = if i < expected_array.len() {
+                expected_array[i].clone()
+            } else {
+                Value::Null
+            };
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!({ "nums": nums_vec, "target": target }),
+                expected_output: expected,
+            });
+        }
+        
+        test_cases
+    }
+
+    /// Execute a single test case for target pair.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let nums_json = &test_case.input["nums"];
+        let nums: Vec<i32> = nums_json.as_array()
+            .ok_or("Missing 'nums' input")?
+            .iter()
+            .map(|v| v.as_i64().ok_or("Invalid number in nums").map(|n| n as i32))
+            .collect::<Result<Vec<i32>, _>>()?;
+        
+        let target = test_case.input["target"].as_i64().ok_or("Missing 'target' input")? as i32;
+        
+        let result = target_pair(nums, target);
+        Ok(serde_json::json!(result))
+    }
+
+    /// Compare if two arrays contain the same elements (order doesn't matter for this problem).
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        let actual_array = match actual.as_array() {
+            Some(arr) => arr,
+            None => return actual == expected,
+        };
+        
+        let expected_array = match expected.as_array() {
+            Some(arr) => arr,
+            None => return actual == expected,
+        };
+        
+        if actual_array.len() != expected_array.len() {
+            return false;
+        }
+        
+        // For target pair, we just need to check if the indices are correct
+        // The order doesn't matter as long as both indices point to numbers that sum to target
+        if actual_array.len() == 2 && expected_array.len() == 2 {
+            let a0 = actual_array[0].as_i64().unwrap_or(-1);
+            let a1 = actual_array[1].as_i64().unwrap_or(-1);
+            let e0 = expected_array[0].as_i64().unwrap_or(-1);
+            let e1 = expected_array[1].as_i64().unwrap_or(-1);
+            
+            (a0 == e0 && a1 == e1) || (a0 == e1 && a1 == e0)
+        } else {
+            actual == expected
+        }
+    }
+}
+
+fn main() {
+    let driver = BaseDriver::new(TargetPairDriver);
+    driver.run();
+}

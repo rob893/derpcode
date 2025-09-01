@@ -1,0 +1,102 @@
+{
+  "Id": 9,
+  "Name": "At Most",
+  "Description": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 9,
+    "UserId": 1,
+    "Title": "At Most Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-09-01T00:00:00.000000+00:00",
+    "UpdatedAt": "2025-09-01T00:00:00.000000+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 10,
+        "Name": "Array"
+      },
+      {
+        "Id": 11,
+        "Name": "Counting"
+      }
+    ]
+  },
+  "Difficulty": "VeryEasy",
+  "ExpectedOutput": [false, false, true, true, true],
+  "Input": [[1, 2, 3, 1, 1], 1, 2, [5, 5, 5, 5, 5], 5, 3, [1, 2, 3, 4, 5], 6, 0, [7, 7, 7, 7], 7, 5, [], 1, 0],
+  "Hints": [
+    "Count how many times the target appears in the array.",
+    "Compare the count with the atMostNTimes parameter.",
+    "Remember that 'at most' means less than or equal to."
+  ],
+  "Tags": [
+    {
+      "Id": 10,
+      "Name": "Array"
+    },
+    {
+      "Id": 11,
+      "Name": "Counting"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 39,
+      "ProblemId": 9,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 40,
+      "ProblemId": 9,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 41,
+      "ProblemId": 9,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 42,
+      "ProblemId": 9,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 43,
+      "ProblemId": 9,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 44,
+      "ProblemId": 9,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/AtMost-9/Drivers/Java/Answer.txt"
+    }
+  ]
+}

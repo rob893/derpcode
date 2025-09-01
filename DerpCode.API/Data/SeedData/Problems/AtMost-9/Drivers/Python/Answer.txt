@@ -1,0 +1,23 @@
+class Solution:
+    @staticmethod
+    def at_most(arr, target, at_most_n_times):
+        """
+        Determines if the target appears in the array at most at_most_n_times times.
+        
+        Args:
+            arr: The array to search in
+            target: The number to count
+            at_most_n_times: The maximum allowed occurrences
+            
+        Returns:
+            True if target appears <= at_most_n_times, False otherwise
+        """
+        count = 0
+        
+        for num in arr:
+            if num == target:
+                count += 1
+                if count > at_most_n_times:
+                    return False
+        
+        return True

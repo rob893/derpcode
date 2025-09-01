@@ -1,0 +1,88 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.AtMost
+{
+    /// <summary>
+    /// Problem-specific driver for AtMost problem.
+    /// </summary>
+    public class AtMostDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as array, target, and atMostNTimes, and expected output as array of booleans.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputDoc = JsonDocument.Parse(input.ToString()!);
+            var expectedDoc = JsonDocument.Parse(expectedOutput.ToString()!);
+            
+            var inputArray = inputDoc.RootElement;
+            var expectedArray = expectedDoc.RootElement;
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray.GetArrayLength(); i += 3)
+            {
+                // Parse the array
+                var arrElement = inputArray[i];
+                var arr = new int[arrElement.GetArrayLength()];
+                for (int j = 0; j < arrElement.GetArrayLength(); j++)
+                {
+                    arr[j] = arrElement[j].GetInt32();
+                }
+                
+                // Parse target and atMostNTimes
+                var target = inputArray[i + 1].GetInt32();
+                var atMostNTimes = inputArray[i + 2].GetInt32();
+                
+                testCases.Add(new TestCase
+                {
+                    Input = new object[] { arr, target, atMostNTimes },
+                    ExpectedOutput = expectedArray[i / 3].GetBoolean()
+                });
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the AtMost method with the test case inputs.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var inputData = (object[])testCase.Input;
+            
+            var arr = (int[])inputData[0];
+            var target = (int)inputData[1];
+            var atMostNTimes = (int)inputData[2];
+            
+            return Solution.AtMost(arr, target, atMostNTimes);
+        }
+
+        /// <summary>
+        /// Compare results using simple equality.
+        /// </summary>
+        public override bool CompareResults(object? expected, object? actual)
+        {
+            if (expected == null && actual == null) return true;
+            if (expected == null || actual == null) return false;
+            
+            return expected.Equals(actual);
+        }
+    }
+
+    /// <summary>
+    /// Program entry point.
+    /// </summary>
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var driver = new BaseDriver(new AtMostDriver());
+            driver.Run(args);
+        }
+    }
+}

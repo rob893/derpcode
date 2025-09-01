@@ -1,0 +1,27 @@
+pub struct Solution;
+
+impl Solution {
+    /// Determines if the target appears in the array at most at_most_n_times times.
+    ///
+    /// # Arguments
+    /// * `arr` - The array to search in
+    /// * `target` - The number to count
+    /// * `at_most_n_times` - The maximum allowed occurrences
+    ///
+    /// # Returns
+    /// True if target appears <= at_most_n_times, false otherwise
+    pub fn at_most(arr: &[i32], target: i32, at_most_n_times: i32) -> bool {
+        let mut count = 0;
+        
+        for &num in arr {
+            if num == target {
+                count += 1;
+                if count > at_most_n_times {
+                    return false;
+                }
+            }
+        }
+        
+        true
+    }
+}

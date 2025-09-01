@@ -1,0 +1,6 @@
+/// Given a vector of integers nums and an integer target, return indices of the two numbers
+/// such that they add up to target.
+pub fn target_pair(nums: Vec<i32>, target: i32) -> Vec<i32> {
+    // Your code here
+    vec![]
+}

@@ -1,0 +1,23 @@
+public class Solution {
+    /**
+     * Determines if the target appears in the array at most atMostNTimes times.
+     * @param arr The array to search in
+     * @param target The number to count
+     * @param atMostNTimes The maximum allowed occurrences
+     * @return True if target appears <= atMostNTimes, false otherwise
+     */
+    public static boolean atMost(int[] arr, int target, int atMostNTimes) {
+        int count = 0;
+        
+        for (int num : arr) {
+            if (num == target) {
+                count++;
+                if (count > atMostNTimes) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+}

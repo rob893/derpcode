@@ -1,0 +1,14 @@
+public class Solution {
+    /**
+     * Given an array of integers nums and an integer target, return indices of the two numbers
+     * such that they add up to target.
+     * 
+     * @param nums Array of integers
+     * @param target Target sum
+     * @return Array containing indices of the two numbers that add up to target
+     */
+    public static int[] targetPair(int[] nums, int target) {
+        // Your code here
+        return new int[0];
+    }
+}

@@ -1,0 +1,84 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.TargetPair
+{
+    /// <summary>
+    /// Problem-specific driver for Target Pair problem.
+    /// </summary>
+    public class TargetPairDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as arrays with nums and target.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputJson = JsonSerializer.Deserialize<JsonElement>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<int[][]>(expectedOutput.ToString()!);
+            var testCases = new List<TestCase>();
+
+            var inputArray = inputJson.EnumerateArray().ToArray();
+            
+            for (int i = 0; i < inputArray.Length; i++)
+            {
+                var testInputArray = inputArray[i].EnumerateArray().ToArray();
+                var nums = testInputArray[0].EnumerateArray().Select(x => x.GetInt32()).ToArray();
+                var target = testInputArray[1].GetInt32();
+                
+                testCases.Add(new TestCase
+                {
+                    Input = new { nums, target },
+                    ExpectedOutput = i < expectedArray!.Length ? expectedArray[i] : null
+                });
+            }
+
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute a single test case for target pair.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            dynamic input = testCase.Input;
+            int[] nums = input.nums;
+            int target = input.target;
+            
+            return Solution.TargetPair(nums, target);
+        }
+
+        /// <summary>
+        /// Compare if two arrays contain the same elements (order doesn't matter for this problem).
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            if (actual is not int[] actualArray || expected is not int[] expectedArray)
+            {
+                return object.Equals(actual, expected);
+            }
+
+            if (actualArray.Length != expectedArray.Length)
+            {
+                return false;
+            }
+
+            // For target pair, we just need to check if the indices are correct
+            // The order doesn't matter as long as both indices point to numbers that sum to target
+            return (actualArray[0] == expectedArray[0] && actualArray[1] == expectedArray[1]) ||
+                   (actualArray[0] == expectedArray[1] && actualArray[1] == expectedArray[0]);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var driver = new BaseDriver(new TargetPairDriver());
+            driver.Run(args);
+        }
+    }
+}

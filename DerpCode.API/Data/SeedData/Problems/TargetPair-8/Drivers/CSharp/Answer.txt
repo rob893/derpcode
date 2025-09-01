@@ -1,0 +1,31 @@
+using System;
+using System.Collections.Generic;
+
+public class Solution 
+{
+    /// <summary>
+    /// Given an array of integers nums and an integer target, return indices of the two numbers
+    /// such that they add up to target.
+    /// </summary>
+    /// <param name="nums">Array of integers</param>
+    /// <param name="target">Target sum</param>
+    /// <returns>Array containing indices of the two numbers that add up to target</returns>
+    public static int[] TargetPair(int[] nums, int target) 
+    {
+        var numMap = new Dictionary<int, int>();
+        
+        for (int i = 0; i < nums.Length; i++)
+        {
+            int complement = target - nums[i];
+            
+            if (numMap.ContainsKey(complement))
+            {
+                return new int[] { numMap[complement], i };
+            }
+            
+            numMap[nums[i]] = i;
+        }
+        
+        return new int[0]; // Should never reach here given the problem constraints
+    }
+}

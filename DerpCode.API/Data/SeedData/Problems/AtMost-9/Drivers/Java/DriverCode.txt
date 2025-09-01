@@ -1,0 +1,63 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+/**
+ * Problem-specific driver for AtMost problem.
+ */
+class AtMostDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0, j = 0; i < input.size(); i += 3, j++) {
+            JsonArray arrJson = input.get(i).getAsJsonArray();
+            int[] arr = new int[arrJson.size()];
+            for (int k = 0; k < arrJson.size(); k++) {
+                arr[k] = arrJson.get(k).getAsInt();
+            }
+            
+            int target = input.get(i + 1).getAsInt();
+            int atMostNTimes = input.get(i + 2).getAsInt();
+            
+            TestInput testInput = new TestInput(arr, target, atMostNTimes);
+            boolean expected = expectedOutput.get(j).getAsBoolean();
+            
+            testCases.add(new TestCase(testInput, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        TestInput input = (TestInput) testCase.getInput();
+        return Solution.atMost(input.arr, input.target, input.atMostNTimes);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+    
+    private static class TestInput {
+        public int[] arr;
+        public int target;
+        public int atMostNTimes;
+        
+        public TestInput(int[] arr, int target, int atMostNTimes) {
+            this.arr = arr;
+            this.target = target;
+            this.atMostNTimes = atMostNTimes;
+        }
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new AtMostDriver());
+        driver.run(args);
+    }
+}

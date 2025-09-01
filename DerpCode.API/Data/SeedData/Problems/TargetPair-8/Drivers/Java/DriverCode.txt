@@ -1,0 +1,84 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
+/**
+ * Problem-specific driver for Target Pair problem.
+ */
+class TargetPairDriver extends ProblemDriverBase {
+    
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray testInput = input.get(i).getAsJsonArray();
+            JsonArray nums = testInput.get(0).getAsJsonArray();
+            int target = testInput.get(1).getAsInt();
+            
+            // Convert JsonArray to int array
+            int[] numsArray = new int[nums.size()];
+            for (int j = 0; j < nums.size(); j++) {
+                numsArray[j] = nums.get(j).getAsInt();
+            }
+            
+            TestInput testInputObj = new TestInput(numsArray, target);
+            
+            // Parse expected output
+            int[] expected = null;
+            if (i < expectedOutput.size()) {
+                JsonArray expectedArray = expectedOutput.get(i).getAsJsonArray();
+                expected = new int[expectedArray.size()];
+                for (int j = 0; j < expectedArray.size(); j++) {
+                    expected[j] = expectedArray.get(j).getAsInt();
+                }
+            }
+            
+            testCases.add(new TestCase(testInputObj, expected));
+        }
+        
+        return testCases;
+    }
+    
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        TestInput input = (TestInput) testCase.getInput();
+        return Solution.targetPair(input.nums, input.target);
+    }
+    
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        if (!(actual instanceof int[]) || !(expected instanceof int[])) {
+            return Objects.equals(actual, expected);
+        }
+        
+        int[] actualArray = (int[]) actual;
+        int[] expectedArray = (int[]) expected;
+        
+        if (actualArray.length != expectedArray.length) {
+            return false;
+        }
+        
+        // For target pair, we just need to check if the indices are correct
+        // The order doesn't matter as long as both indices point to numbers that sum to target
+        return (actualArray[0] == expectedArray[0] && actualArray[1] == expectedArray[1]) ||
+               (actualArray[0] == expectedArray[1] && actualArray[1] == expectedArray[0]);
+    }
+    
+    private static class TestInput {
+        public int[] nums;
+        public int target;
+        
+        public TestInput(int[] nums, int target) {
+            this.nums = nums;
+            this.target = target;
+        }
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        BaseDriver driver = new BaseDriver(new TargetPairDriver());
+        driver.run(args);
+    }
+}

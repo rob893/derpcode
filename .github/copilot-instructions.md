@@ -45,3 +45,4 @@ When asked to create new problems:
 - All drivers must inherit from the basedriver class found in Docker/{language}/basedriver.txt
 - Drivers should not use any 3rd party libraries (like lodash) unless absolutely necessary
 - Do not provide hints in the problem description.
+- All problems must support drivers for CSharp, Java, JavaScript, Python, TypeScript, and Rust.

@@ -1,0 +1,61 @@
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+import { targetPair } from './solution';
+
+interface TestInput {
+    nums: number[];
+    target: number;
+}
+
+/**
+ * Problem-specific driver for Target Pair problem.
+ */
+class TargetPairDriver extends ProblemDriverBase {
+    /**
+     * Parse input as arrays with nums and target.
+     */
+    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            const nums = input[i][0];
+            const target = input[i][1];
+            
+            testCases.push({
+                input: { nums, target } as TestInput,
+                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : null
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute a single test case for target pair.
+     */
+    executeTestCase(testCase: TestCase, index: number): any {
+        const inputData = testCase.input as TestInput;
+        return targetPair(inputData.nums, inputData.target);
+    }
+
+    /**
+     * Compare if two arrays contain the same elements (order doesn't matter for this problem).
+     */
+    compareResults(actual: any, expected: any): boolean {
+        if (!Array.isArray(actual) || !Array.isArray(expected)) {
+            return actual === expected;
+        }
+        
+        if (actual.length !== expected.length) {
+            return false;
+        }
+        
+        // For target pair, we just need to check if the indices are correct
+        // The order doesn't matter as long as both indices point to numbers that sum to target
+        return (actual[0] === expected[0] && actual[1] === expected[1]) ||
+               (actual[0] === expected[1] && actual[1] === expected[0]);
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new TargetPairDriver());
+driver.run();

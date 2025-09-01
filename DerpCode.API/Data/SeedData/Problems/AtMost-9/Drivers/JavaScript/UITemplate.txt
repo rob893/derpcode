@@ -1,0 +1,11 @@
+/**
+ * Determines if the target appears in the array at most atMostNTimes times.
+ * @param {number[]} arr - The array to search in
+ * @param {number} target - The number to count
+ * @param {number} atMostNTimes - The maximum allowed occurrences
+ * @returns {boolean} - True if target appears <= atMostNTimes, false otherwise
+ */
+export function atMost(arr, target, atMostNTimes) {
+    // Your code here
+    return false;
+}

@@ -1,0 +1,16 @@
+from typing import List
+
+def two_sum(nums: List[int], target: int) -> List[int]:
+    """
+    Given an array of integers nums and an integer target, return indices of the two numbers
+    such that they add up to target.
+    
+    Args:
+        nums: List of integers
+        target: Target sum
+        
+    Returns:
+        List containing indices of the two numbers that add up to target
+    """
+    # Your code here
+    return []

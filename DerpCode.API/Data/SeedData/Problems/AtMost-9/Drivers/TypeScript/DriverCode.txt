@@ -1,0 +1,59 @@
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+import { atMost } from './solution';
+
+interface TestInput {
+    arr: number[];
+    target: number;
+    atMostNTimes: number;
+}
+
+/**
+ * Problem-specific driver for AtMost problem.
+ */
+class AtMostDriver extends ProblemDriverBase {
+    /**
+     * Parse input as array, target, and atMostNTimes, and expected output as array of booleans.
+     */
+    parseTestCases(input: any[], expectedOutput: boolean[]): TestCase[] {
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < input.length; i += 3) {
+            testCases.push({
+                input: { 
+                    arr: input[i] as number[], 
+                    target: input[i + 1] as number, 
+                    atMostNTimes: input[i + 2] as number 
+                },
+                expectedOutput: expectedOutput[i / 3]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the atMost function with the test case inputs.
+     */
+    executeTestCase(testCase: TestCase): boolean {
+        const { arr, target, atMostNTimes } = testCase.input as TestInput;
+        return atMost(arr, target, atMostNTimes);
+    }
+
+    /**
+     * Compare results using simple equality.
+     */
+    compareResults(actual: boolean, expected: boolean): boolean {
+        return actual === expected;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual: boolean, expected: boolean): string {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new AtMostDriver());
+driver.run();

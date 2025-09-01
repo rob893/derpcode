@@ -1,0 +1,72 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::Solution;
+
+/// Problem-specific driver for AtMost problem.
+pub struct AtMostDriver;
+
+impl ProblemDriver for AtMostDriver {
+    /// Parse input as array, target, and at_most_n_times, and expected output as array of booleans.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in (0..input_array.len()).step_by(3) {
+            if i + 2 < input_array.len() {
+                let arr_json = &input_array[i];
+                let arr: Vec<i32> = arr_json.as_array()
+                    .expect("Array should be an array")
+                    .iter()
+                    .map(|v| v.as_i64().expect("Array element should be integer") as i32)
+                    .collect();
+                
+                let target = input_array[i + 1].as_i64().expect("Target should be integer") as i32;
+                let at_most_n_times = input_array[i + 2].as_i64().expect("AtMostNTimes should be integer") as i32;
+                let expected = expected_array[i / 3].clone();
+                
+                test_cases.push(TestCase {
+                    input: serde_json::json!({ 
+                        "arr": arr, 
+                        "target": target, 
+                        "at_most_n_times": at_most_n_times 
+                    }),
+                    expected_output: expected,
+                });
+            }
+        }
+        
+        test_cases
+    }
+
+    /// Execute the at_most function with the test case inputs.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let arr: Vec<i32> = test_case.input["arr"]
+            .as_array()
+            .ok_or("Missing 'arr' input")?
+            .iter()
+            .map(|v| v.as_i64().ok_or("Array element should be integer").map(|x| x as i32))
+            .collect::<Result<Vec<i32>, _>>()?;
+        
+        let target = test_case.input["target"].as_i64().ok_or("Missing 'target' input")? as i32;
+        let at_most_n_times = test_case.input["at_most_n_times"].as_i64().ok_or("Missing 'at_most_n_times' input")? as i32;
+        
+        let result = Solution::at_most(&arr, target, at_most_n_times);
+        Ok(serde_json::json!(result))
+    }
+
+    /// Compare results using simple equality.
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+fn main() {
+    let driver = BaseDriver::new(AtMostDriver);
+    driver.run();
+}
