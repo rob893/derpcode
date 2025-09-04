@@ -1,0 +1,85 @@
+import sys
+import json
+from collections import deque
+from typing import List, Optional, Any, Dict
+from base_driver import BaseDriver, IProblemDriver
+
+# Import user solution
+sys.path.append('.')
+from solution import inorder_traversal
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class InOrderTraversalDriver(IProblemDriver):
+    """Problem-specific driver for Binary Tree Inorder Traversal problem."""
+    
+    def parse_test_cases(self, input_data: Any, expected_output: Any) -> List[Dict[str, Any]]:
+        """Parse input as tree structures and expected output as arrays of integers."""
+        test_cases = []
+        
+        for i in range(len(input_data)):
+            tree_array = input_data[i]["tree"]
+            expected = expected_output[i]
+            
+            test_cases.append({
+                "input": {"tree_array": tree_array},
+                "expectedOutput": expected
+            })
+        
+        return test_cases
+    
+    def execute_test_case(self, test_case: Dict[str, Any], index: int) -> Any:
+        """Execute the inorder_traversal function with the test case inputs."""
+        tree_array = test_case["input"]["tree_array"]
+        root = self._build_tree_from_array(tree_array)
+        return inorder_traversal(root)
+    
+    def compare_results(self, actual: Any, expected: Any) -> bool:
+        """Compare results using list equality."""
+        if actual is None and expected is None:
+            return True
+        if actual is None or expected is None:
+            return False
+        
+        return actual == expected
+    
+    def format_error_message(self, actual: Any, expected: Any) -> str:
+        """Format error message for failed tests."""
+        actual_str = 'null' if actual is None else str(actual)
+        expected_str = 'null' if expected is None else str(expected)
+        return f"Expected {expected_str} but got {actual_str}"
+    
+    def _build_tree_from_array(self, tree_array: List[Optional[int]]) -> Optional[TreeNode]:
+        """Build a binary tree from array representation."""
+        if not tree_array:
+            return None
+        
+        root = TreeNode(tree_array[0])
+        queue = deque([root])
+        
+        i = 1
+        while queue and i < len(tree_array):
+            current = queue.popleft()
+            
+            # Left child
+            if i < len(tree_array) and tree_array[i] is not None:
+                current.left = TreeNode(tree_array[i])
+                queue.append(current.left)
+            i += 1
+            
+            # Right child
+            if i < len(tree_array) and tree_array[i] is not None:
+                current.right = TreeNode(tree_array[i])
+                queue.append(current.right)
+            i += 1
+        
+        return root
+
+if __name__ == "__main__":
+    # Create and run the driver
+    driver = BaseDriver(InOrderTraversalDriver())
+    driver.run()

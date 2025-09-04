@@ -1,0 +1,34 @@
+using System.Collections.Generic;
+
+public class TreeNode
+{
+    public int val;
+    public TreeNode left;
+    public TreeNode right;
+    
+    public TreeNode(int val = 0, TreeNode left = null, TreeNode right = null)
+    {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
+public class Solution
+{
+    public List<int> InorderTraversal(TreeNode root)
+    {
+        var result = new List<int>();
+        InorderHelper(root, result);
+        return result;
+    }
+    
+    private void InorderHelper(TreeNode node, List<int> result)
+    {
+        if (node == null) return;
+        
+        InorderHelper(node.left, result);   // Left
+        result.Add(node.val);               // Root
+        InorderHelper(node.right, result);  // Right
+    }
+}

@@ -1,0 +1,31 @@
+import java.util.*;
+
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
+public class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        inorderHelper(root, result);
+        return result;
+    }
+    
+    private void inorderHelper(TreeNode node, List<Integer> result) {
+        if (node == null) return;
+        
+        inorderHelper(node.left, result);   // Left
+        result.add(node.val);               // Root
+        inorderHelper(node.right, result);  // Right
+    }
+}

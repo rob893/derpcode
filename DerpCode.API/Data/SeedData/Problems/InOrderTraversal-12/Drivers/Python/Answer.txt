@@ -1,0 +1,21 @@
+from typing import List, Optional
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def inorder_traversal(root: Optional[TreeNode]) -> List[int]:
+    result = []
+    
+    def inorder_helper(node):
+        if node is None:
+            return
+        
+        inorder_helper(node.left)   # Left
+        result.append(node.val)     # Root
+        inorder_helper(node.right)  # Right
+    
+    inorder_helper(root)
+    return result

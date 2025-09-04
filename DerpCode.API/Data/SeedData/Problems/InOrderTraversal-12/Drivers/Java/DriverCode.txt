@@ -1,0 +1,86 @@
+import java.util.*;
+import java.util.stream.Collectors;
+import com.google.gson.*;
+
+class InOrderTraversalDriver extends ProblemDriverBase {
+    
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            JsonObject inputObj = input.get(i).getAsJsonObject();
+            JsonArray treeArray = inputObj.getAsJsonArray("tree");
+            JsonArray expected = expectedOutput.get(i).getAsJsonArray();
+            
+            testCases.add(new TestCase(treeArray, expected));
+        }
+        
+        return testCases;
+    }
+    
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        JsonArray treeArray = (JsonArray) testCase.getInput();
+        TreeNode root = buildTreeFromArray(treeArray);
+        
+        Solution solution = new Solution();
+        return solution.inorderTraversal(root);
+    }
+    
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        if (actual == null && expected == null) return true;
+        if (actual == null || expected == null) return false;
+        
+        @SuppressWarnings("unchecked")
+        List<Integer> actualList = (List<Integer>) actual;
+        JsonArray expectedArray = (JsonArray) expected;
+        
+        if (actualList.size() != expectedArray.size()) return false;
+        
+        for (int i = 0; i < actualList.size(); i++) {
+            if (!actualList.get(i).equals(expectedArray.get(i).getAsInt())) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private TreeNode buildTreeFromArray(JsonArray treeArray) {
+        if (treeArray == null || treeArray.size() == 0) return null;
+        
+        TreeNode root = new TreeNode(treeArray.get(0).getAsInt());
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        
+        int i = 1;
+        while (!queue.isEmpty() && i < treeArray.size()) {
+            TreeNode current = queue.poll();
+            
+            // Left child
+            if (i < treeArray.size() && !treeArray.get(i).isJsonNull()) {
+                current.left = new TreeNode(treeArray.get(i).getAsInt());
+                queue.offer(current.left);
+            }
+            i++;
+            
+            // Right child
+            if (i < treeArray.size() && !treeArray.get(i).isJsonNull()) {
+                current.right = new TreeNode(treeArray.get(i).getAsInt());
+                queue.offer(current.right);
+            }
+            i++;
+        }
+        
+        return root;
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        BaseDriver driver = new BaseDriver(new InOrderTraversalDriver());
+        driver.run(args);
+    }
+}
