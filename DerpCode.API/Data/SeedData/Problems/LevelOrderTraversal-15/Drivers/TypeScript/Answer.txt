@@ -1,4 +1,4 @@
-class TreeNode {
+export class TreeNode {
     val: number;
     left: TreeNode | null;
     right: TreeNode | null;
@@ -10,7 +10,7 @@ class TreeNode {
     }
 }
 
-function levelOrder(root: TreeNode | null): number[] {
+export function levelOrder(root: TreeNode | null): number[] {
     if (!root) return [];
     
     const result: number[] = [];
@@ -26,5 +26,3 @@ function levelOrder(root: TreeNode | null): number[] {
     
     return result;
 }
-
-export { levelOrder };

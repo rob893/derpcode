@@ -1,13 +1,5 @@
 import { BaseDriver, IProblemDriver } from './base-driver.js';
-import { inorderTraversal } from './solution.js';
-
-class TreeNode {
-    constructor(val, left, right) {
-        this.val = (val === undefined ? 0 : val);
-        this.left = (left === undefined ? null : left);
-        this.right = (right === undefined ? null : right);
-    }
-}
+import { inorderTraversal, TreeNode } from './solution.js';
 
 /**
  * Problem-specific driver for Binary Tree Inorder Traversal problem.

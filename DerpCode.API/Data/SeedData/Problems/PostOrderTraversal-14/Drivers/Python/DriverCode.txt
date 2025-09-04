@@ -6,13 +6,7 @@ from base_driver import BaseDriver, IProblemDriver
 
 # Import user solution
 sys.path.append('.')
-from solution import postorder_traversal
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+from solution import postorder_traversal, TreeNode
 
 class PostOrderTraversalDriver(IProblemDriver):
     """Problem-specific driver for Binary Tree Postorder Traversal problem."""

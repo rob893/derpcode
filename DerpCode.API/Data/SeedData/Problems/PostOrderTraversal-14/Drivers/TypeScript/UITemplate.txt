@@ -14,3 +14,5 @@ function postorderTraversal(root: TreeNode | null): number[] {
     // Your code here
     
 }
+
+export { postorderTraversal, TreeNode };

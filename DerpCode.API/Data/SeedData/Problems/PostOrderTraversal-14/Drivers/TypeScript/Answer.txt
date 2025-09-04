@@ -24,4 +24,4 @@ function postorderHelper(node: TreeNode | null, result: number[]): void {
     result.push(node.val);               // Root
 }
 
-export { postorderTraversal };
+export { postorderTraversal, TreeNode };
