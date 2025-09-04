@@ -1,0 +1,121 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.LevelOrderTraversal
+{
+    /// <summary>
+    /// Problem-specific driver for Binary Tree Level Order Traversal problem.
+    /// </summary>
+    public class LevelOrderTraversalDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as tree structures and expected output as flat arrays of integers.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var testCases = new List<TestCase>();
+            
+            var inputElement = JsonSerializer.Deserialize<JsonElement>(input.ToString()!);
+            var expectedElement = JsonSerializer.Deserialize<JsonElement>(expectedOutput.ToString()!);
+            
+            if (inputElement.ValueKind == JsonValueKind.Array && expectedElement.ValueKind == JsonValueKind.Array)
+            {
+                var inputArray = inputElement.EnumerateArray().ToArray();
+                var expectedArray = expectedElement.EnumerateArray().ToArray();
+                
+                for (int i = 0; i < inputArray.Length; i++)
+                {
+                    var treeArray = inputArray[i].GetProperty("tree");
+                    var expected = JsonSerializer.Deserialize<List<int>>(expectedArray[i].GetRawText())!;
+                    
+                    testCases.Add(new TestCase
+                    {
+                        Input = treeArray,
+                        ExpectedOutput = expected
+                    });
+                }
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the LevelOrder method with the test case inputs.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var treeElement = (JsonElement)testCase.Input;
+            var root = this.BuildTreeFromArray(treeElement);
+            
+            var solution = new Solution();
+            return solution.LevelOrder(root);
+        }
+
+        /// <summary>
+        /// Compare actual vs expected results for flat integer lists.
+        /// </summary>
+        public override bool CompareResults(object? actual, object? expected)
+        {
+            var actualList = actual as IList<int>;
+            var expectedList = expected as List<int>;
+            
+            if (actualList == null || expectedList == null) return false;
+            if (actualList.Count != expectedList.Count) return false;
+            
+            return actualList.SequenceEqual(expectedList);
+        }
+
+        /// <summary>
+        /// Build a binary tree from level-order array representation.
+        /// </summary>
+        private TreeNode? BuildTreeFromArray(JsonElement treeArray)
+        {
+            if (treeArray.ValueKind != JsonValueKind.Array) return null;
+            
+            var nodes = treeArray.EnumerateArray().ToArray();
+            if (nodes.Length == 0) return null;
+            
+            var root = new TreeNode(nodes[0].GetInt32());
+            var queue = new Queue<TreeNode>();
+            queue.Enqueue(root);
+            
+            int i = 1;
+            while (queue.Count > 0 && i < nodes.Length)
+            {
+                var current = queue.Dequeue();
+                
+                // Left child
+                if (i < nodes.Length && nodes[i].ValueKind != JsonValueKind.Null)
+                {
+                    current.left = new TreeNode(nodes[i].GetInt32());
+                    queue.Enqueue(current.left);
+                }
+                i++;
+                
+                // Right child
+                if (i < nodes.Length && nodes[i].ValueKind != JsonValueKind.Null)
+                {
+                    current.right = new TreeNode(nodes[i].GetInt32());
+                    queue.Enqueue(current.right);
+                }
+                i++;
+            }
+            
+            return root;
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new LevelOrderTraversalDriver());
+            driver.Run(args);
+        }
+    }
+}

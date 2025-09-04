@@ -1,0 +1,85 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { levelOrder } from './solution.js';
+
+class TreeNode {
+    constructor(val, left, right) {
+        this.val = (val === undefined ? 0 : val);
+        this.left = (left === undefined ? null : left);
+        this.right = (right === undefined ? null : right);
+    }
+}
+
+/**
+ * Problem-specific driver for Binary Tree Level Order Traversal problem.
+ */
+class LevelOrderTraversalDriver extends IProblemDriver {
+    /**
+     * Parse input as tree structures and expected output as flat arrays of integers.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            const treeArray = input[i].tree;
+            const expected = expectedOutput[i];
+            
+            testCases.push({
+                input: { treeArray: treeArray },
+                expectedOutput: expected
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute a single test case by building tree and calling level order traversal.
+     */
+    executeTestCase(testCase, index) {
+        const root = this.buildTreeFromArray(testCase.input.treeArray);
+        return levelOrder(root);
+    }
+
+    /**
+     * Compare actual vs expected results for flat integer arrays.
+     */
+    compareResults(actual, expected) {
+        if (actual.length !== expected.length) return false;
+        
+        return actual.every((val, idx) => val === expected[idx]);
+    }
+
+    /**
+     * Build a binary tree from level-order array representation.
+     */
+    buildTreeFromArray(nodes) {
+        if (!nodes || nodes.length === 0 || nodes[0] === null) {
+            return null;
+        }
+        
+        const root = new TreeNode(nodes[0]);
+        const queue = [root];
+        let i = 1;
+        
+        while (queue.length > 0 && i < nodes.length) {
+            const current = queue.shift();
+            
+            if (i < nodes.length && nodes[i] !== null) {
+                current.left = new TreeNode(nodes[i]);
+                queue.push(current.left);
+            }
+            i++;
+            
+            if (i < nodes.length && nodes[i] !== null) {
+                current.right = new TreeNode(nodes[i]);
+                queue.push(current.right);
+            }
+            i++;
+        }
+        
+        return root;
+    }
+}
+
+const driver = new BaseDriver(new LevelOrderTraversalDriver());
+driver.run();
