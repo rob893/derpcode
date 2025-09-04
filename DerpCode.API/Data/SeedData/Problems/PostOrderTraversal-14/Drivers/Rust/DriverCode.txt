@@ -1,0 +1,99 @@
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::collections::VecDeque;
+use serde_json::Value;
+
+mod base_driver;
+mod solution;
+
+use base_driver::*;
+use solution::*;
+
+struct PostOrderTraversalDriver;
+
+impl ProblemDriver for PostOrderTraversalDriver {
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().unwrap();
+        let expected_array = expected_output.as_array().unwrap();
+        
+        let mut test_cases = Vec::new();
+        
+        for (i, input_obj) in input_array.iter().enumerate() {
+            let tree_array = &input_obj["tree"];
+            let expected = &expected_array[i];
+            
+            test_cases.push(TestCase {
+                input: tree_array.clone(),
+                expected_output: expected.clone(),
+            });
+        }
+        
+        test_cases
+    }
+    
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let tree_array = &test_case.input;
+        let root = self.build_tree_from_array(tree_array)?;
+        
+        let result = postorder_traversal(root);
+        Ok(serde_json::to_value(result)?)
+    }
+    
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        let actual_vec: Vec<i32> = serde_json::from_value(actual.clone()).unwrap_or_default();
+        let expected_vec: Vec<i32> = serde_json::from_value(expected.clone()).unwrap_or_default();
+        
+        actual_vec == expected_vec
+    }
+}
+
+impl PostOrderTraversalDriver {
+    fn build_tree_from_array(&self, tree_array: &Value) -> Result<Option<Rc<RefCell<TreeNode>>>, Box<dyn std::error::Error>> {
+        let array = match tree_array.as_array() {
+            Some(arr) => arr,
+            None => return Ok(None),
+        };
+        
+        if array.is_empty() {
+            return Ok(None);
+        }
+        if array.is_empty() {
+            return Ok(None);
+        }
+        
+        let root_val = array[0].as_i64().ok_or("Invalid root value")? as i32;
+        let root = Rc::new(RefCell::new(TreeNode::new(root_val)));
+        let mut queue = VecDeque::new();
+        queue.push_back(root.clone());
+        
+        let mut i = 1;
+        while !queue.is_empty() && i < array.len() {
+            let current = queue.pop_front().unwrap();
+            
+            // Left child
+            if i < array.len() && !array[i].is_null() {
+                let left_val = array[i].as_i64().ok_or("Invalid left value")? as i32;
+                let left_node = Rc::new(RefCell::new(TreeNode::new(left_val)));
+                current.borrow_mut().left = Some(left_node.clone());
+                queue.push_back(left_node);
+            }
+            i += 1;
+            
+            // Right child
+            if i < array.len() && !array[i].is_null() {
+                let right_val = array[i].as_i64().ok_or("Invalid right value")? as i32;
+                let right_node = Rc::new(RefCell::new(TreeNode::new(right_val)));
+                current.borrow_mut().right = Some(right_node.clone());
+                queue.push_back(right_node);
+            }
+            i += 1;
+        }
+        
+        Ok(Some(root))
+    }
+}
+
+fn main() {
+    let driver = BaseDriver::new(PostOrderTraversalDriver);
+    driver.run();
+}

@@ -1,0 +1,92 @@
+import { BaseDriver, ProblemDriverBase } from './base-driver';
+import { postorderTraversal } from './solution';
+
+class TreeNode {
+    val: number;
+    left: TreeNode | null;
+    right: TreeNode | null;
+    
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        this.val = (val === undefined ? 0 : val);
+        this.left = (left === undefined ? null : left);
+        this.right = (right === undefined ? null : right);
+    }
+}
+
+interface TestCase {
+    input: { treeArray: (number | null)[] };
+    expectedOutput: number[];
+}
+
+/**
+ * Problem-specific driver for Binary Tree Postorder Traversal problem.
+ */
+class PostOrderTraversalDriver extends ProblemDriverBase {
+    /**
+     * Parse input as tree structures and expected output as arrays of integers.
+     */
+    parseTestCases(input: any[], expectedOutput: number[][]): TestCase[] {
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            const treeArray = input[i].tree;
+            const expected = expectedOutput[i];
+            
+            testCases.push({
+                input: { treeArray: treeArray },
+                expectedOutput: expected
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute a single test case by building tree and calling postorder traversal.
+     */
+    executeTestCase(testCase: TestCase, index: number): number[] {
+        const root = this.buildTreeFromArray(testCase.input.treeArray);
+        return postorderTraversal(root);
+    }
+
+    /**
+     * Compare actual vs expected results for integer arrays.
+     */
+    compareResults(actual: number[], expected: number[]): boolean {
+        if (actual.length !== expected.length) return false;
+        return actual.every((val, idx) => val === expected[idx]);
+    }
+    /**
+     * Build a binary tree from level-order array representation.
+     */
+    private buildTreeFromArray(nodes: (number | null)[]): TreeNode | null {
+        if (!nodes || nodes.length === 0 || nodes[0] === null) {
+            return null;
+        }
+        
+        const root = new TreeNode(nodes[0]);
+        const queue: TreeNode[] = [root];
+        let i = 1;
+        
+        while (queue.length > 0 && i < nodes.length) {
+            const current = queue.shift()!;
+            
+            if (i < nodes.length && nodes[i] !== null) {
+                current.left = new TreeNode(nodes[i] as number);
+                queue.push(current.left);
+            }
+            i++;
+            
+            if (i < nodes.length && nodes[i] !== null) {
+                current.right = new TreeNode(nodes[i] as number);
+                queue.push(current.right);
+            }
+            i++;
+        }
+        
+        return root;
+    }
+}
+
+const driver = new BaseDriver(new PostOrderTraversalDriver());
+driver.run();

@@ -1,0 +1,116 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.PostOrderTraversal
+{
+    /// <summary>
+    /// Problem-specific driver for Binary Tree Postorder Traversal problem.
+    /// </summary>
+    public class PostOrderTraversalDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as tree structures and expected output as arrays of integers.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var testCases = new List<TestCase>();
+            
+            var inputElement = JsonSerializer.Deserialize<JsonElement>(input.ToString()!);
+            var expectedElement = JsonSerializer.Deserialize<JsonElement>(expectedOutput.ToString()!);
+            
+            if (inputElement.ValueKind == JsonValueKind.Array && expectedElement.ValueKind == JsonValueKind.Array)
+            {
+                var inputArray = inputElement.EnumerateArray().ToArray();
+                var expectedArray = expectedElement.EnumerateArray().ToArray();
+                
+                for (int i = 0; i < inputArray.Length; i++)
+                {
+                    var treeArray = inputArray[i].GetProperty("tree");
+                    var expected = JsonSerializer.Deserialize<List<int>>(expectedArray[i].GetRawText())!;
+                    
+                    testCases.Add(new TestCase
+                    {
+                        Input = treeArray,
+                        ExpectedOutput = expected
+                    });
+                }
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the PostorderTraversal method with the test case inputs.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var treeElement = (JsonElement)testCase.Input;
+            var treeArray = JsonSerializer.Deserialize<int?[]>(treeElement.GetRawText());
+            var root = this.BuildTree(treeArray!);
+            
+            var solution = new Solution();
+            return solution.PostorderTraversal(root);
+        }
+
+        /// <summary>
+        /// Compare actual vs expected results for integer lists.
+        /// </summary>
+        public override bool CompareResults(object? actual, object? expected)
+        {
+            var actualList = actual as IList<int>;
+            var expectedList = expected as List<int>;
+            
+            if (actualList == null || expectedList == null) return false;
+            if (actualList.Count != expectedList.Count) return false;
+            
+            return actualList.SequenceEqual(expectedList);
+        }    /// <summary>
+        /// Build a binary tree from level-order array representation.
+        /// </summary>
+        private TreeNode? BuildTree(int?[] nodes)
+        {
+            if (nodes == null || nodes.Length == 0 || nodes[0] == null)
+                return null;
+                
+            var root = new TreeNode(nodes[0].Value);
+            var queue = new Queue<TreeNode>();
+            queue.Enqueue(root);
+            
+            int i = 1;
+            while (queue.Count > 0 && i < nodes.Length)
+            {
+                var current = queue.Dequeue();
+                
+                if (i < nodes.Length && nodes[i] != null)
+                {
+                    current.left = new TreeNode(nodes[i].Value);
+                    queue.Enqueue(current.left);
+                }
+                i++;
+                
+                if (i < nodes.Length && nodes[i] != null)
+                {
+                    current.right = new TreeNode(nodes[i].Value);
+                    queue.Enqueue(current.right);
+                }
+                i++;
+            }
+            
+            return root;
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new PostOrderTraversalDriver());
+            driver.Run(args);
+        }
+    }
+}

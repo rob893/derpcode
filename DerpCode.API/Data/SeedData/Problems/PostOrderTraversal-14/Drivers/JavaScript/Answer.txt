@@ -1,0 +1,19 @@
+/**
+ * @param {TreeNode} root
+ * @return {number[]}
+ */
+function postorderTraversal(root) {
+    const result = [];
+    postorderHelper(root, result);
+    return result;
+}
+
+function postorderHelper(node, result) {
+    if (!node) return;
+    
+    postorderHelper(node.left, result);  // Left
+    postorderHelper(node.right, result); // Right
+    result.push(node.val);               // Root
+}
+
+export { postorderTraversal };
