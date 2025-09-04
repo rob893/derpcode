@@ -1,0 +1,34 @@
+using System.Collections.Generic;
+
+public class TreeNode
+{
+    public int val;
+    public TreeNode left;
+    public TreeNode right;
+    
+    public TreeNode(int val = 0, TreeNode left = null, TreeNode right = null)
+    {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
+public class Solution
+{
+    public List<int> PreorderTraversal(TreeNode root)
+    {
+        var result = new List<int>();
+        PreorderHelper(root, result);
+        return result;
+    }
+    
+    private void PreorderHelper(TreeNode node, List<int> result)
+    {
+        if (node == null) return;
+        
+        result.Add(node.val);               // Root
+        PreorderHelper(node.left, result);  // Left
+        PreorderHelper(node.right, result); // Right
+    }
+}

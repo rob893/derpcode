@@ -1,0 +1,102 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { preorderTraversal } from './solution.js';
+
+class TreeNode {
+    constructor(val, left, right) {
+        this.val = (val === undefined ? 0 : val);
+        this.left = (left === undefined ? null : left);
+        this.right = (right === undefined ? null : right);
+    }
+}
+
+/**
+ * Problem-specific driver for Binary Tree Preorder Traversal problem.
+ */
+class PreOrderTraversalDriver extends IProblemDriver {
+    /**
+     * Parse input as tree structures and expected output as arrays of integers.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            const treeArray = input[i].tree;
+            const expected = expectedOutput[i];
+            
+            testCases.push({
+                input: { treeArray: treeArray },
+                expectedOutput: expected
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the preorderTraversal function with the test case inputs.
+     */
+    executeTestCase(testCase, index) {
+        const { treeArray } = testCase.input;
+        const root = this.buildTreeFromArray(treeArray);
+        return preorderTraversal(root);
+    }
+
+    /**
+     * Compare results using array equality.
+     */
+    compareResults(actual, expected) {
+        if (actual === null && expected === null) return true;
+        if (actual === null || expected === null) return false;
+        if (actual.length !== expected.length) return false;
+        
+        for (let i = 0; i < actual.length; i++) {
+            if (actual[i] !== expected[i]) return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        const actualStr = actual === null ? 'null' : `[${actual.join(', ')}]`;
+        const expectedStr = expected === null ? 'null' : `[${expected.join(', ')}]`;
+        return `Expected ${expectedStr} but got ${actualStr}`;
+    }
+
+    /**
+     * Build a binary tree from array representation.
+     */
+    buildTreeFromArray(treeArray) {
+        if (!treeArray || treeArray.length === 0) return null;
+        
+        const root = new TreeNode(treeArray[0]);
+        const queue = [root];
+        
+        let i = 1;
+        while (queue.length > 0 && i < treeArray.length) {
+            const current = queue.shift();
+            
+            // Left child
+            if (i < treeArray.length && treeArray[i] !== null) {
+                current.left = new TreeNode(treeArray[i]);
+                queue.push(current.left);
+            }
+            i++;
+            
+            // Right child
+            if (i < treeArray.length && treeArray[i] !== null) {
+                current.right = new TreeNode(treeArray[i]);
+                queue.push(current.right);
+            }
+            i++;
+        }
+        
+        return root;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new PreOrderTraversalDriver());
+driver.run();
