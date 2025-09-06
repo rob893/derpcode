@@ -30,6 +30,27 @@ function appendCursorPaginationParams(
   if (queryParams?.includeEdges !== undefined) params.append('includeEdges', queryParams.includeEdges.toString());
 }
 
+function appendProblemQueryParams(
+  params: URLSearchParams,
+  queryParams?: Partial<Omit<ProblemQueryParameters, keyof CursorPaginationQueryParameters>>
+): void {
+  if (queryParams?.includeUnpublished !== undefined) {
+    params.append('includeUnpublished', queryParams.includeUnpublished.toString());
+  }
+  if (queryParams?.difficulties && queryParams.difficulties.length > 0) {
+    queryParams.difficulties.forEach(difficulty => params.append('difficulties', difficulty.toString()));
+  }
+  if (queryParams?.tags && queryParams.tags.length > 0) {
+    queryParams.tags.forEach(tag => params.append('tags', tag));
+  }
+  if (queryParams?.orderBy) {
+    params.append('orderBy', queryParams.orderBy.toString());
+  }
+  if (queryParams?.orderByDirection) {
+    params.append('orderByDirection', queryParams.orderByDirection.toString());
+  }
+}
+
 function appendCommentPaginationParams(
   params: URLSearchParams,
   queryParams?: Partial<Omit<ArticleCommentQueryParameters, keyof CursorPaginationQueryParameters>>
@@ -41,28 +62,28 @@ function appendCommentPaginationParams(
 }
 
 export const problemsApi = {
-  async getProblems(queryParams?: Partial<ProblemQueryParameters>): Promise<Problem[]> {
+  async getProblems(queryParams?: Partial<ProblemQueryParameters>): Promise<CursorPaginatedResponse<Problem>> {
     const params = new URLSearchParams();
 
     appendCursorPaginationParams(params, queryParams);
-
-    if (queryParams?.includeUnpublished) params.append('includeUnpublished', queryParams.includeUnpublished.toString());
+    appendProblemQueryParams(params, queryParams);
 
     const url = params.toString() ? `/api/v1/problems?${params.toString()}` : '/api/v1/problems';
     const response = await apiClient.get<CursorPaginatedResponse<Problem>>(url);
-    return response.data.nodes || response.data.edges?.map(edge => edge.node) || [];
+    return response.data;
   },
 
-  async getProblemsLimited(queryParams?: Partial<ProblemQueryParameters>): Promise<ProblemLimited[]> {
+  async getProblemsLimited(
+    queryParams?: Partial<ProblemQueryParameters>
+  ): Promise<CursorPaginatedResponse<ProblemLimited>> {
     const params = new URLSearchParams();
 
     appendCursorPaginationParams(params, queryParams);
-
-    if (queryParams?.includeUnpublished) params.append('includeUnpublished', queryParams.includeUnpublished.toString());
+    appendProblemQueryParams(params, queryParams);
 
     const url = params.toString() ? `/api/v1/problems/limited?${params.toString()}` : '/api/v1/problems/limited';
     const response = await apiClient.get<CursorPaginatedResponse<ProblemLimited>>(url);
-    return response.data.nodes || response.data.edges?.map(edge => edge.node) || [];
+    return response.data;
   },
 
   async getProblem(id: number): Promise<Problem> {

@@ -10,4 +10,14 @@ public sealed record ProblemQueryParameters : CursorPaginationQueryParameters
     public List<ProblemDifficulty>? Difficulties { get; init; }
 
     public List<string>? Tags { get; init; }
+
+    public ProblemOrderBy OrderBy { get; init; } = ProblemOrderBy.Name;
+
+    public OrderByDirection OrderByDirection { get; init; } = OrderByDirection.Descending;
+}
+
+public enum ProblemOrderBy
+{
+    Difficulty,
+    Name
 }

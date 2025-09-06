@@ -6,3 +6,5 @@
 - move mapping logic into seperate class instead of dtos?
 - implement soft deleting for problems, users, articles (user soft deletes should null email. anon username and other pii. Article, problem, reply will keep original content in db but service will remove it)
 - Keep refactoring controllers out into services (auth)
+- move pick random problem to backend (due to paging)
+- add tags endpoint to return all tags so UI can use that for filtering

@@ -197,6 +197,15 @@ export interface UserSubmissionQueryParameters extends CursorPaginationQueryPara
 
 export interface ProblemQueryParameters extends CursorPaginationQueryParameters {
   includeUnpublished?: boolean;
+  difficulties?: ProblemDifficulty[];
+  tags?: string[];
+  orderBy?: ProblemOrderBy;
+  orderByDirection?: OrderByDirection;
+}
+
+export enum ProblemOrderBy {
+  Difficulty = 'Difficulty',
+  Name = 'Name'
 }
 
 export interface ArticleComment {

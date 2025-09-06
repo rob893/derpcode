@@ -35,15 +35,19 @@ export const queryKeys = {
 } as const;
 
 // Problem hooks
-
-export const useProblemsLimited = (queryParams?: Partial<ProblemQueryParameters>) => {
+export const useProblemsLimitedPaginated = (queryParams?: Partial<ProblemQueryParameters>) => {
   const { isLoading: isAuthLoading } = useAuth();
 
   return useQuery({
     queryKey: queryKeys.problemsLimited(queryParams),
     queryFn: () => problemsApi.getProblemsLimited(queryParams),
     enabled: !isAuthLoading, // Wait for auth initialization
-    staleTime: 15 * 60 * 1000 // 15 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes for paginated data
+    select: data => ({
+      problems: data.nodes || data.edges?.map(edge => edge.node) || [],
+      pageInfo: data.pageInfo,
+      totalCount: data.pageInfo.totalCount
+    })
   });
 };
 

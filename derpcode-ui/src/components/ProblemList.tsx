@@ -1,35 +1,152 @@
 import { useNavigate } from 'react-router';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Input } from '@heroui/react';
 import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { ProblemDifficulty } from '../types/models';
+import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblemsLimited } from '../hooks/api';
+import { useProblemsLimitedPaginated } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
+import { useDebounce } from '../hooks/useDebounce';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = hasAdminRole(user);
-  const {
-    data: problems = [],
-    isLoading,
-    error
-  } = useProblemsLimited({
-    includeUnpublished: isAdmin
-  });
 
-  // Filter state
+  const pageSize = 5;
+
+  // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'difficulty-asc' | 'difficulty-desc' | 'name-asc' | 'name-desc'>(
-    'difficulty-asc'
-  );
+  const [sortBy, setSortBy] = useState<ProblemOrderBy>(ProblemOrderBy.Difficulty);
+  const [sortDirection, setSortDirection] = useState<OrderByDirection>(OrderByDirection.Ascending);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [previousCursors, setPreviousCursors] = useState<string[]>([]);
 
-  // Get all unique tags from problems
+  // Debounce search query to avoid too many API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Build query parameters
+  const queryParams = useMemo(() => {
+    // Reset cursor when filters change
+    if (
+      debouncedSearchQuery !== searchQuery ||
+      Array.from(selectedDifficulties).join(',') !== Array.from(new Set()).join(',') ||
+      Array.from(selectedTags).join(',') !== Array.from(new Set()).join(',')
+    ) {
+      // This indicates filters are changing, we should reset cursor
+    }
+
+    return {
+      first: pageSize,
+      after: cursor,
+      includeTotal: true,
+      includeUnpublished: isAdmin,
+      difficulties: Array.from(selectedDifficulties) as ProblemDifficulty[],
+      tags: Array.from(selectedTags),
+      orderBy: sortBy,
+      orderByDirection: sortDirection
+      // TODO: Add search functionality to backend API
+      // searchQuery: debouncedSearchQuery.trim() || undefined,
+    };
+  }, [
+    pageSize,
+    cursor,
+    isAdmin,
+    selectedDifficulties,
+    selectedTags,
+    sortBy,
+    sortDirection,
+    debouncedSearchQuery,
+    searchQuery
+  ]);
+
+  const { data, isLoading, error } = useProblemsLimitedPaginated(queryParams);
+
+  // Memoize problems to avoid dependency issues in other useMemo hooks
+  const problems = useMemo(() => data?.problems || [], [data?.problems]);
+  const pageInfo = data?.pageInfo;
+  const totalCount = data?.totalCount || 0;
+
+  // Apply client-side search filtering until backend supports search
+  const filteredProblems = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) {
+      return problems;
+    }
+
+    const searchTerm = debouncedSearchQuery.toLowerCase();
+    return problems.filter(
+      problem =>
+        problem.name.toLowerCase().includes(searchTerm) ||
+        problem.tags?.some(tag => tag.name.toLowerCase().includes(searchTerm))
+    );
+  }, [problems, debouncedSearchQuery]);
+
+  // Pagination handlers
+  const goToNextPage = useCallback(() => {
+    if (pageInfo?.hasNextPage && pageInfo.endCursor) {
+      setPreviousCursors(prev => [...prev, cursor || '']);
+      setCursor(pageInfo.endCursor);
+    }
+  }, [pageInfo, cursor]);
+
+  const goToPreviousPage = useCallback(() => {
+    if (previousCursors.length > 0) {
+      const newCursors = [...previousCursors];
+      const previousCursor = newCursors.pop();
+      setPreviousCursors(newCursors);
+      setCursor(previousCursor === '' ? undefined : previousCursor);
+    }
+  }, [previousCursors]);
+
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setSearchQuery('');
+    setSelectedDifficulties(new Set());
+    setSelectedTags(new Set());
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  // Handle sort change
+  const handleSortChange = useCallback((newSort: string) => {
+    const [orderBy, direction] = newSort.split('-');
+    setSortBy(orderBy as ProblemOrderBy);
+    setSortDirection(direction === 'desc' ? OrderByDirection.Descending : OrderByDirection.Ascending);
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  // Handle filter changes
+  const handleDifficultyChange = useCallback((keys: any) => {
+    setSelectedDifficulties(new Set(Array.from(keys).map(String)));
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  const handleTagsChange = useCallback((keys: any) => {
+    setSelectedTags(new Set(Array.from(keys).map(String)));
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  // Get current sort string for select component
+  const currentSortString = useMemo(() => {
+    const direction = sortDirection === OrderByDirection.Descending ? 'desc' : 'asc';
+    return `${sortBy}-${direction}`;
+  }, [sortBy, sortDirection]);
+
+  // Get all unique tags (we'll need to get this from a separate API call or store)
+  // For now, let's create a placeholder that gets updated when we have more data
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
     problems.forEach(problem => {
@@ -38,96 +155,16 @@ export const ProblemList = () => {
     return Array.from(tagSet).sort();
   }, [problems]);
 
-  // Get difficulty sort order
-  const getDifficultyOrder = (difficulty: ProblemDifficulty): number => {
-    switch (difficulty) {
-      case ProblemDifficulty.VeryEasy:
-        return 1;
-      case ProblemDifficulty.Easy:
-        return 2;
-      case ProblemDifficulty.Medium:
-        return 3;
-      case ProblemDifficulty.Hard:
-        return 4;
-      case ProblemDifficulty.VeryHard:
-        return 5;
-      default:
-        return 6;
-    }
-  };
-
-  // Filter and sort problems
-  const filteredProblems = useMemo(() => {
-    const filtered = problems.filter(problem => {
-      // Check search query
-      const searchMatch =
-        searchQuery.trim() === '' ||
-        problem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        problem.tags?.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      // Check difficulty filter
-      const difficultyMatch = selectedDifficulties.size === 0 || selectedDifficulties.has(problem.difficulty);
-
-      // Check tags filter
-      const tagsMatch = selectedTags.size === 0 || problem.tags?.some(tag => selectedTags.has(tag.name));
-
-      return searchMatch && difficultyMatch && tagsMatch;
-    });
-
-    // Sort the filtered problems
-    return filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'difficulty-asc':
-          return getDifficultyOrder(a.difficulty) - getDifficultyOrder(b.difficulty);
-        case 'difficulty-desc':
-          return getDifficultyOrder(b.difficulty) - getDifficultyOrder(a.difficulty);
-        case 'name-asc':
-          return a.name.localeCompare(b.name);
-        case 'name-desc':
-          return b.name.localeCompare(a.name);
-        default:
-          return 0;
-      }
-    });
-  }, [problems, searchQuery, selectedDifficulties, selectedTags, sortBy]);
-
-  // Clear all filters
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedDifficulties(new Set());
-    setSelectedTags(new Set());
-  };
-
   // Select random problem
-  const selectRandomProblem = () => {
+  const selectRandomProblem = useCallback(() => {
     if (filteredProblems.length > 0) {
       const randomIndex = Math.floor(Math.random() * filteredProblems.length);
       const randomProblem = filteredProblems[randomIndex];
       navigate(`/problems/${randomProblem.id}`);
     }
-  };
+  }, [filteredProblems, navigate]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <Spinner size="lg" color="primary" label="Loading problems..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto p-6">
-        <ApiErrorDisplay
-          error={error}
-          title="Failed to load problems"
-          className="max-w-md mx-auto"
-          showDetails={true}
-        />
-      </div>
-    );
-  }
-
+  // Helper functions for difficulty display
   const getDifficultyColor = (difficulty: ProblemDifficulty) => {
     switch (difficulty) {
       case ProblemDifficulty.VeryEasy:
@@ -160,6 +197,27 @@ export const ProblemList = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Spinner size="lg" color="primary" label="Loading problems..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <ApiErrorDisplay
+          error={error}
+          title="Failed to load problems"
+          className="max-w-md mx-auto"
+          showDetails={true}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
@@ -186,14 +244,14 @@ export const ProblemList = () => {
             <Input
               placeholder="Search problems by name or tags..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => handleSearchChange(e.target.value)}
               variant="bordered"
               size="md"
               startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
               className="w-full"
               aria-label="Search problems"
               isClearable
-              onClear={() => setSearchQuery('')}
+              onClear={() => handleSearchChange('')}
             />
           </div>
         </div>
@@ -203,18 +261,18 @@ export const ProblemList = () => {
           <div className="flex items-center gap-2">
             <span className="text-md text-default-600">Sort by:</span>
             <Select
-              selectedKeys={[sortBy]}
-              onSelectionChange={keys => setSortBy(Array.from(keys)[0] as typeof sortBy)}
+              selectedKeys={[currentSortString]}
+              onSelectionChange={keys => handleSortChange(Array.from(keys)[0] as string)}
               className="w-40"
               variant="bordered"
               size="md"
               aria-label="Sort problems by"
               name="problem-sort"
             >
-              <SelectItem key="difficulty-asc">Difficulty (Easy → Hard)</SelectItem>
-              <SelectItem key="difficulty-desc">Difficulty (Hard → Easy)</SelectItem>
-              <SelectItem key="name-asc">Name (A → Z)</SelectItem>
-              <SelectItem key="name-desc">Name (Z → A)</SelectItem>
+              <SelectItem key="Name-asc">Name (A → Z)</SelectItem>
+              <SelectItem key="Name-desc">Name (Z → A)</SelectItem>
+              <SelectItem key="Difficulty-asc">Difficulty (Easy → Hard)</SelectItem>
+              <SelectItem key="Difficulty-desc">Difficulty (Hard → Easy)</SelectItem>
             </Select>
           </div>
 
@@ -247,7 +305,7 @@ export const ProblemList = () => {
                       placeholder="Select difficulties"
                       selectionMode="multiple"
                       selectedKeys={selectedDifficulties}
-                      onSelectionChange={keys => setSelectedDifficulties(new Set(Array.from(keys).map(String)))}
+                      onSelectionChange={handleDifficultyChange}
                       className="w-full"
                       variant="bordered"
                       size="md"
@@ -270,7 +328,7 @@ export const ProblemList = () => {
                       placeholder="Select tags"
                       selectionMode="multiple"
                       selectedKeys={selectedTags}
-                      onSelectionChange={keys => setSelectedTags(new Set(Array.from(keys).map(String)))}
+                      onSelectionChange={handleTagsChange}
                       className="w-full"
                       variant="bordered"
                       size="md"
@@ -303,11 +361,11 @@ export const ProblemList = () => {
           {(searchQuery.trim() !== '' || selectedDifficulties.size > 0 || selectedTags.size > 0) && (
             <div className="space-y-2">
               <div className="text-sm text-default-600">
-                Active filters ({filteredProblems.length} of {problems.length} problems):
+                Active filters (showing {filteredProblems.length} results):
               </div>
               <div className="flex flex-wrap gap-2">
                 {searchQuery.trim() !== '' && (
-                  <Chip color="default" variant="flat" size="sm" onClose={() => setSearchQuery('')}>
+                  <Chip color="default" variant="flat" size="sm" onClose={() => handleSearchChange('')}>
                     Search: "{searchQuery}"
                   </Chip>
                 )}
@@ -348,6 +406,21 @@ export const ProblemList = () => {
       )}
 
       {!showFilters && <Divider />}
+
+      {/* Pagination and Results Info */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-default-600">
+          Showing {filteredProblems.length} problems {totalCount ? `of ${totalCount} total` : ''}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="bordered" onPress={goToPreviousPage} isDisabled={previousCursors.length === 0}>
+            Previous
+          </Button>
+          <Button size="sm" variant="bordered" onPress={goToNextPage} isDisabled={!pageInfo?.hasNextPage}>
+            Next
+          </Button>
+        </div>
+      </div>
 
       {/* Problems Grid */}
       <div className="grid gap-4">
@@ -395,7 +468,7 @@ export const ProblemList = () => {
 
                 {problem.tags && problem.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {problem.tags.map((tag, index) => (
+                    {problem.tags.map((tag: any, index: number) => (
                       <Chip key={index} size="sm" variant="bordered" color="secondary" className="text-xs">
                         {tag.name}
                       </Chip>
@@ -407,6 +480,20 @@ export const ProblemList = () => {
           ))
         )}
       </div>
+
+      {/* Bottom pagination */}
+      {(pageInfo?.hasNextPage || previousCursors.length > 0) && (
+        <div className="flex justify-center mt-6">
+          <div className="flex items-center gap-2">
+            <Button size="lg" variant="bordered" onPress={goToPreviousPage} isDisabled={previousCursors.length === 0}>
+              Previous
+            </Button>
+            <Button size="lg" variant="bordered" onPress={goToNextPage} isDisabled={!pageInfo?.hasNextPage}>
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

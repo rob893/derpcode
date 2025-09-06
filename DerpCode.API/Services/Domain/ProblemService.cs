@@ -8,6 +8,7 @@ using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Extensions;
+using DerpCode.API.Models;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
@@ -15,6 +16,7 @@ using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses;
 using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Core;
+using DerpCode.API.Utilities;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -66,31 +68,67 @@ public sealed class ProblemService : IProblemService
     }
 
     /// <inheritdoc />
-    public async Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
+    public Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(searchParams);
-        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+        return this.GetProblemsInternalAsync(
+            searchParams,
+            x => ProblemDto.FromEntity(x, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser),
+            list =>
+            {
+                var pagedList = searchParams.OrderBy switch
+                {
+                    ProblemOrderBy.Name => list.ToCursorPaginatedList(
+                        item => item.Id,
+                        item => item.Name,
+                        CursorConverters.CreateCompositeKeyConverterStringInt(),
+                        CursorConverters.CreateCompositeCursorConverterStringInt(),
+                        searchParams,
+                        searchParams.OrderByDirection == OrderByDirection.Ascending),
+                    ProblemOrderBy.Difficulty => list.ToCursorPaginatedList(
+                        item => item.Id,
+                        item => (int)item.Difficulty,
+                        CursorConverters.CreateCompositeKeyConverterIntInt(),
+                        CursorConverters.CreateCompositeCursorConverterIntInt(),
+                        searchParams,
+                        searchParams.OrderByDirection == OrderByDirection.Ascending),
+                    _ => throw new InvalidOperationException("Invalid OrderBy value")
+                };
 
-        var pagedList = problems.Values
-            .Where(x => ApplyProblemFilter(x, searchParams))
-            .Select(x => ProblemDto.FromEntity(x, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser))
-            .ToCursorPaginatedList(searchParams);
-
-        return pagedList;
+                return pagedList;
+            },
+            cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<CursorPaginatedList<ProblemLimitedDto, int>> GetProblemsLimitedAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
+    public Task<CursorPaginatedList<ProblemLimitedDto, int>> GetProblemsLimitedAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(searchParams);
-        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+        return this.GetProblemsInternalAsync(
+            searchParams,
+            ProblemLimitedDto.FromEntity,
+            list =>
+            {
+                var pagedList = searchParams.OrderBy switch
+                {
+                    ProblemOrderBy.Name => list.ToCursorPaginatedList(
+                        item => item.Id,
+                        item => item.Name,
+                        CursorConverters.CreateCompositeKeyConverterStringInt(),
+                        CursorConverters.CreateCompositeCursorConverterStringInt(),
+                        searchParams,
+                        searchParams.OrderByDirection == OrderByDirection.Ascending),
+                    ProblemOrderBy.Difficulty => list.ToCursorPaginatedList(
+                        item => item.Id,
+                        item => (int)item.Difficulty,
+                        CursorConverters.CreateCompositeKeyConverterIntInt(),
+                        CursorConverters.CreateCompositeCursorConverterIntInt(),
+                        searchParams,
+                        searchParams.OrderByDirection == OrderByDirection.Ascending),
+                    _ => throw new InvalidOperationException("Invalid OrderBy value")
+                };
 
-        var pagedList = problems.Values
-            .Where(x => ApplyProblemFilter(x, searchParams))
-            .Select(ProblemLimitedDto.FromEntity)
-            .ToCursorPaginatedList(searchParams);
-
-        return pagedList;
+                return pagedList;
+            },
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -493,11 +531,6 @@ public sealed class ProblemService : IProblemService
             return false;
         }
 
-        if (searchParams.IncludeUnpublished)
-        {
-            return true;
-        }
-
         var isCorrectDifficulty = true;
 
         if (searchParams.Difficulties?.Count > 0)
@@ -512,7 +545,24 @@ public sealed class ProblemService : IProblemService
             hasCorrectTag = searchParams.Tags.Any(t => problem.Tags.Select(xt => xt.Name.ToUpperInvariant()).Contains(t.ToUpperInvariant()));
         }
 
-        return problem.IsPublished && isCorrectDifficulty && hasCorrectTag;
+        return (searchParams.IncludeUnpublished || problem.IsPublished) && isCorrectDifficulty && hasCorrectTag;
+    }
+
+    private async Task<CursorPaginatedList<T, int>> GetProblemsInternalAsync<T>(
+        ProblemQueryParameters searchParams,
+        Func<Problem, T> selector,
+        Func<IEnumerable<T>, CursorPaginatedList<T, int>> pagedListConverter,
+        CancellationToken cancellationToken)
+        where T : class, IIdentifiable<int>
+    {
+        ArgumentNullException.ThrowIfNull(searchParams);
+        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+
+        var list = problems.Values
+            .Where(x => ApplyProblemFilter(x, searchParams))
+            .Select(selector);
+
+        return pagedListConverter(list);
     }
 
     private async Task<IReadOnlyDictionary<int, Problem>> GetProblemsFromCacheAsync(CancellationToken cancellationToken)
