@@ -8,3 +8,7 @@
 - Keep refactoring controllers out into services (auth)
 - move pick random problem to backend (due to paging)
 - add tags endpoint to return all tags so UI can use that for filtering
+- add search by name for problems
+- move to .net 10
+- try aspire
+- use built in openai tooling (maybe replace swagger?)

@@ -46,7 +46,7 @@ public sealed record UserDto : IIdentifiable<int>
             LastEmailChange = user.LastEmailChange,
             LastUsernameChange = user.LastUsernameChange,
             LastEmailConfirmationSent = user.LastEmailConfirmationSent,
-            Roles = [.. user.UserRoles.Select(x => x.Role).Select(role => role.Name)],
+            Roles = [.. user.UserRoles.Select(x => x.Role).Select(role => role.Name ?? string.Empty)],
             LinkedAccounts = [.. user.LinkedAccounts.Select(LinkedAccountDto.FromEntity)]
         };
     }
