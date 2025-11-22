@@ -179,12 +179,12 @@ public abstract class Repository<TEntity, TSearchParams> : Repository<TEntity, i
 {
     protected Repository(DataContext context) : base(
         context,
-        Id => Id.ConvertToBase64Url(),
+        Id => Id.ConvertToBase64UrlEncodedString(),
         str =>
         {
             try
             {
-                return str.ConvertToInt32FromBase64Url();
+                return str.ConvertToInt32FromBase64UrlEncodedString();
             }
             catch
             {

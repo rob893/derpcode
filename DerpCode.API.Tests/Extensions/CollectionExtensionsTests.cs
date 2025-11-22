@@ -102,7 +102,7 @@ public class CollectionExtensionsTests
     {
         // Arrange
         var testData = CreateTestData();
-        var afterCursor = 3.ConvertToBase64Url();
+        var afterCursor = 3.ConvertToBase64UrlEncodedString();
         var queryParameters = new CursorPaginationQueryParameters
         {
             First = 3,
@@ -130,7 +130,7 @@ public class CollectionExtensionsTests
     {
         // Arrange
         var testData = CreateTestData();
-        var beforeCursor = 8.ConvertToBase64Url();
+        var beforeCursor = 8.ConvertToBase64UrlEncodedString();
         var queryParameters = new CursorPaginationQueryParameters
         {
             Last = 3,
@@ -269,11 +269,11 @@ public class CollectionExtensionsTests
         var result = testData.ToCursorPaginatedList(
             entity => entity.Id,
             entity => entity.CreatedAt,
-            composite => $"{composite.OrderValue:yyyy-MM-dd}|{composite.Key.ConvertToBase64Url()}",
+            composite => $"{composite.OrderValue:yyyy-MM-dd}|{composite.Key.ConvertToBase64UrlEncodedString()}",
             cursor =>
             {
                 var parts = cursor.Split('|');
-                return (DateTime.ParseExact(parts[0], "yyyy-MM-dd", null), parts[1].ConvertToInt32FromBase64Url());
+                return (DateTime.ParseExact(parts[0], "yyyy-MM-dd", null), parts[1].ConvertToInt32FromBase64UrlEncodedString());
             },
             queryParameters.First,
             queryParameters.Last,
@@ -542,11 +542,11 @@ public class CollectionExtensionsTests
         var result = testData.ToCursorPaginatedList(
             entity => entity.Id,
             entity => entity.Name,
-            composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}",
+            composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}",
             cursor =>
             {
                 var parts = cursor.Split('|');
-                return (parts[0].ConvertToStringFromBase64Url(), parts[1].ConvertToInt32FromBase64Url());
+                return (parts[0].ConvertToStringFromBase64UrlEncodedString(), parts[1].ConvertToInt32FromBase64UrlEncodedString());
             },
             queryParameters.First,
             queryParameters.Last,
@@ -579,11 +579,11 @@ public class CollectionExtensionsTests
         var result = testData.ToCursorPaginatedList(
             entity => entity.Id,
             entity => entity.Score,
-            composite => $"{composite.OrderValue}|{composite.Key.ConvertToBase64Url()}",
+            composite => $"{composite.OrderValue}|{composite.Key.ConvertToBase64UrlEncodedString()}",
             cursor =>
             {
                 var parts = cursor.Split('|');
-                return (double.Parse(parts[0]), parts[1].ConvertToInt32FromBase64Url());
+                return (double.Parse(parts[0]), parts[1].ConvertToInt32FromBase64UrlEncodedString());
             },
             queryParameters.First,
             queryParameters.Last,
@@ -628,8 +628,8 @@ public class CollectionExtensionsTests
         // The cursor should be decodable
         var parts = result.StartCursor!.Split('|');
         Assert.Equal(2, parts.Length);
-        var priority = parts[0].ConvertToInt32FromBase64Url();
-        var id = parts[1].ConvertToInt32FromBase64Url();
+        var priority = parts[0].ConvertToInt32FromBase64UrlEncodedString();
+        var id = parts[1].ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(1, priority);
         Assert.Equal(1, id);
     }
@@ -653,9 +653,9 @@ public class CollectionExtensionsTests
         // The cursor should be decodable
         var parts = result.StartCursor!.Split('|');
         Assert.Equal(2, parts.Length);
-        var dateTimeBinary = parts[0].ConvertToLongFromBase64Url();
+        var dateTimeBinary = parts[0].ConvertToLongFromBase64UrlEncodedString();
         var decodedDateTime = DateTime.FromBinary(dateTimeBinary);
-        var id = parts[1].ConvertToInt32FromBase64Url();
+        var id = parts[1].ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(new DateTime(2023, 1, 1), decodedDateTime);
         Assert.Equal(1, id);
     }
@@ -679,8 +679,8 @@ public class CollectionExtensionsTests
         // The cursor should be decodable
         var parts = result.StartCursor!.Split('|');
         Assert.Equal(2, parts.Length);
-        var name = parts[0].ConvertToStringFromBase64Url();
-        var id = parts[1].ConvertToInt32FromBase64Url();
+        var name = parts[0].ConvertToStringFromBase64UrlEncodedString();
+        var id = parts[1].ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal("Alpha", name);
         Assert.Equal(1, id);
     }

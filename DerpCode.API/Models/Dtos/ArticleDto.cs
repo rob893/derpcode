@@ -26,7 +26,7 @@ public sealed record ArticleDto : IIdentifiable<int>, IOwnedByUser<int>
 
     public required ArticleType Type { get; init; }
 
-    public required List<TagDto> Tags { get; init; }
+    public required IReadOnlyList<TagDto> Tags { get; init; }
 
     public static ArticleDto FromEntity(Article article)
     {

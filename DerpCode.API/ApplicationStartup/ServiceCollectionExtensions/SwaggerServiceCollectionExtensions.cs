@@ -9,7 +9,7 @@ using DerpCode.API.Extensions;
 using DerpCode.API.Models.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
@@ -47,25 +47,18 @@ public static class SwaggerServiceCollectionExtensions
             options.CustomSchemaIds(id => id.FullName);
 
             // Add the security token option to swagger
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
             });
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        }, new List<string>()
-                    }
+                [new OpenApiSecuritySchemeReference("bearer", document)] = []
             });
 
             // Set the comments path for the Swagger JSON and UI.
@@ -82,6 +75,11 @@ public static class SwaggerServiceCollectionExtensions
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
+            if (operation.Parameters == null)
+            {
+                return;
+            }
+
             var versionParameter = operation.Parameters.FirstOrDefault(p => p.Name == "version");
 
             if (versionParameter == null)

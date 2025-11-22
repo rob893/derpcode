@@ -5,7 +5,7 @@ namespace DerpCode.API.Data.SeedData;
 
 public static class DriverTemplateData
 {
-    public static readonly List<DriverTemplate> Templates =
+    public static readonly IReadOnlyList<DriverTemplate> Templates =
     [
         new DriverTemplate
         {

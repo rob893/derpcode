@@ -10,12 +10,12 @@ public sealed class ProblemSubmissionRepository : Repository<ProblemSubmission, 
 {
     public ProblemSubmissionRepository(DataContext context) : base(
             context,
-            Id => Id.ConvertToBase64Url(),
+            Id => Id.ConvertToBase64UrlEncodedString(),
             str =>
             {
                 try
                 {
-                    return str.ConvertToLongFromBase64Url();
+                    return str.ConvertToLongFromBase64UrlEncodedString();
                 }
                 catch
                 {

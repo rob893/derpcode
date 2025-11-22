@@ -5,7 +5,7 @@ namespace DerpCode.API.Data.SeedData;
 
 public static class TagData
 {
-    public static readonly List<Tag> Tags =
+    public static readonly IReadOnlyList<Tag> Tags =
     [
         new Tag
         {

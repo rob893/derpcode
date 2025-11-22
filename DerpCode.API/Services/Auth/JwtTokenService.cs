@@ -86,7 +86,7 @@ public sealed class JwtTokenService : IJwtTokenService
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
 
-        var refreshToken = Convert.ToBase64String(randomNumber).ConvertToBase64Url();
+        var refreshToken = Convert.ToBase64String(randomNumber).ConvertToBase64UrlEncodedString();
 
         CreateTokenHash(refreshToken, out var tokenHash, out var tokenSalt);
 

@@ -16,7 +16,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(string OrderValue, int Key), string> CreateCompositeKeyConverterStringInt()
     {
-        return composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            return (parts[0].ConvertToStringFromBase64Url(), parts[1].ConvertToInt32FromBase64Url());
+            return (parts[0].ConvertToStringFromBase64UrlEncodedString(), parts[1].ConvertToInt32FromBase64UrlEncodedString());
         };
     }
 
@@ -43,7 +43,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(string OrderValue, long Key), string> CreateCompositeKeyConverterStringLong()
     {
-        return composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            return (parts[0].ConvertToStringFromBase64Url(), parts[1].ConvertToLongFromBase64Url());
+            return (parts[0].ConvertToStringFromBase64UrlEncodedString(), parts[1].ConvertToLongFromBase64UrlEncodedString());
         };
     }
 
@@ -74,7 +74,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(int OrderValue, int Key), string> CreateCompositeKeyConverterIntInt()
     {
-        return composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            return (parts[0].ConvertToInt32FromBase64Url(), parts[1].ConvertToInt32FromBase64Url());
+            return (parts[0].ConvertToInt32FromBase64UrlEncodedString(), parts[1].ConvertToInt32FromBase64UrlEncodedString());
         };
     }
 
@@ -101,7 +101,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(int OrderValue, long Key), string> CreateCompositeKeyConverterIntLong()
     {
-        return composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            return (parts[0].ConvertToInt32FromBase64Url(), parts[1].ConvertToLongFromBase64Url());
+            return (parts[0].ConvertToInt32FromBase64UrlEncodedString(), parts[1].ConvertToLongFromBase64UrlEncodedString());
         };
     }
 
@@ -132,7 +132,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(long OrderValue, int Key), string> CreateCompositeKeyConverterLongInt()
     {
-        return composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            return (parts[0].ConvertToLongFromBase64Url(), parts[1].ConvertToInt32FromBase64Url());
+            return (parts[0].ConvertToLongFromBase64UrlEncodedString(), parts[1].ConvertToInt32FromBase64UrlEncodedString());
         };
     }
 
@@ -159,7 +159,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(long OrderValue, long Key), string> CreateCompositeKeyConverterLongLong()
     {
-        return composite => $"{composite.OrderValue.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            return (parts[0].ConvertToLongFromBase64Url(), parts[1].ConvertToLongFromBase64Url());
+            return (parts[0].ConvertToLongFromBase64UrlEncodedString(), parts[1].ConvertToLongFromBase64UrlEncodedString());
         };
     }
 
@@ -190,7 +190,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(DateTime OrderValue, int Key), string> CreateCompositeKeyConverterDateTimeInt()
     {
-        return composite => $"{composite.OrderValue.ToBinary().ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ToBinary().ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -207,8 +207,8 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            var binaryValue = parts[0].ConvertToLongFromBase64Url();
-            return (DateTime.FromBinary(binaryValue), parts[1].ConvertToInt32FromBase64Url());
+            var binaryValue = parts[0].ConvertToLongFromBase64UrlEncodedString();
+            return (DateTime.FromBinary(binaryValue), parts[1].ConvertToInt32FromBase64UrlEncodedString());
         };
     }
 
@@ -218,7 +218,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(DateTime OrderValue, long Key), string> CreateCompositeKeyConverterDateTimeLong()
     {
-        return composite => $"{composite.OrderValue.ToBinary().ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.ToBinary().ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -235,8 +235,8 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid composite cursor format: {cursor}");
             }
 
-            var binaryValue = parts[0].ConvertToLongFromBase64Url();
-            return (DateTime.FromBinary(binaryValue), parts[1].ConvertToLongFromBase64Url());
+            var binaryValue = parts[0].ConvertToLongFromBase64UrlEncodedString();
+            return (DateTime.FromBinary(binaryValue), parts[1].ConvertToLongFromBase64UrlEncodedString());
         };
     }
 
@@ -250,7 +250,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(DateTimeOffset OrderValue, int Key), string> CreateCompositeKeyConverterDateTimeOffsetInt()
     {
-        return composite => $"{composite.OrderValue.DateTime.ToBinary().ConvertToBase64Url()}|{composite.OrderValue.Offset.Ticks.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.DateTime.ToBinary().ConvertToBase64UrlEncodedString()}|{composite.OrderValue.Offset.Ticks.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -267,9 +267,9 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid DateTimeOffset composite cursor format: {cursor}");
             }
 
-            var dateTimeBinary = parts[0].ConvertToLongFromBase64Url();
-            var offsetTicks = parts[1].ConvertToLongFromBase64Url();
-            var key = parts[2].ConvertToInt32FromBase64Url();
+            var dateTimeBinary = parts[0].ConvertToLongFromBase64UrlEncodedString();
+            var offsetTicks = parts[1].ConvertToLongFromBase64UrlEncodedString();
+            var key = parts[2].ConvertToInt32FromBase64UrlEncodedString();
             var dateTime = DateTime.FromBinary(dateTimeBinary);
             var offset = new TimeSpan(offsetTicks);
             return (new DateTimeOffset(dateTime, offset), key);
@@ -282,7 +282,7 @@ public static class CursorConverters
     /// <returns>A function that converts a composite key to a Base64 URL encoded string.</returns>
     public static Func<(DateTimeOffset OrderValue, long Key), string> CreateCompositeKeyConverterDateTimeOffsetLong()
     {
-        return composite => $"{composite.OrderValue.DateTime.ToBinary().ConvertToBase64Url()}|{composite.OrderValue.Offset.Ticks.ConvertToBase64Url()}|{composite.Key.ConvertToBase64Url()}";
+        return composite => $"{composite.OrderValue.DateTime.ToBinary().ConvertToBase64UrlEncodedString()}|{composite.OrderValue.Offset.Ticks.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
     }
 
     /// <summary>
@@ -299,9 +299,9 @@ public static class CursorConverters
                 throw new ArgumentException($"Invalid DateTimeOffset composite cursor format: {cursor}");
             }
 
-            var dateTimeBinary = parts[0].ConvertToLongFromBase64Url();
-            var offsetTicks = parts[1].ConvertToLongFromBase64Url();
-            var key = parts[2].ConvertToLongFromBase64Url();
+            var dateTimeBinary = parts[0].ConvertToLongFromBase64UrlEncodedString();
+            var offsetTicks = parts[1].ConvertToLongFromBase64UrlEncodedString();
+            var key = parts[2].ConvertToLongFromBase64UrlEncodedString();
             var dateTime = DateTime.FromBinary(dateTimeBinary);
             var offset = new TimeSpan(offsetTicks);
             return (new DateTimeOffset(dateTime, offset), key);

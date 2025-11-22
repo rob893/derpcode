@@ -27,21 +27,21 @@ public sealed record CreateProblemRequest
 
     [MinLength(1)]
     [Required]
-    public List<object> ExpectedOutput { get; init; } = [];
+    public IReadOnlyList<object> ExpectedOutput { get; init; } = [];
 
     [MinLength(1)]
     [Required]
-    public List<object> Input { get; init; } = [];
+    public IReadOnlyList<object> Input { get; init; } = [];
 
-    public List<string> Hints { get; init; } = [];
-
-    [MinLength(1)]
-    [Required]
-    public List<CreateTagRequest> Tags { get; init; } = [];
+    public IReadOnlyList<string> Hints { get; init; } = [];
 
     [MinLength(1)]
     [Required]
-    public List<CreateProblemDriverRequest> Drivers { get; init; } = [];
+    public IReadOnlyList<CreateTagRequest> Tags { get; init; } = [];
+
+    [MinLength(1)]
+    [Required]
+    public IReadOnlyList<CreateProblemDriverRequest> Drivers { get; init; } = [];
 
     public Problem ToEntity()
     {
@@ -50,10 +50,10 @@ public sealed record CreateProblemRequest
             Name = this.Name,
             Description = this.Description,
             Difficulty = this.Difficulty ?? throw new InvalidOperationException("Difficulty is required"),
-            ExpectedOutput = this.ExpectedOutput,
+            ExpectedOutput = [.. this.ExpectedOutput],
             IsPublished = this.IsPublished,
             Hints = [.. this.Hints],
-            Input = this.Input,
+            Input = [.. this.Input],
             Tags = [.. this.Tags.Select(tag => tag.ToEntity())],
             Drivers = [.. this.Drivers.Select(driver => driver.ToEntity())],
             ExplanationArticle = this.ExplanationArticle.ToEntity()

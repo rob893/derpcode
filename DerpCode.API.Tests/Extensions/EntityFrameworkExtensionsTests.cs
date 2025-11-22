@@ -134,7 +134,7 @@ public class EntityFrameworkExtensionsTests
     {
         // Arrange
         await using var context = await CreateTestContextAsync();
-        var afterCursor = 3.ConvertToBase64Url();
+        var afterCursor = 3.ConvertToBase64UrlEncodedString();
         var queryParameters = new CursorPaginationQueryParameters
         {
             First = 3,
@@ -162,7 +162,7 @@ public class EntityFrameworkExtensionsTests
     {
         // Arrange
         await using var context = await CreateTestContextAsync();
-        var beforeCursor = 8.ConvertToBase64Url();
+        var beforeCursor = 8.ConvertToBase64UrlEncodedString();
         var queryParameters = new CursorPaginationQueryParameters
         {
             Last = 3,
@@ -301,11 +301,11 @@ public class EntityFrameworkExtensionsTests
         var result = await context.TestEntities.ToCursorPaginatedListAsync(
             entity => entity.Id,
             entity => entity.CreatedAt,
-            composite => $"{composite.OrderValue:yyyy-MM-dd}|{composite.Key.ConvertToBase64Url()}",
+            composite => $"{composite.OrderValue:yyyy-MM-dd}|{composite.Key.ConvertToBase64UrlEncodedString()}",
             cursor =>
             {
                 var parts = cursor.Split('|');
-                return (DateTime.ParseExact(parts[0], "yyyy-MM-dd", null), parts[1].ConvertToInt32FromBase64Url());
+                return (DateTime.ParseExact(parts[0], "yyyy-MM-dd", null), parts[1].ConvertToInt32FromBase64UrlEncodedString());
             },
             queryParameters.First,
             queryParameters.Last,

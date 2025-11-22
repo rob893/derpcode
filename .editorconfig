@@ -207,34 +207,39 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
 # Disables
 
-# Convert anonymous type to tuple.
-# Disabled because anonymous types are needed for composite keys.
-dotnet_diagnostic.IDE0050.severity = none
 # Do not directly await a Task.
 # Disabed due to configure await is not needed for .NET Core/.NET 5+ and having ConfigureAwait() everywhere is ugly.
 dotnet_diagnostic.CA2007.severity = none
-# Collection properties should be read only.
-# Disabled as Pocos with initializers are used.
-dotnet_diagnostic.CA2227.severity = none
 # Do not catch general exception types.
 # Disabled because I want to catch general exceptions.
 dotnet_diagnostic.CA1031.severity = none
-# Do not expose generic lists.
-# Disabled because I disagree with this.
-dotnet_diagnostic.CA1002.severity = none
-# URI return values should not be strings.
-# Disabled because it thinks having url in function name should raise this.
-dotnet_diagnostic.CA1055.severity = none
-# Avoid uninstantiated internal classes.
-# Disabled as many internal classes are created through reflection.
-dotnet_diagnostic.CA1812.severity = none
 # High-performance logging with LoggerMessage in ASP.NET Core.
 # Disabled because I don't want to refactor logging right now.
 dotnet_diagnostic.CA1848.severity = none
-# Do not declare static members on generic types.
-# Disabled because I disagree with this.
+# Avoid potentially expensive logging
+# Disabled becuase it is excessive to check if logging is enabled before logging.
+dotnet_diagnostic.CA1873.severity = none
+# Consider making public types internal
+# Disabled because controllers need to be public and it is annoying to make other types internal.
+dotnet_diagnostic.CA1515.severity = none
+# Avoid uninstantiated internal classes
+# Disabled because some internal classes are used via reflection or dependency injection.
+dotnet_diagnostic.CA1812.severity = none
+# Do not declare static members on generic types
+# Disabled becuase I disagree with this rule.
 dotnet_diagnostic.CA1000.severity = none
+# URI return values should not be strings
+# Disabled because it flags things that are not URIs.
+dotnet_diagnostic.CA1055.severity = none
 
+# Only disables for entities due to how ef core works with them.
+[*/Models/Entities/**]
+# Do not expose generic lists
+# Disabled for ef core models only.
+dotnet_diagnostic.CA1002.severity = none
+# Collection properties should be read only
+# Disabled for ef core models only as they are meant to be changable.
+dotnet_diagnostic.CA2227.severity = none
 
 [*/Migrations/**]
 generated_code = true

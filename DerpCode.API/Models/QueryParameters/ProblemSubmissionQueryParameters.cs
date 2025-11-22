@@ -1,6 +1,6 @@
 namespace DerpCode.API.Models.QueryParameters;
 
-public record ProblemSubmissionQueryParameters : CursorPaginationQueryParameters
+public sealed record ProblemSubmissionQueryParameters : CursorPaginationQueryParameters
 {
     public int? ProblemId { get; init; }
 

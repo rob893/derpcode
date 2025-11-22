@@ -160,8 +160,8 @@ public static class CollectionExtensions
     {
         return src.ToCursorPaginatedResponse(
             keySelector,
-            key => key.ConvertToBase64Url(),
-            cursor => cursor.ConvertToInt32FromBase64Url(),
+            key => key.ConvertToBase64UrlEncodedString(),
+            cursor => cursor.ConvertToInt32FromBase64UrlEncodedString(),
             queryParameters);
     }
 
@@ -181,8 +181,8 @@ public static class CollectionExtensions
     {
         return src.ToCursorPaginatedResponse(
             keySelector,
-            key => key.ConvertToBase64Url(),
-            cursor => cursor.ConvertToStringFromBase64Url(),
+            key => key.ConvertToBase64UrlEncodedString(),
+            cursor => cursor.ConvertToStringFromBase64UrlEncodedString(),
             queryParameters);
     }
 
@@ -202,8 +202,8 @@ public static class CollectionExtensions
     {
         return src.ToCursorPaginatedResponse(
             keySelector,
-            key => key.ConvertToBase64Url(),
-            cursor => cursor.ConvertToLongFromBase64Url(),
+            key => key.ConvertToBase64UrlEncodedString(),
+            cursor => cursor.ConvertToLongFromBase64UrlEncodedString(),
             queryParameters);
     }
 
@@ -221,8 +221,8 @@ public static class CollectionExtensions
     {
         return src.ToCursorPaginatedResponse(
             item => item.Id,
-            key => key.ConvertToBase64Url(),
-            cursor => cursor.ConvertToInt32FromBase64Url(),
+            key => key.ConvertToBase64UrlEncodedString(),
+            cursor => cursor.ConvertToInt32FromBase64UrlEncodedString(),
             queryParameters);
     }
 
@@ -308,8 +308,8 @@ public static class CollectionExtensions
 
         return src.ToCursorPaginatedList(
                 item => item.Id,
-                key => key.ConvertToBase64Url(),
-                cursor => cursor.ConvertToInt32FromBase64Url(),
+                key => key.ConvertToBase64UrlEncodedString(),
+                cursor => cursor.ConvertToInt32FromBase64UrlEncodedString(),
                 queryParameters.First,
                 queryParameters.Last,
                 queryParameters.After,

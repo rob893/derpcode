@@ -71,7 +71,7 @@ public static class UtilityFunctions
         };
     }
 
-    public static bool AreListsEqual<T>(List<T> list1, List<T> list2)
+    public static bool AreListsEqual<T>(IReadOnlyList<T> list1, IReadOnlyList<T> list2)
     {
         ArgumentNullException.ThrowIfNull(list1);
         ArgumentNullException.ThrowIfNull(list2);

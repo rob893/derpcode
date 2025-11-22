@@ -32,7 +32,7 @@ public sealed record AuthenticationSettings
     /// <summary>
     /// List of Google OAuth Client IDs to validate Google Tokens against
     /// </summary>
-    public List<string> GoogleOAuthAudiences { get; init; } = [];
+    public IReadOnlyList<string> GoogleOAuthAudiences { get; init; } = [];
 
     /// <summary>
     /// Google OAuth Client ID for exchanging authorization codes

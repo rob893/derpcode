@@ -475,7 +475,7 @@ public sealed class ProblemService : IProblemService
         return false;
     }
 
-    public static bool AreTagsEqual(List<Tag> leftTags, List<Tag> rightTags)
+    public static bool AreTagsEqual(IReadOnlyList<Tag> leftTags, IReadOnlyList<Tag> rightTags)
     {
         ArgumentNullException.ThrowIfNull(leftTags);
         ArgumentNullException.ThrowIfNull(rightTags);
@@ -491,7 +491,7 @@ public sealed class ProblemService : IProblemService
         return dbTagNames.SequenceEqual(folderTagNames);
     }
 
-    public static bool AreDriversEqual(List<ProblemDriver> leftDrivers, List<ProblemDriver> rightDrivers)
+    public static bool AreDriversEqual(IReadOnlyList<ProblemDriver> leftDrivers, IReadOnlyList<ProblemDriver> rightDrivers)
     {
         ArgumentNullException.ThrowIfNull(leftDrivers);
         ArgumentNullException.ThrowIfNull(rightDrivers);

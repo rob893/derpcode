@@ -15,7 +15,7 @@ public sealed record ProblemLimitedDto : IIdentifiable<int>
 
     public required ProblemDifficulty Difficulty { get; init; }
 
-    public required List<TagDto> Tags { get; init; }
+    public required IReadOnlyList<TagDto> Tags { get; init; }
 
     public static ProblemLimitedDto FromEntity(Problem problem)
     {

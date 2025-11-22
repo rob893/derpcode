@@ -20,7 +20,7 @@ public sealed record CreateArticleRequest
     [Required]
     public required ArticleType Type { get; init; }
 
-    public List<CreateTagRequest> Tags { get; init; } = [];
+    public IReadOnlyList<CreateTagRequest> Tags { get; init; } = [];
 
     public Article ToEntity(int userId)
     {

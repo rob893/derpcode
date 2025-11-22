@@ -8,5 +8,5 @@ public sealed record CreateProblemValidationResponse
 
     public string? ErrorMessage { get; init; }
 
-    public required List<CreateProblemDriverValidationResponse> DriverValidations { get; init; } = [];
+    public required IReadOnlyList<CreateProblemDriverValidationResponse> DriverValidations { get; init; } = [];
 }

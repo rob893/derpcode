@@ -166,8 +166,8 @@ public static class EntityFrameworkExtensions
 
         return src.ToCursorPaginatedListAsync(
             item => item.Id,
-            key => key.ConvertToBase64Url(),
-            cursor => cursor.ConvertToInt32FromBase64Url(),
+            key => key.ConvertToBase64UrlEncodedString(),
+            cursor => cursor.ConvertToInt32FromBase64UrlEncodedString(),
             queryParameters.First,
             queryParameters.Last,
             queryParameters.After,

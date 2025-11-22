@@ -8,5 +8,5 @@ public sealed record SwaggerSettings
 
     public bool Enabled { get; init; }
 
-    public List<string> SupportedApiVersions { get; init; } = [];
+    public IReadOnlyList<string> SupportedApiVersions { get; init; } = [];
 }

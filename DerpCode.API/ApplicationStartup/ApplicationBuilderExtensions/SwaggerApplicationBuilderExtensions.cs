@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi;
 
 namespace DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 
@@ -29,7 +30,10 @@ public static class SwaggerApplicationBuilderExtensions
         }
 
         app.UseMiddleware<SwaggerBasicAuthMiddleware>()
-            .UseSwagger()
+            .UseSwagger(options =>
+            {
+                options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
+            })
             .UseSwaggerUI(
                 options =>
                 {

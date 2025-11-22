@@ -15,7 +15,7 @@ public static class PrimitiveExtensions
     /// </summary>
     /// <param name="str">A valid base64 encoded int.</param>
     /// <returns>The int value of the base64 encoded int.</returns>
-    public static int ConvertToInt32FromBase64Url(this string str)
+    public static int ConvertToInt32FromBase64UrlEncodedString(this string str)
     {
         try
         {
@@ -32,7 +32,7 @@ public static class PrimitiveExtensions
     /// </summary>
     /// <param name="str">A valid base64 encoded long.</param>
     /// <returns>The long value of the base64 encoded long.</returns>
-    public static long ConvertToLongFromBase64Url(this string str)
+    public static long ConvertToLongFromBase64UrlEncodedString(this string str)
     {
         try
         {
@@ -49,7 +49,7 @@ public static class PrimitiveExtensions
     /// </summary>
     /// <param name="str">A valid base64 encoded string.</param>
     /// <returns>The string value of the base64 encoded string.</returns>
-    public static string ConvertToStringFromBase64Url(this string str)
+    public static string ConvertToStringFromBase64UrlEncodedString(this string str)
     {
         try
         {
@@ -70,7 +70,7 @@ public static class PrimitiveExtensions
     {
         try
         {
-            _ = str.ConvertToInt32FromBase64Url();
+            _ = str.ConvertToInt32FromBase64UrlEncodedString();
             return true;
         }
         catch (ArgumentException)
@@ -88,7 +88,7 @@ public static class PrimitiveExtensions
     {
         try
         {
-            _ = str.ConvertToStringFromBase64Url();
+            _ = str.ConvertToStringFromBase64UrlEncodedString();
             return true;
         }
         catch (ArgumentException)
@@ -102,7 +102,7 @@ public static class PrimitiveExtensions
     /// </summary>
     /// <param name="i">The int to convert.</param>
     /// <returns>A base64 encoded string of the int.</returns>
-    public static string ConvertToBase64Url(this int i)
+    public static string ConvertToBase64UrlEncodedString(this int i)
     {
         return Base64UrlEncode(BitConverter.GetBytes(i));
     }
@@ -112,7 +112,7 @@ public static class PrimitiveExtensions
     /// </summary>
     /// <param name="i">The long to convert.</param>
     /// <returns>A base64 encoded string of the long.</returns>
-    public static string ConvertToBase64Url(this long i)
+    public static string ConvertToBase64UrlEncodedString(this long i)
     {
         return Base64UrlEncode(BitConverter.GetBytes(i));
     }
@@ -122,7 +122,7 @@ public static class PrimitiveExtensions
     /// </summary>
     /// <param name="str">The string to convert.</param>
     /// <returns>A base64 encoded string of the string.</returns>
-    public static string ConvertToBase64Url(this string str)
+    public static string ConvertToBase64UrlEncodedString(this string str)
     {
         return Base64UrlEncode(Encoding.UTF8.GetBytes(str));
     }

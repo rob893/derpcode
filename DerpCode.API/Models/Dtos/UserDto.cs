@@ -16,9 +16,9 @@ public sealed record UserDto : IIdentifiable<int>
 
     public required DateTimeOffset Created { get; init; }
 
-    public required List<string> Roles { get; init; }
+    public required IReadOnlyList<string> Roles { get; init; }
 
-    public required List<LinkedAccountDto> LinkedAccounts { get; init; }
+    public required IReadOnlyList<LinkedAccountDto> LinkedAccounts { get; init; }
 
     public required DateTimeOffset? LastLogin { get; init; }
 

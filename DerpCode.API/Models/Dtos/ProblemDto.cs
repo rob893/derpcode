@@ -19,15 +19,15 @@ public sealed record ProblemDto : IIdentifiable<int>
 
     public required ProblemDifficulty Difficulty { get; init; }
 
-    public required List<object> ExpectedOutput { get; init; }
+    public required IReadOnlyList<object> ExpectedOutput { get; init; }
 
-    public required List<object> Input { get; init; }
+    public required IReadOnlyList<object> Input { get; init; }
 
-    public required List<string> Hints { get; init; } = [];
+    public required IReadOnlyList<string> Hints { get; init; } = [];
 
-    public required List<TagDto> Tags { get; init; }
+    public required IReadOnlyList<TagDto> Tags { get; init; }
 
-    public required List<ProblemDriverDto> Drivers { get; init; }
+    public required IReadOnlyList<ProblemDriverDto> Drivers { get; init; }
 
     public static ProblemDto FromEntity(Problem problem, bool isCurrentUserAdmin, bool isCurrentUserPremium)
     {

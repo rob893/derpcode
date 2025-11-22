@@ -14,10 +14,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = 12345;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToInt32FromBase64Url();
+        var result = base64String.ConvertToInt32FromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -28,10 +28,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = 0;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToInt32FromBase64Url();
+        var result = base64String.ConvertToInt32FromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(0, result);
@@ -42,10 +42,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = -12345;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToInt32FromBase64Url();
+        var result = base64String.ConvertToInt32FromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -56,10 +56,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = int.MaxValue;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToInt32FromBase64Url();
+        var result = base64String.ConvertToInt32FromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(int.MaxValue, result);
@@ -70,10 +70,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = int.MinValue;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToInt32FromBase64Url();
+        var result = base64String.ConvertToInt32FromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(int.MinValue, result);
@@ -87,7 +87,7 @@ public sealed class PrimitiveExtensionsTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            invalidBase64.ConvertToInt32FromBase64Url());
+            invalidBase64.ConvertToInt32FromBase64UrlEncodedString());
 
         Assert.Contains("is not a valid base 64 encoded int32", exception.Message);
     }
@@ -100,7 +100,7 @@ public sealed class PrimitiveExtensionsTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            emptyString.ConvertToInt32FromBase64Url());
+            emptyString.ConvertToInt32FromBase64UrlEncodedString());
 
         Assert.Contains("is not a valid base 64 encoded int32", exception.Message);
     }
@@ -113,7 +113,7 @@ public sealed class PrimitiveExtensionsTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            shortBase64.ConvertToInt32FromBase64Url());
+            shortBase64.ConvertToInt32FromBase64UrlEncodedString());
 
         Assert.Contains("is not a valid base 64 encoded int32", exception.Message);
     }
@@ -127,10 +127,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = 123456789012345L;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToLongFromBase64Url();
+        var result = base64String.ConvertToLongFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -141,10 +141,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = 0L;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToLongFromBase64Url();
+        var result = base64String.ConvertToLongFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(0L, result);
@@ -155,10 +155,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = -123456789012345L;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToLongFromBase64Url();
+        var result = base64String.ConvertToLongFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -169,10 +169,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = long.MaxValue;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToLongFromBase64Url();
+        var result = base64String.ConvertToLongFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(long.MaxValue, result);
@@ -183,10 +183,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = long.MinValue;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToLongFromBase64Url();
+        var result = base64String.ConvertToLongFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(long.MinValue, result);
@@ -200,7 +200,7 @@ public sealed class PrimitiveExtensionsTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            invalidBase64.ConvertToLongFromBase64Url());
+            invalidBase64.ConvertToLongFromBase64UrlEncodedString());
 
         Assert.Contains("is not a valid base 64 encoded int64", exception.Message);
     }
@@ -213,7 +213,7 @@ public sealed class PrimitiveExtensionsTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            emptyString.ConvertToLongFromBase64Url());
+            emptyString.ConvertToLongFromBase64UrlEncodedString());
 
         Assert.Contains("is not a valid base 64 encoded int64", exception.Message);
     }
@@ -227,10 +227,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = "Hello, World!";
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToStringFromBase64Url();
+        var result = base64String.ConvertToStringFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -241,10 +241,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = string.Empty;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToStringFromBase64Url();
+        var result = base64String.ConvertToStringFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(string.Empty, result);
@@ -255,10 +255,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = "Special chars: éñüñøß€™";
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToStringFromBase64Url();
+        var result = base64String.ConvertToStringFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -269,10 +269,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = "   Text with spaces   ";
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToStringFromBase64Url();
+        var result = base64String.ConvertToStringFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -283,10 +283,10 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = "Line 1\nLine 2\r\nLine 3";
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
-        var result = base64String.ConvertToStringFromBase64Url();
+        var result = base64String.ConvertToStringFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, result);
@@ -300,7 +300,7 @@ public sealed class PrimitiveExtensionsTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            invalidBase64.ConvertToStringFromBase64Url());
+            invalidBase64.ConvertToStringFromBase64UrlEncodedString());
 
         Assert.Contains("is not a valid base 64 encoded string", exception.Message);
     }
@@ -314,7 +314,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = 12345;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedInt32();
@@ -328,7 +328,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = 0;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedInt32();
@@ -342,7 +342,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = int.MaxValue;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedInt32();
@@ -356,7 +356,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = int.MinValue;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedInt32();
@@ -396,7 +396,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange - Test with a string and observe actual behavior
         var stringValue = "Hello";
-        var base64String = stringValue.ConvertToBase64Url();
+        var base64String = stringValue.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedInt32();
@@ -420,7 +420,7 @@ public sealed class PrimitiveExtensionsTests
 
         foreach (var (str, expectedValid) in tests)
         {
-            var base64String = str.ConvertToBase64Url();
+            var base64String = str.ConvertToBase64UrlEncodedString();
             var result = base64String.IsValidBase64UrlEncodedInt32();
 
             Assert.Equal(expectedValid, result);
@@ -432,7 +432,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange - Test with a long and observe actual behavior
         var longValue = long.MaxValue;
-        var base64String = longValue.ConvertToBase64Url();
+        var base64String = longValue.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedInt32();
@@ -451,7 +451,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = "Hello, World!";
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedString();
@@ -465,7 +465,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = string.Empty;
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedString();
@@ -479,7 +479,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange
         var value = "éñüñøß€™";
-        var base64String = value.ConvertToBase64Url();
+        var base64String = value.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedString();
@@ -493,7 +493,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange - An int encoded as base64 is still valid UTF-8 bytes
         var intValue = 12345;
-        var base64String = intValue.ConvertToBase64Url();
+        var base64String = intValue.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedString();
@@ -507,7 +507,7 @@ public sealed class PrimitiveExtensionsTests
     {
         // Arrange - A long encoded as base64 is still valid UTF-8 bytes
         var longValue = 123456789012345L;
-        var base64String = longValue.ConvertToBase64Url();
+        var base64String = longValue.ConvertToBase64UrlEncodedString();
 
         // Act
         var result = base64String.IsValidBase64UrlEncodedString();
@@ -540,11 +540,11 @@ public sealed class PrimitiveExtensionsTests
         var value = 12345;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToInt32FromBase64Url();
+        var decoded = result.ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -555,11 +555,11 @@ public sealed class PrimitiveExtensionsTests
         var value = 0;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToInt32FromBase64Url();
+        var decoded = result.ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -570,11 +570,11 @@ public sealed class PrimitiveExtensionsTests
         var value = -12345;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToInt32FromBase64Url();
+        var decoded = result.ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -585,11 +585,11 @@ public sealed class PrimitiveExtensionsTests
         var value = int.MaxValue;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToInt32FromBase64Url();
+        var decoded = result.ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -600,11 +600,11 @@ public sealed class PrimitiveExtensionsTests
         var value = int.MinValue;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToInt32FromBase64Url();
+        var decoded = result.ConvertToInt32FromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -619,11 +619,11 @@ public sealed class PrimitiveExtensionsTests
         var value = 123456789012345L;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToLongFromBase64Url();
+        var decoded = result.ConvertToLongFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -634,11 +634,11 @@ public sealed class PrimitiveExtensionsTests
         var value = 0L;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToLongFromBase64Url();
+        var decoded = result.ConvertToLongFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -649,11 +649,11 @@ public sealed class PrimitiveExtensionsTests
         var value = -123456789012345L;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToLongFromBase64Url();
+        var decoded = result.ConvertToLongFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -664,11 +664,11 @@ public sealed class PrimitiveExtensionsTests
         var value = long.MaxValue;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToLongFromBase64Url();
+        var decoded = result.ConvertToLongFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -679,11 +679,11 @@ public sealed class PrimitiveExtensionsTests
         var value = long.MinValue;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToLongFromBase64Url();
+        var decoded = result.ConvertToLongFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -698,11 +698,11 @@ public sealed class PrimitiveExtensionsTests
         var value = "Hello, World!";
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -713,13 +713,13 @@ public sealed class PrimitiveExtensionsTests
         var value = string.Empty;
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.NotNull(result);
         // An empty string when base64 encoded will result in an empty string
         // which can be decoded back to an empty string
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -730,11 +730,11 @@ public sealed class PrimitiveExtensionsTests
         var value = "Special chars: éñüñøß€™";
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -745,11 +745,11 @@ public sealed class PrimitiveExtensionsTests
         var value = "   Text with spaces   ";
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -760,11 +760,11 @@ public sealed class PrimitiveExtensionsTests
         var value = "Line 1\nLine 2\r\nLine 3";
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -775,11 +775,11 @@ public sealed class PrimitiveExtensionsTests
         var value = "{\"name\":\"test\",\"value\":123}";
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -790,11 +790,11 @@ public sealed class PrimitiveExtensionsTests
         var value = new string('A', 1000); // Long string
 
         // Act
-        var result = value.ConvertToBase64Url();
+        var result = value.ConvertToBase64UrlEncodedString();
 
         // Assert
         Assert.False(string.IsNullOrEmpty(result));
-        var decoded = result.ConvertToStringFromBase64Url();
+        var decoded = result.ConvertToStringFromBase64UrlEncodedString();
         Assert.Equal(value, decoded);
     }
 
@@ -813,8 +813,8 @@ public sealed class PrimitiveExtensionsTests
     public void RoundTrip_Int32_PreservesValue(int value)
     {
         // Act
-        var encoded = value.ConvertToBase64Url();
-        var decoded = encoded.ConvertToInt32FromBase64Url();
+        var encoded = value.ConvertToBase64UrlEncodedString();
+        var decoded = encoded.ConvertToInt32FromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, decoded);
@@ -831,8 +831,8 @@ public sealed class PrimitiveExtensionsTests
     public void RoundTrip_Long_PreservesValue(long value)
     {
         // Act
-        var encoded = value.ConvertToBase64Url();
-        var decoded = encoded.ConvertToLongFromBase64Url();
+        var encoded = value.ConvertToBase64UrlEncodedString();
+        var decoded = encoded.ConvertToLongFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, decoded);
@@ -849,8 +849,8 @@ public sealed class PrimitiveExtensionsTests
     public void RoundTrip_String_PreservesValue(string value)
     {
         // Act
-        var encoded = value.ConvertToBase64Url();
-        var decoded = encoded.ConvertToStringFromBase64Url();
+        var encoded = value.ConvertToBase64UrlEncodedString();
+        var decoded = encoded.ConvertToStringFromBase64UrlEncodedString();
 
         // Assert
         Assert.Equal(value, decoded);

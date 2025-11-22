@@ -682,14 +682,18 @@ public sealed class ProblemServiceTests
         ];
 
         var request = CreateTestCreateProblemRequest();
-        request.Drivers[0] = new CreateProblemDriverRequest
+        var updatedDrivers = new List<CreateProblemDriverRequest>(request.Drivers)
         {
-            Language = LanguageType.CSharp,
-            Answer = "new answer",
-            DriverCode = "new code",
-            Image = "new image",
-            UITemplate = "new template"
+            [0] = new CreateProblemDriverRequest
+            {
+                Language = LanguageType.CSharp,
+                Answer = "new answer",
+                DriverCode = "new code",
+                Image = "new image",
+                UITemplate = "new template"
+            }
         };
+        request = request with { Drivers = updatedDrivers };
 
         this.mockProblemRepository
             .Setup(x => x.GetByIdAsync(problemId, true, It.IsAny<CancellationToken>()))
@@ -927,14 +931,18 @@ public sealed class ProblemServiceTests
     {
         // Arrange
         var request = CreateTestCreateProblemRequest();
-        request.Drivers.Add(new CreateProblemDriverRequest
+        var updatedDrivers = new List<CreateProblemDriverRequest>(request.Drivers)
         {
-            Language = LanguageType.JavaScript,
-            Answer = "test answer js",
-            DriverCode = "test driver js",
-            Image = "test-js-image",
-            UITemplate = "test template js"
-        });
+            new CreateProblemDriverRequest
+            {
+                Language = LanguageType.JavaScript,
+                Answer = "test answer js",
+                DriverCode = "test driver js",
+                Image = "test-js-image",
+                UITemplate = "test template js"
+            }
+        };
+        request = request with { Drivers = updatedDrivers };
 
         var submissionResult = CreateTestProblemSubmission();
         submissionResult.Pass = true;

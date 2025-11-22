@@ -32,7 +32,7 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
 
     public required long ExecutionTimeInMs { get; init; }
 
-    public required List<TestCaseResultDto> TestCaseResults { get; init; }
+    public required IReadOnlyList<TestCaseResultDto> TestCaseResults { get; init; }
 
     public static ProblemSubmissionDto FromEntity(ProblemSubmission submission, bool showPremiumContent, string stdOut)
     {

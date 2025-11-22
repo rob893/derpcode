@@ -47,8 +47,8 @@ public sealed class UserSubmissionsController : ServiceControllerBase
 
         var paginatedResponse = submissions.ToCursorPaginatedResponse(
             e => e.Id,
-            id => id.ConvertToBase64Url(),
-            id => id.ConvertToLongFromBase64Url(),
+            id => id.ConvertToBase64UrlEncodedString(),
+            id => id.ConvertToLongFromBase64UrlEncodedString(),
             searchParams);
 
         return this.Ok(paginatedResponse);
