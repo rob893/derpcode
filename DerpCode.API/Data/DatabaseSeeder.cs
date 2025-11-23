@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -67,7 +68,9 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
     {
         if (dropDatabase)
         {
-            await this.context.Database.EnsureDeletedAsync(cancellationToken);
+            // Uncomment this if the db supports droppoing like mysql
+            // await this.context.Database.EnsureDeletedAsync(cancellationToken);
+            await ResetSchemaAsync(this.context.Database.GetDbConnection(), cancellationToken);
         }
 
         if (applyMigrations)
@@ -88,6 +91,29 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
             this.SeedDriverTemplates();
 
             await this.context.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    // this is spcifically to reset the schema for Postgres.
+    private static async Task ResetSchemaAsync(DbConnection connection, CancellationToken ct)
+    {
+        // 23505: duplicate key value violates unique constraint \"PK_AspNetUsers\"\r\n\r\nDETAIL:
+        // seems to be some issues with manually setting ids when seeding causing the sequences to get out of sync
+        await connection.OpenAsync(ct);
+
+        try
+        {
+            await using var cmd1 = connection.CreateCommand();
+            cmd1.CommandText = "DROP SCHEMA IF EXISTS public CASCADE;";
+            await cmd1.ExecuteNonQueryAsync(ct);
+
+            await using var cmd2 = connection.CreateCommand();
+            cmd2.CommandText = "CREATE SCHEMA public;";
+            await cmd2.ExecuteNonQueryAsync(ct);
+        }
+        finally
+        {
+            await connection.CloseAsync();
         }
     }
 

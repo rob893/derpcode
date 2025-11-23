@@ -1,6 +1,6 @@
 namespace DerpCode.API.Models.Settings;
 
-public sealed record MySQLSettings
+public sealed record PostgresSettings
 {
     public string DefaultConnection { get; init; } = default!;
 

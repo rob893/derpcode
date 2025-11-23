@@ -15,16 +15,16 @@ public static class DatabaseServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(config);
 
-        services.Configure<MySQLSettings>(config.GetSection(ConfigurationKeys.MySQL));
+        services.Configure<PostgresSettings>(config.GetSection(ConfigurationKeys.Postgres));
 
-        var settings = config.GetSection(ConfigurationKeys.MySQL)?.Get<MySQLSettings>()
-            ?? throw new InvalidOperationException($"Missing {ConfigurationKeys.MySQL} section in configuration.");
+        var settings = config.GetSection(ConfigurationKeys.Postgres)?.Get<PostgresSettings>()
+            ?? throw new InvalidOperationException($"Missing {ConfigurationKeys.Postgres} section in configuration.");
 
         services.AddDbContext<DataContext>(
             dbContextOptions =>
             {
                 dbContextOptions
-                    .UseMySql(settings.DefaultConnection, ServerVersion.AutoDetect(settings.DefaultConnection), options =>
+                    .UseNpgsql(settings.DefaultConnection, options =>
                     {
                         options.EnableRetryOnFailure();
                         options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
