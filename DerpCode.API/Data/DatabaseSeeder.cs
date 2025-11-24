@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -67,7 +68,9 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
     {
         if (dropDatabase)
         {
-            await this.context.Database.EnsureDeletedAsync(cancellationToken);
+            // Uncomment this if the db supports droppoing like mysql
+            // await this.context.Database.EnsureDeletedAsync(cancellationToken);
+            await ResetSchemaAsync(this.context.Database.GetDbConnection(), cancellationToken);
         }
 
         if (applyMigrations)
@@ -88,79 +91,11 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
             this.SeedDriverTemplates();
 
             await this.context.SaveChangesAsync(cancellationToken);
-        }
-    }
 
-    private async Task ClearAllDataAsync(CancellationToken cancellationToken = default)
-    {
-        this.context.RefreshTokens.Clear();
-        this.context.LinkedAccounts.Clear();
-        this.context.ArticleComments.Clear();
-        this.context.Articles.Clear();
-        this.context.ProblemSubmissions.Clear();
-        this.context.ProblemDrivers.Clear();
-        this.context.Tags.Clear();
-        this.context.Problems.Clear();
-        this.context.DriverTemplates.Clear();
-        this.context.Users.Clear();
-        this.context.Roles.Clear();
-
-        await this.context.SaveChangesAsync(cancellationToken);
-    }
-
-    private async Task SeedRolesAsync(CancellationToken cancellationToken = default)
-    {
-        if (this.context.Roles.Any())
-        {
-            return;
-        }
-
-        var data = await File.ReadAllTextAsync("Data/SeedData/RoleSeedData.json", cancellationToken);
-        var roles = JsonSerializer.Deserialize<List<Role>>(data, jsonOptions) ?? throw new JsonException("Unable to deserialize data.");
-
-        foreach (var role in roles)
-        {
-            await this.roleManager.CreateAsync(role);
-        }
-    }
-
-    private async Task SeedUsersAsync(CancellationToken cancellationToken = default)
-    {
-        if (this.context.Users.Any())
-        {
-            return;
-        }
-
-        var newUser = new User
-        {
-            UserName = "rob893",
-            Email = "rwherber@gmail.com",
-            EmailConfirmed = true,
-            Id = 1,
-            Created = DateTimeOffset.UtcNow,
-            LastPasswordChange = DateTimeOffset.UtcNow,
-            LastEmailChange = DateTimeOffset.UtcNow,
-            LastUsernameChange = DateTimeOffset.UtcNow,
-        };
-
-        await this.userManager.CreateAsync(newUser);
-        await this.userManager.AddToRoleAsync(newUser, UserRoleName.User);
-        await this.userManager.AddToRoleAsync(newUser, UserRoleName.Admin);
-        await this.userManager.AddToRoleAsync(newUser, UserRoleName.PremiumUser);
-    }
-
-    private void SeedDriverTemplates()
-    {
-        if (this.context.DriverTemplates.Any())
-        {
-            return;
-        }
-
-        var driverTemplates = DriverTemplateData.Templates;
-
-        foreach (var template in driverTemplates)
-        {
-            this.context.DriverTemplates.Add(template);
+            // Fix sequences for tables with hard-coded IDs
+            await FixSequenceAsync(this.context, "AspNetRoles", "Id", cancellationToken);
+            await FixSequenceAsync(this.context, "DriverTemplates", "Id", cancellationToken);
+            await FixSequenceAsync(this.context, "AspNetUsers", "Id", cancellationToken);
         }
     }
 
@@ -261,9 +196,123 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
             }
         }
 
+        await FixSequenceAsync(this.context, "Problems", "Id", cancellationToken);
+        await FixSequenceAsync(this.context, "Tags", "Id", cancellationToken);
+        await FixSequenceAsync(this.context, "Problems", "Id", cancellationToken);
+        await FixSequenceAsync(this.context, "ProblemDrivers", "Id", cancellationToken);
+
         this.logger.LogInformation("Problem synchronization completed. Added: {AddedCount}, Removed: {RemovedCount}, Updated: {UpdatedCount}",
             addedCount, removedCount, updatedCount);
 
         this.currentUserService.ClearOverrideUser();
+    }
+
+    private static async Task FixSequenceAsync(DbContext context, string table, string idColumn, CancellationToken cancellationToken = default)
+    {
+        // Note this is postgres specific
+        var sql = $@"
+        SELECT setval(
+            pg_get_serial_sequence('""{table}""', '{idColumn}'),
+            COALESCE((SELECT MAX(""{idColumn}"") FROM ""{table}""), 0) + 1,
+            false
+        );";
+
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    // this is spcifically to reset the schema for Postgres.
+    private static async Task ResetSchemaAsync(DbConnection connection, CancellationToken ct)
+    {
+        // 23505: duplicate key value violates unique constraint \"PK_AspNetUsers\"\r\n\r\nDETAIL:
+        // seems to be some issues with manually setting ids when seeding causing the sequences to get out of sync
+        await connection.OpenAsync(ct);
+
+        try
+        {
+            await using var cmd1 = connection.CreateCommand();
+            cmd1.CommandText = "DROP SCHEMA IF EXISTS public CASCADE;";
+            await cmd1.ExecuteNonQueryAsync(ct);
+
+            await using var cmd2 = connection.CreateCommand();
+            cmd2.CommandText = "CREATE SCHEMA public;";
+            await cmd2.ExecuteNonQueryAsync(ct);
+        }
+        finally
+        {
+            await connection.CloseAsync();
+        }
+    }
+
+    private async Task ClearAllDataAsync(CancellationToken cancellationToken = default)
+    {
+        this.context.RefreshTokens.Clear();
+        this.context.LinkedAccounts.Clear();
+        this.context.ArticleComments.Clear();
+        this.context.Articles.Clear();
+        this.context.ProblemSubmissions.Clear();
+        this.context.ProblemDrivers.Clear();
+        this.context.Tags.Clear();
+        this.context.Problems.Clear();
+        this.context.DriverTemplates.Clear();
+        this.context.Users.Clear();
+        this.context.Roles.Clear();
+
+        await this.context.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SeedRolesAsync(CancellationToken cancellationToken = default)
+    {
+        if (this.context.Roles.Any())
+        {
+            return;
+        }
+
+        var data = await File.ReadAllTextAsync("Data/SeedData/RoleSeedData.json", cancellationToken);
+        var roles = JsonSerializer.Deserialize<List<Role>>(data, jsonOptions) ?? throw new JsonException("Unable to deserialize data.");
+
+        foreach (var role in roles)
+        {
+            await this.roleManager.CreateAsync(role);
+        }
+    }
+
+    private async Task SeedUsersAsync(CancellationToken cancellationToken = default)
+    {
+        if (this.context.Users.Any())
+        {
+            return;
+        }
+
+        var newUser = new User
+        {
+            Id = 1,
+            UserName = "rob893",
+            Email = "rwherber@gmail.com",
+            EmailConfirmed = true,
+            Created = DateTimeOffset.UtcNow,
+            LastPasswordChange = DateTimeOffset.UtcNow,
+            LastEmailChange = DateTimeOffset.UtcNow,
+            LastUsernameChange = DateTimeOffset.UtcNow,
+        };
+
+        await this.userManager.CreateAsync(newUser);
+        await this.userManager.AddToRoleAsync(newUser, UserRoleName.User);
+        await this.userManager.AddToRoleAsync(newUser, UserRoleName.Admin);
+        await this.userManager.AddToRoleAsync(newUser, UserRoleName.PremiumUser);
+    }
+
+    private void SeedDriverTemplates()
+    {
+        if (this.context.DriverTemplates.Any())
+        {
+            return;
+        }
+
+        var driverTemplates = DriverTemplateData.Templates;
+
+        foreach (var template in driverTemplates)
+        {
+            this.context.DriverTemplates.Add(template);
+        }
     }
 }

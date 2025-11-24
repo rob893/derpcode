@@ -9,6 +9,16 @@
 - move pick random problem to backend (due to paging)
 - add tags endpoint to return all tags so UI can use that for filtering
 - add search by name for problems
-- move to .net 10
 - try aspire
 - use built in openai tooling (maybe replace swagger?)
+- on vm, wait for .net 10 sdk to show in apt (apt-cache search dotnet-sdk). Once it does, remove manual .net install via
+  sudo rm -rf /usr/share/dotnet/sdk/10._
+  sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/10._
+  sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10._
+  sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETAppHost/10._
+  sudo rm -rf /usr/share/dotnet/shared/Microsoft.WindowsDesktop.App/10._ # if present (none on Linux usually)
+  sudo rm -rf /usr/share/dotnet/templates/10._
+  sudo rm -rf /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref/10._
+  sudo rm -rf /usr/share/dotnet/packs/Microsoft.AspNetCore.App.Ref/10._
+  sudo rm -rf /usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/10.\*
+  sudo apt install dotnet-sdk-10.0

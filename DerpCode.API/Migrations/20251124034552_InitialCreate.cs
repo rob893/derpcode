@@ -1,6 +1,8 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
+using System.Collections.Generic;
+using DerpCode.API.Models.Entities;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -12,116 +14,92 @@ namespace DerpCode.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("MySql:CharSet", "utf8mb4");
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NormalizedName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ConcurrencyStamp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Created = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    LastLogin = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
-                    LastPasswordChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    LastEmailChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    LastUsernameChange = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    LastEmailConfirmationSent = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
-                    Experience = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NormalizedEmail = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    EmailConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    PasswordHash = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SecurityStamp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ConcurrencyStamp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PhoneNumber = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastLogin = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LastPasswordChange = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastEmailChange = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastUsernameChange = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastEmailConfirmationSent = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Experience = table.Column<int>(type: "integer", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "DriverTemplates",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Language = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Template = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UITemplate = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Language = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Template = table.Column<string>(type: "text", nullable: false),
+                    UITemplate = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DriverTemplates", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Tags",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "varchar(63)", maxLength: 63, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(63)", maxLength: 63, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tags", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
-                    ClaimType = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ClaimValue = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -132,20 +110,17 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    ClaimType = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ClaimValue = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -156,20 +131,16 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ProviderKey = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ProviderDisplayName = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -180,15 +151,14 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -205,20 +175,16 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Name = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Value = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -229,18 +195,15 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "LinkedAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    LinkedAccountType = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    LinkedAccountType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -251,22 +214,18 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "RefreshTokens",
                 columns: table => new
                 {
-                    DeviceId = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    TokenHash = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TokenSalt = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    Expiration = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false)
+                    DeviceId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    TokenHash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    TokenSalt = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Expiration = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -277,28 +236,26 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ArticleComments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    ArticleId = table.Column<int>(type: "int", nullable: false),
-                    Content = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    UpVotes = table.Column<int>(type: "int", nullable: false),
-                    DownVotes = table.Column<int>(type: "int", nullable: false),
-                    RepliesCount = table.Column<int>(type: "int", nullable: false),
-                    IsEdited = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ParentCommentId = table.Column<int>(type: "int", nullable: true),
-                    QuotedCommentId = table.Column<int>(type: "int", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ArticleId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpVotes = table.Column<int>(type: "integer", nullable: false),
+                    DownVotes = table.Column<int>(type: "integer", nullable: false),
+                    RepliesCount = table.Column<int>(type: "integer", nullable: false),
+                    IsEdited = table.Column<bool>(type: "boolean", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ParentCommentId = table.Column<int>(type: "integer", nullable: true),
+                    QuotedCommentId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -321,29 +278,25 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Articles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Content = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    LastEditedById = table.Column<int>(type: "int", nullable: false),
-                    UpVotes = table.Column<int>(type: "int", nullable: false),
-                    DownVotes = table.Column<int>(type: "int", nullable: false),
-                    Type = table.Column<string>(type: "varchar(25)", maxLength: 25, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ProblemId = table.Column<int>(type: "int", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastEditedById = table.Column<int>(type: "integer", nullable: false),
+                    UpVotes = table.Column<int>(type: "integer", nullable: false),
+                    DownVotes = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ProblemId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -360,15 +313,14 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ArticleTag",
                 columns: table => new
                 {
-                    ArticlesId = table.Column<int>(type: "int", nullable: false),
-                    TagsId = table.Column<int>(type: "int", nullable: false)
+                    ArticlesId = table.Column<int>(type: "integer", nullable: false),
+                    TagsId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -385,34 +337,27 @@ namespace DerpCode.API.Migrations
                         principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Problems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ExplanationArticleId = table.Column<int>(type: "int", nullable: false),
-                    Difficulty = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ExpectedOutput = table.Column<string>(type: "json", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Input = table.Column<string>(type: "json", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Hints = table.Column<string>(type: "json", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    IsPublished = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    LastEditedById = table.Column<int>(type: "int", nullable: false),
-                    CreatedById = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    ExplanationArticleId = table.Column<int>(type: "integer", nullable: false),
+                    Difficulty = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: false),
+                    ExpectedOutput = table.Column<List<object>>(type: "jsonb", nullable: false),
+                    Input = table.Column<List<object>>(type: "jsonb", nullable: false),
+                    Hints = table.Column<List<string>>(type: "jsonb", nullable: false),
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastEditedById = table.Column<int>(type: "integer", nullable: false),
+                    CreatedById = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -435,26 +380,20 @@ namespace DerpCode.API.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ProblemDrivers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ProblemId = table.Column<int>(type: "int", nullable: false),
-                    Language = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Image = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UITemplate = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DriverCode = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Answer = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ProblemId = table.Column<int>(type: "integer", nullable: false),
+                    Language = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Image = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    UITemplate = table.Column<string>(type: "text", nullable: false),
+                    DriverCode = table.Column<string>(type: "text", nullable: false),
+                    Answer = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -465,32 +404,27 @@ namespace DerpCode.API.Migrations
                         principalTable: "Problems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ProblemSubmissions",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    ProblemId = table.Column<int>(type: "int", nullable: false),
-                    Language = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Code = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    Pass = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    TestCaseCount = table.Column<int>(type: "int", nullable: false),
-                    PassedTestCases = table.Column<int>(type: "int", nullable: false),
-                    FailedTestCases = table.Column<int>(type: "int", nullable: false),
-                    ErrorMessage = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ExecutionTimeInMs = table.Column<int>(type: "int", nullable: false),
-                    MemoryKb = table.Column<int>(type: "int", nullable: true),
-                    TestCaseResults = table.Column<string>(type: "json", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ProblemId = table.Column<int>(type: "integer", nullable: false),
+                    Language = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Pass = table.Column<bool>(type: "boolean", nullable: false),
+                    TestCaseCount = table.Column<int>(type: "integer", nullable: false),
+                    PassedTestCases = table.Column<int>(type: "integer", nullable: false),
+                    FailedTestCases = table.Column<int>(type: "integer", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
+                    ExecutionTimeInMs = table.Column<int>(type: "integer", nullable: false),
+                    MemoryKb = table.Column<int>(type: "integer", nullable: true),
+                    TestCaseResults = table.Column<List<TestCaseResult>>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -507,15 +441,14 @@ namespace DerpCode.API.Migrations
                         principalTable: "Problems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ProblemTag",
                 columns: table => new
                 {
-                    ProblemsId = table.Column<int>(type: "int", nullable: false),
-                    TagsId = table.Column<int>(type: "int", nullable: false)
+                    ProblemsId = table.Column<int>(type: "integer", nullable: false),
+                    TagsId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -532,8 +465,7 @@ namespace DerpCode.API.Migrations
                         principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ArticleComments_ArticleId",
