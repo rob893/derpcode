@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using DerpCode.API.Models.Entities;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -347,9 +349,9 @@ namespace DerpCode.API.Migrations
                     Description = table.Column<string>(type: "text", nullable: false),
                     ExplanationArticleId = table.Column<int>(type: "integer", nullable: false),
                     Difficulty = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: false),
-                    ExpectedOutput = table.Column<string>(type: "json", nullable: false),
-                    Input = table.Column<string>(type: "json", nullable: false),
-                    Hints = table.Column<string>(type: "json", nullable: false),
+                    ExpectedOutput = table.Column<List<object>>(type: "jsonb", nullable: false),
+                    Input = table.Column<List<object>>(type: "jsonb", nullable: false),
+                    Hints = table.Column<List<string>>(type: "jsonb", nullable: false),
                     IsPublished = table.Column<bool>(type: "boolean", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -422,7 +424,7 @@ namespace DerpCode.API.Migrations
                     ErrorMessage = table.Column<string>(type: "text", nullable: true),
                     ExecutionTimeInMs = table.Column<int>(type: "integer", nullable: false),
                     MemoryKb = table.Column<int>(type: "integer", nullable: true),
-                    TestCaseResults = table.Column<string>(type: "json", nullable: false)
+                    TestCaseResults = table.Column<List<TestCaseResult>>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {

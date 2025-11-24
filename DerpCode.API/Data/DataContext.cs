@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using DerpCode.API.Data.Comparers;
 using DerpCode.API.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -79,55 +76,16 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
         {
             problem.Property(p => p.Difficulty).HasConversion<string>();
 
-            // Use JSON serialization for MySQL
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            // Create a comparer for JSON collections
-            var listObjectComparer = new JsonCollectionComparer<List<object>>(options);
-            var listStringComparer = new JsonCollectionComparer<List<string>>(options);
-
-            problem.Property(p => p.ExpectedOutput)
-                .HasColumnType("json")
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, options),
-                    v => JsonSerializer.Deserialize<List<object>>(v, options) ?? new List<object>())
-                .Metadata.SetValueComparer(listObjectComparer);
-
-            problem.Property(p => p.Input)
-                .HasColumnType("json")
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, options),
-                    v => JsonSerializer.Deserialize<List<object>>(v, options) ?? new List<object>())
-                .Metadata.SetValueComparer(listObjectComparer);
-
-            problem.Property(p => p.Hints)
-                .HasColumnType("json")
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, options),
-                    v => JsonSerializer.Deserialize<List<string>>(v, options) ?? new List<string>())
-                .Metadata.SetValueComparer(listStringComparer);
+            problem.Property(p => p.ExpectedOutput).HasColumnType("jsonb");
+            problem.Property(p => p.Input).HasColumnType("jsonb");
+            problem.Property(p => p.Hints).HasColumnType("jsonb");
         });
 
         builder.Entity<ProblemSubmission>(submission =>
         {
             submission.Property(s => s.Language).HasConversion<string>();
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            var listComparer = new JsonCollectionComparer<List<TestCaseResult>>(options);
-
-            submission.Property(s => s.TestCaseResults)
-                .HasColumnType("json")
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, options),
-                    v => JsonSerializer.Deserialize<List<TestCaseResult>>(v, options) ?? new List<TestCaseResult>())
-                .Metadata.SetValueComparer(listComparer);
+            submission.Property(s => s.TestCaseResults).HasColumnType("jsonb");
         });
 
         builder.Entity<Article>(article =>

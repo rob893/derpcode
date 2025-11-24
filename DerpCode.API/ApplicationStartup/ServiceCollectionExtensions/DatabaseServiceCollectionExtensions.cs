@@ -5,6 +5,7 @@ using DerpCode.API.Models.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 
@@ -20,11 +21,15 @@ public static class DatabaseServiceCollectionExtensions
         var settings = config.GetSection(ConfigurationKeys.Postgres)?.Get<PostgresSettings>()
             ?? throw new InvalidOperationException($"Missing {ConfigurationKeys.Postgres} section in configuration.");
 
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(settings.DefaultConnection);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+
         services.AddDbContext<DataContext>(
             dbContextOptions =>
             {
                 dbContextOptions
-                    .UseNpgsql(settings.DefaultConnection, options =>
+                    .UseNpgsql(dataSource, options =>
                     {
                         options.EnableRetryOnFailure();
                         options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
