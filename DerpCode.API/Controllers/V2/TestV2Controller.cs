@@ -17,6 +17,11 @@ public sealed class TestV2Controller : ServiceControllerBase
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Health check endpoint that returns a pong response.
+    /// </summary>
+    /// <returns>A pong response string.</returns>
+    /// <response code="200">Returns the pong response.</response>
     [HttpGet("ping", Name = nameof(Ping))]
     public ActionResult<string> Ping()
     {

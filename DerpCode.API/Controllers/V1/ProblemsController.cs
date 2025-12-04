@@ -33,6 +33,12 @@ public sealed class ProblemsController : ServiceControllerBase
         this.gitHubService = gitHubService ?? throw new ArgumentNullException(nameof(gitHubService));
     }
 
+    /// <summary>
+    /// Gets a paginated list of problems.
+    /// </summary>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
+    /// <returns>A paginated list of problems.</returns>
+    /// <response code="200">Returns the paginated list of problems.</response>
     [AllowAnonymous]
     [HttpGet(Name = nameof(GetProblemsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -43,6 +49,12 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Gets a paginated list of problems with limited information.
+    /// </summary>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
+    /// <returns>A paginated list of problems with limited details.</returns>
+    /// <response code="200">Returns the paginated list of problems with limited information.</response>
     [AllowAnonymous]
     [HttpGet("limited", Name = nameof(GetProblemsLimitedAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -53,6 +65,13 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Gets a specific problem by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the problem to retrieve.</param>
+    /// <returns>The problem with the specified ID.</returns>
+    /// <response code="200">Returns the problem.</response>
+    /// <response code="404">If the problem is not found.</response>
     [AllowAnonymous]
     [HttpGet("{id}", Name = nameof(GetProblemAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -69,6 +88,11 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.Ok(problem);
     }
 
+    /// <summary>
+    /// Syncs problems from the database to GitHub. Admin access required.
+    /// </summary>
+    /// <returns>The URL of the created pull request.</returns>
+    /// <response code="200">Returns the pull request URL.</response>
     [HttpPost("sync", Name = nameof(SyncProblemsToGitHubAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -78,6 +102,12 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.Ok(new { prUrl });
     }
 
+    /// <summary>
+    /// Creates a new problem. Admin access required.
+    /// </summary>
+    /// <param name="problem">The problem creation request.</param>
+    /// <returns>The newly created problem.</returns>
+    /// <response code="201">Returns the newly created problem.</response>
     [HttpPost(Name = nameof(CreateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -95,6 +125,13 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = newProblem.Id }, newProblem);
     }
 
+    /// <summary>
+    /// Clones an existing problem. Admin access required.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem to clone.</param>
+    /// <returns>The cloned problem.</returns>
+    /// <response code="201">Returns the cloned problem.</response>
+    /// <response code="404">If the problem to clone is not found.</response>
     [HttpPost("{problemId}/clone", Name = nameof(CloneProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -113,6 +150,14 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemAsync), new { id = clonedProblem.Id }, clonedProblem);
     }
 
+    /// <summary>
+    /// Partially updates a problem using JSON Patch. Admin access required.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem to update.</param>
+    /// <param name="dtoPatchDoc">The JSON Patch document containing the updates.</param>
+    /// <returns>The updated problem.</returns>
+    /// <response code="200">Returns the updated problem.</response>
+    /// <response code="404">If the problem is not found.</response>
     [HttpPatch("{problemId}", Name = nameof(UpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -131,6 +176,14 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.Ok(patchedProblem);
     }
 
+    /// <summary>
+    /// Fully updates a problem. Admin access required.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem to update.</param>
+    /// <param name="updateRequest">The full problem update request.</param>
+    /// <returns>The updated problem.</returns>
+    /// <response code="200">Returns the updated problem.</response>
+    /// <response code="404">If the problem is not found.</response>
     [HttpPut("{problemId}", Name = nameof(FullUpdateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -149,6 +202,14 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.Ok(updatedProblem);
     }
 
+    /// <summary>
+    /// Deletes a problem. Admin access required.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem to delete.</param>
+    /// <param name="hardDelete">If true, permanently deletes the problem. Otherwise, soft deletes.</param>
+    /// <returns>No content on successful deletion.</returns>
+    /// <response code="204">Problem was successfully deleted.</response>
+    /// <response code="404">If the problem is not found.</response>
     [HttpDelete("{problemId}", Name = nameof(DeleteProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -165,6 +226,12 @@ public sealed class ProblemsController : ServiceControllerBase
         return this.NoContent();
     }
 
+    /// <summary>
+    /// Validates a problem creation request without creating it. Admin access required.
+    /// </summary>
+    /// <param name="problem">The problem creation request to validate.</param>
+    /// <returns>The validation response with any errors or warnings.</returns>
+    /// <response code="200">Returns the validation result.</response>
     [HttpPost("validate", Name = nameof(ValidateCreateProblemAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]

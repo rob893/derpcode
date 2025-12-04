@@ -156,7 +156,7 @@ The application uses a hierarchical configuration system:
 - **Postgres**: Database connection settings
 - **Authentication**: JWT settings, OAuth client IDs/secrets
 - **Email**: Azure Communication Services settings
-- **Swagger**: API documentation settings
+- **OpenApi**: API documentation settings
 - **GitHub**: Repository integration settings
 - **KeyVaultUrl**: Azure Key Vault URL for production
 
@@ -189,11 +189,11 @@ Health check endpoints:
 - `/health` - Basic health check
 - `/health/ready` - Readiness probe (includes database)
 
-## Swagger Documentation
+## OpenApi Documentation
 
-When `Swagger:Enabled` is `true`, access interactive API documentation at:
+When `OpenApi:Enabled` is `true`, access interactive API documentation at:
 
-- `https://localhost:7059/swagger`
+- `https://localhost:7059/scalar`
 
 ## Troubleshooting
 

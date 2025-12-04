@@ -8,25 +8,27 @@ using Microsoft.Extensions.Options;
 
 namespace DerpCode.API.Middleware;
 
-public sealed class SwaggerBasicAuthMiddleware
+public sealed class OpenApiBasicAuthMiddleware
 {
     private readonly RequestDelegate next;
 
-    public SwaggerBasicAuthMiddleware(RequestDelegate next)
+    public OpenApiBasicAuthMiddleware(RequestDelegate next)
     {
         this.next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IOptions<SwaggerSettings> swaggerSettings)
+    public async Task InvokeAsync(HttpContext context, IOptions<OpenApiSettings> openApiSettings)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(swaggerSettings);
+        ArgumentNullException.ThrowIfNull(openApiSettings);
 
-        var settings = swaggerSettings.Value;
+        var settings = openApiSettings.Value;
         var authSettings = settings.AuthSettings;
 
-        // Make sure we are hitting the swagger path
-        if (context.Request.Path.StartsWithSegments("/swagger", StringComparison.Ordinal))
+        // Make sure we are hitting the swagger/openapi/scalar paths
+        if (context.Request.Path.StartsWithSegments("/swagger", StringComparison.Ordinal) ||
+            context.Request.Path.StartsWithSegments("/openapi", StringComparison.Ordinal) ||
+            context.Request.Path.StartsWithSegments("/scalar", StringComparison.Ordinal))
         {
             if (!settings.Enabled)
             {
@@ -72,7 +74,7 @@ public sealed class SwaggerBasicAuthMiddleware
         }
     }
 
-    private static bool IsAuthorized(string username, string password, SwaggerAuthSettings authSettings)
+    private static bool IsAuthorized(string username, string password, OpenApiAuthSettings authSettings)
     {
         // Check that username and password are correct
         return username.Equals(authSettings.Username, StringComparison.Ordinal) && password.Equals(authSettings.Password, StringComparison.Ordinal);

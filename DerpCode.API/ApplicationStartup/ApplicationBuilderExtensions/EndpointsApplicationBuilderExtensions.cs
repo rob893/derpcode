@@ -9,26 +9,23 @@ namespace DerpCode.API.ApplicationStartup.ApplicationBuilderExtensions;
 
 public static class EndpointsApplicationBuilderExtensions
 {
-    public static IApplicationBuilder UseAndConfigureEndpoints(this IApplicationBuilder app, IConfiguration config)
+    public static WebApplication UseAndConfigureEndpoints(this WebApplication app, IConfiguration config)
     {
         ArgumentNullException.ThrowIfNull(app);
         ArgumentNullException.ThrowIfNull(config);
 
-        app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapHealthChecks(ApplicationSettings.HealthCheckEndpoint, new HealthCheckOptions()
-                {
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                });
+        app.MapHealthChecks(ApplicationSettings.HealthCheckEndpoint, new HealthCheckOptions()
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
 
-                endpoints.MapHealthChecks(ApplicationSettings.LivenessHealthCheckEndpoint, new HealthCheckOptions()
-                {
-                    Predicate = (check) => !check.Tags.Contains(HealthCheckTags.Dependency),
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                });
+        app.MapHealthChecks(ApplicationSettings.LivenessHealthCheckEndpoint, new HealthCheckOptions()
+        {
+            Predicate = (check) => !check.Tags.Contains(HealthCheckTags.Dependency),
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
 
-                endpoints.MapControllers();
-            });
+        app.MapControllers();
 
         return app;
     }

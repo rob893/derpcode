@@ -47,7 +47,8 @@
       Version="9.0.11" />
     <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.11.0" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
   </ItemGroup>
 

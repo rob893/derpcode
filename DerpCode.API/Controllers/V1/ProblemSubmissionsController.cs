@@ -22,6 +22,15 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
         this.problemSubmissionService = problemSubmissionService ?? throw new ArgumentNullException(nameof(problemSubmissionService));
     }
 
+    /// <summary>
+    /// Gets a specific submission for a problem.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem.</param>
+    /// <param name="submissionId">The ID of the submission to retrieve.</param>
+    /// <returns>The submission with the specified ID.</returns>
+    /// <response code="200">Returns the submission.</response>
+    /// <response code="403">If the user is not authorized to view this submission.</response>
+    /// <response code="404">If the submission is not found.</response>
     [HttpGet("submissions/{submissionId}", Name = nameof(GetProblemSubmissionAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,6 +47,13 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
         return this.Ok(submissionResult.ValueOrThrow);
     }
 
+    /// <summary>
+    /// Submits a solution for a problem.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem to submit a solution for.</param>
+    /// <param name="request">The submission request containing the solution code.</param>
+    /// <returns>The submission result.</returns>
+    /// <response code="201">Returns the submission result.</response>
     [HttpPost("submissions", Name = nameof(SubmitSolutionAsync))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<ProblemSubmissionDto>> SubmitSolutionAsync([FromRoute] int problemId, [FromBody] ProblemSubmissionRequest request)
@@ -54,6 +70,13 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
         return this.CreatedAtRoute(nameof(GetProblemSubmissionAsync), new { problemId = submission.ProblemId, submissionId = submission.Id }, submission);
     }
 
+    /// <summary>
+    /// Runs a solution for a problem without submitting it.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem to run the solution for.</param>
+    /// <param name="request">The submission request containing the solution code.</param>
+    /// <returns>The run result.</returns>
+    /// <response code="200">Returns the run result.</response>
     [HttpPost("run", Name = nameof(RunSolutionAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ProblemSubmissionDto>> RunSolutionAsync([FromRoute] int problemId, [FromBody] ProblemSubmissionRequest request)

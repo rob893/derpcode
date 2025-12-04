@@ -387,6 +387,13 @@ public sealed class AuthController : ServiceControllerBase
         }
     }
 
+    /// <summary>
+    /// Handles the GitHub OAuth callback by redirecting to the UI with the authorization code.
+    /// </summary>
+    /// <param name="code">The authorization code from GitHub.</param>
+    /// <param name="state">The optional state parameter for CSRF protection.</param>
+    /// <returns>A redirect to the UI with the authorization code.</returns>
+    /// <response code="302">Redirects to the UI with the authorization code or error.</response>
     [AllowAnonymous]
     [HttpGet("github/callback", Name = nameof(GitHubCallback))]
     [ProducesResponseType(StatusCodes.Status302Found)]
@@ -407,6 +414,13 @@ public sealed class AuthController : ServiceControllerBase
         return this.Redirect(redirectUrl);
     }
 
+    /// <summary>
+    /// Handles the Google OAuth callback by redirecting to the UI with the authorization code.
+    /// </summary>
+    /// <param name="code">The authorization code from Google.</param>
+    /// <param name="state">The optional state parameter for CSRF protection.</param>
+    /// <returns>A redirect to the UI with the authorization code.</returns>
+    /// <response code="302">Redirects to the UI with the authorization code or error.</response>
     [AllowAnonymous]
     [HttpGet("google/callback", Name = nameof(GoogleCallback))]
     [ProducesResponseType(StatusCodes.Status302Found)]

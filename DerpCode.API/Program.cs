@@ -61,7 +61,7 @@ public static class Program
             .AddDatabaseServices(builder.Configuration)
             .AddRepositoryServices()
             .AddDomainServices()
-            .AddSwaggerServices(builder.Configuration)
+            .AddOpenApiServices(builder.Configuration)
             .AddCors()
             .AddHttpClient()
             .AddDockerServices();
@@ -133,8 +133,9 @@ public static class Program
             .UseAuthentication()
             .UseAuthorization()
             .UseMiddleware<LoggingScopeMiddleware>() // Ensure this is after UseAuthentication and UseAuthorization to capture user information.
-            .UseRateLimiter() // Ensure this is after UseAuthentication and UseAuthorization to apply rate limiting based on user identity.
-            .UseAndConfigureSwagger(builder.Configuration)
+            .UseRateLimiter(); // Ensure this is after UseAuthentication and UseAuthorization to apply rate limiting based on user identity.
+
+        app.UseAndConfigureOpenApi(builder.Configuration)
             .UseAndConfigureEndpoints(builder.Configuration);
 
         await app.RunAsync();

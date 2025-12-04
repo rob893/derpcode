@@ -25,6 +25,12 @@ public sealed class DriverTemplatesController : ServiceControllerBase
         this.driverTemplateService = driverTemplateService ?? throw new ArgumentNullException(nameof(driverTemplateService));
     }
 
+    /// <summary>
+    /// Gets a paginated list of driver templates. Admin access required.
+    /// </summary>
+    /// <param name="searchParams">The cursor pagination parameters.</param>
+    /// <returns>A paginated list of driver templates.</returns>
+    /// <response code="200">Returns the paginated list of driver templates.</response>
     [HttpGet(Name = nameof(GetDriverTemplatesAsync))]
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]

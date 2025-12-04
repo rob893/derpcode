@@ -24,6 +24,12 @@ public sealed class ArticlesController : ServiceControllerBase
         this.articleService = articleService ?? throw new ArgumentNullException(nameof(articleService));
     }
 
+    /// <summary>
+    /// Gets a paginated list of articles.
+    /// </summary>
+    /// <param name="searchParams">The cursor pagination parameters.</param>
+    /// <returns>A paginated list of articles.</returns>
+    /// <response code="200">Returns the paginated list of articles.</response>
     [HttpGet(Name = nameof(GetArticlesAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<ArticleDto>>> GetArticlesAsync([FromQuery] CursorPaginationQueryParameters searchParams)
@@ -34,6 +40,13 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Gets a specific article by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the article to retrieve.</param>
+    /// <returns>The article with the specified ID.</returns>
+    /// <response code="200">Returns the article.</response>
+    /// <response code="404">If the article is not found.</response>
     [HttpGet("{id}", Name = nameof(GetArticleAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -49,6 +62,13 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(article);
     }
 
+    /// <summary>
+    /// Gets a paginated list of comments for a specific article.
+    /// </summary>
+    /// <param name="id">The ID of the article.</param>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
+    /// <returns>A paginated list of article comments.</returns>
+    /// <response code="200">Returns the paginated list of comments.</response>
     [HttpGet("{id}/comments", Name = nameof(GetArticleCommentsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CursorPaginatedResponse<ArticleCommentDto>>> GetArticleCommentsAsync([FromRoute] int id, [FromQuery] ArticleCommentQueryParameters searchParams)
@@ -70,6 +90,14 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Gets a specific comment from an article.
+    /// </summary>
+    /// <param name="articleId">The ID of the article.</param>
+    /// <param name="commentId">The ID of the comment to retrieve.</param>
+    /// <returns>The comment with the specified ID.</returns>
+    /// <response code="200">Returns the comment.</response>
+    /// <response code="404">If the comment is not found.</response>
     [HttpGet("{articleId}/comments/{commentId}", Name = nameof(GetArticleCommentAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -85,6 +113,14 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(comment);
     }
 
+    /// <summary>
+    /// Gets replies to a specific comment on an article.
+    /// </summary>
+    /// <param name="articleId">The ID of the article.</param>
+    /// <param name="commentId">The ID of the parent comment.</param>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
+    /// <returns>A paginated list of reply comments.</returns>
+    /// <response code="200">Returns the paginated list of replies.</response>
     [HttpGet("{articleId}/comments/{commentId}/replies", Name = nameof(GetArticleCommentRepliesAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentRepliesAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] ArticleCommentQueryParameters searchParams)
@@ -120,6 +156,14 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Gets comments that quote a specific comment on an article.
+    /// </summary>
+    /// <param name="articleId">The ID of the article.</param>
+    /// <param name="commentId">The ID of the quoted comment.</param>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
+    /// <returns>A paginated list of comments that quote the specified comment.</returns>
+    /// <response code="200">Returns the paginated list of quoting comments.</response>
     [HttpGet("{articleId}/comments/{commentId}/quotedBy", Name = nameof(GetArticleCommentQuotedByAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ArticleCommentDto?>> GetArticleCommentQuotedByAsync([FromRoute] int articleId, [FromRoute] int commentId, [FromQuery] ArticleCommentQueryParameters searchParams)
@@ -155,6 +199,14 @@ public sealed class ArticlesController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Creates a new comment on an article.
+    /// </summary>
+    /// <param name="articleId">The ID of the article to comment on.</param>
+    /// <param name="createCommentRequest">The comment creation request.</param>
+    /// <returns>The newly created comment.</returns>
+    /// <response code="201">Returns the newly created comment.</response>
+    /// <response code="404">If the article is not found.</response>
     [HttpPost("{articleId}/comments", Name = nameof(CreateArticleCommentAsync))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

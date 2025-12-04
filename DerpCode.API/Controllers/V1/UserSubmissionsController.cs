@@ -31,6 +31,14 @@ public sealed class UserSubmissionsController : ServiceControllerBase
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Gets a paginated list of problem submissions for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
+    /// <returns>A paginated list of problem submissions.</returns>
+    /// <response code="200">Returns the paginated list of submissions.</response>
+    /// <response code="404">If the user is not found.</response>
     [HttpGet(Name = nameof(GetProblemSubmissionsForUserAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
