@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
@@ -18,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Resources;
 
 namespace DerpCode.API;
 
@@ -35,16 +38,22 @@ public static class Program
 
             var appInsightsConnectionString = builder.Configuration[ConfigurationKeys.ApplicationInsightsConnectionString] ?? throw new InvalidOperationException("ApplicationInsightsConnectionString not found in configuration.");
 
+            var productName = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductName;
+            var environment = builder.Configuration.GetEnvironment();
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+
             builder.Logging.AddOpenTelemetry(options =>
             {
                 options.IncludeScopes = true;
             });
-            builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
-            {
-                options.ConnectionString = appInsightsConnectionString;
-                options.Credential = new DefaultAzureCredential();
-                options.SamplingRatio = 0.5f;
-            });
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(resource => resource.AddService(serviceName: $"{productName}-{environment}-{version}"))
+                .UseAzureMonitor(options =>
+                {
+                    options.ConnectionString = appInsightsConnectionString;
+                    options.Credential = new DefaultAzureCredential();
+                    options.SamplingRatio = 0.5f;
+                });
         }
 
         builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);

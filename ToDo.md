@@ -10,7 +10,6 @@
 - add tags endpoint to return all tags so UI can use that for filtering
 - add search by name for problems
 - try aspire
-- fix app insights cloud role name (shows as unknown_service:dotnet)
 - on vm, wait for .net 10 sdk to show in apt (apt-cache search dotnet-sdk). Once it does, remove manual .net install via
   sudo rm -rf /usr/share/dotnet/sdk/10._
   sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/10._
