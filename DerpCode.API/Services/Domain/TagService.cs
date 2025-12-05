@@ -74,7 +74,8 @@ public sealed class TagService : ITagService
     {
         if (!this.cache.TryGetValue(CacheKeys.Tags, out List<Tag>? tags))
         {
-            tags = await this.tagRepository.SearchAsync(t => true, track: false, cancellationToken);
+            // Retrieve all tags from the database
+            tags = await this.tagRepository.SearchAsync(_ => true, track: false, cancellationToken);
             this.cache.Set(CacheKeys.Tags, tags, TimeSpan.FromDays(1));
         }
 

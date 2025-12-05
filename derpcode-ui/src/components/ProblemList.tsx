@@ -41,7 +41,8 @@ export const ProblemList = () => {
         // Fetch tags in batches until we have all of them
         while (hasMore) {
           const response = await tagsApi.getTags({ first: 100, after: afterCursor, includeTotal: false });
-          const tags = response.nodes || response.edges?.map(edge => edge.node) || [];
+          // API returns nodes directly when includeNodes is true (default)
+          const tags = response.nodes || [];
           allFetchedTags.push(...tags);
 
           hasMore = response.pageInfo?.hasNextPage || false;
