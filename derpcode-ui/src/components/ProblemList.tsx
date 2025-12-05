@@ -4,7 +4,7 @@ import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Inp
 import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblemsLimitedPaginated } from '../hooks/api';
+import { useProblemsLimitedPaginated, useAllTags } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
 import { useDebounce } from '../hooks/useDebounce';
@@ -25,6 +25,9 @@ export const ProblemList = () => {
   const [sortDirection, setSortDirection] = useState<OrderByDirection>(OrderByDirection.Ascending);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [previousCursors, setPreviousCursors] = useState<string[]>([]);
+
+  // Fetch all tags using react-query
+  const { data: allTags = [], error: tagsError } = useAllTags();
 
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -145,16 +148,6 @@ export const ProblemList = () => {
     return `${sortBy}-${direction}`;
   }, [sortBy, sortDirection]);
 
-  // Get all unique tags (we'll need to get this from a separate API call or store)
-  // For now, let's create a placeholder that gets updated when we have more data
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    problems.forEach(problem => {
-      problem.tags?.forEach(tag => tagSet.add(tag.name));
-    });
-    return Array.from(tagSet).sort();
-  }, [problems]);
-
   // Select random problem
   const selectRandomProblem = useCallback(() => {
     if (filteredProblems.length > 0) {
@@ -223,6 +216,15 @@ export const ProblemList = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-foreground">Problems</h2>
       </div>
+
+      {/* Tags loading error banner */}
+      {tagsError && (
+        <div className="bg-warning-50 border-l-4 border-warning p-4 rounded">
+          <p className="text-sm text-warning-800">
+            Unable to load tags for filtering. Tag filter may be incomplete.
+          </p>
+        </div>
+      )}
 
       {/* Action buttons row with search bar in center */}
       <div className="flex justify-between items-center gap-4">
@@ -335,7 +337,7 @@ export const ProblemList = () => {
                       aria-label="Filter by tags"
                     >
                       {allTags.map(tag => (
-                        <SelectItem key={tag}>{tag}</SelectItem>
+                        <SelectItem key={tag.name}>{tag.name}</SelectItem>
                       ))}
                     </Select>
                   </label>

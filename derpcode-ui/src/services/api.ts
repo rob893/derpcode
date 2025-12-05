@@ -13,7 +13,8 @@ import {
   type CreateArticleCommentRequest,
   type ArticleCommentQueryParameters,
   type JsonPatchDocument,
-  type CursorPaginationQueryParameters
+  type CursorPaginationQueryParameters,
+  type TagDto
 } from '../types/models';
 import apiClient from './axiosConfig';
 
@@ -233,6 +234,23 @@ export const articlesApi = {
 
   async getArticleComment(articleId: number, commentId: number): Promise<ArticleComment> {
     const response = await apiClient.get<ArticleComment>(`/api/v1/articles/${articleId}/comments/${commentId}`);
+    return response.data;
+  }
+};
+
+export const tagsApi = {
+  async getTags(queryParams?: Partial<CursorPaginationQueryParameters>): Promise<CursorPaginatedResponse<TagDto>> {
+    const params = new URLSearchParams();
+
+    appendCursorPaginationParams(params, queryParams);
+
+    const url = params.toString() ? `/api/v1/tags?${params.toString()}` : '/api/v1/tags';
+    const response = await apiClient.get<CursorPaginatedResponse<TagDto>>(url);
+    return response.data;
+  },
+
+  async getTag(id: number): Promise<TagDto> {
+    const response = await apiClient.get<TagDto>(`/api/v1/tags/${id}`);
     return response.data;
   }
 };

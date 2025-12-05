@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { problemsApi, driverTemplatesApi, submissionsApi, articlesApi } from '../services/api';
+import { problemsApi, driverTemplatesApi, submissionsApi, articlesApi, tagsApi } from '../services/api';
 import { authApi } from '../services/auth';
 import { useAuth } from './useAuth';
 import type {
@@ -9,7 +9,8 @@ import type {
   ProblemQueryParameters,
   CreateArticleCommentRequest,
   ArticleCommentQueryParameters,
-  JsonPatchDocument
+  JsonPatchDocument,
+  CursorPaginationQueryParameters
 } from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
 
@@ -31,7 +32,9 @@ export const queryKeys = {
     commentId: number,
     queryParams?: Partial<ArticleCommentQueryParameters>
   ) => ['articles', articleId, 'comments', commentId, 'quotedBy', queryParams] as const,
-  articleComment: (articleId: number, commentId: number) => ['articles', articleId, 'comments', commentId] as const
+  articleComment: (articleId: number, commentId: number) => ['articles', articleId, 'comments', commentId] as const,
+  tags: (queryParams?: Partial<CursorPaginationQueryParameters>) => ['tags', queryParams] as const,
+  tag: (id: number) => ['tags', id] as const
 } as const;
 
 // Problem hooks
@@ -310,5 +313,52 @@ export const useCreateArticleComment = (articleId: number) => {
       // Set the new comment in cache
       queryClient.setQueryData(queryKeys.articleComment(articleId, newComment.id), newComment);
     }
+  });
+};
+
+// Tag hooks
+export const useTags = (queryParams?: Partial<CursorPaginationQueryParameters>) => {
+  return useQuery({
+    queryKey: queryKeys.tags(queryParams),
+    queryFn: () => tagsApi.getTags(queryParams),
+    staleTime: 60 * 60 * 1000, // 1 hour - tags don't change frequently
+    select: data => ({
+      tags: data.nodes || [],
+      pageInfo: data.pageInfo,
+      totalCount: data.pageInfo.totalCount
+    })
+  });
+};
+
+export const useAllTags = () => {
+  return useQuery({
+    queryKey: ['tags', 'all'],
+    queryFn: async () => {
+      const allTags = [];
+      let hasMore = true;
+      let afterCursor: string | undefined = undefined;
+
+      // Fetch tags in batches until we have all of them
+      while (hasMore) {
+        const response = await tagsApi.getTags({ first: 100, after: afterCursor, includeTotal: false });
+        const tags = response.nodes || [];
+        allTags.push(...tags);
+
+        hasMore = response.pageInfo?.hasNextPage || false;
+        afterCursor = response.pageInfo?.endCursor || undefined;
+      }
+
+      return allTags;
+    },
+    staleTime: 60 * 60 * 1000 // 1 hour - tags don't change frequently
+  });
+};
+
+export const useTag = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.tag(id),
+    queryFn: () => tagsApi.getTag(id),
+    enabled: !!id,
+    staleTime: 60 * 60 * 1000 // 1 hour
   });
 };
