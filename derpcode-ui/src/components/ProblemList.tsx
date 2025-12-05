@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Input } from '@heroui/react';
 import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/models';
+import { ProblemDifficulty, ProblemOrderBy, OrderByDirection, type TagDto } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import { useProblemsLimitedPaginated } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
 import { useDebounce } from '../hooks/useDebounce';
+import { tagsApi } from '../services/api';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
@@ -19,12 +20,28 @@ export const ProblemList = () => {
   // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [allTags, setAllTags] = useState<TagDto[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ProblemOrderBy>(ProblemOrderBy.Difficulty);
   const [sortDirection, setSortDirection] = useState<OrderByDirection>(OrderByDirection.Ascending);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [previousCursors, setPreviousCursors] = useState<string[]>([]);
+
+  // Fetch all tags on component mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        // Fetch all tags with a high limit to get them all in one request
+        const response = await tagsApi.getTags({ first: 1000, includeTotal: false });
+        const tags = response.nodes || response.edges?.map(edge => edge.node) || [];
+        setAllTags(tags);
+      } catch (error) {
+        console.error('Failed to fetch tags:', error);
+      }
+    };
+    fetchTags();
+  }, []);
 
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -144,16 +161,6 @@ export const ProblemList = () => {
     const direction = sortDirection === OrderByDirection.Descending ? 'desc' : 'asc';
     return `${sortBy}-${direction}`;
   }, [sortBy, sortDirection]);
-
-  // Get all unique tags (we'll need to get this from a separate API call or store)
-  // For now, let's create a placeholder that gets updated when we have more data
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    problems.forEach(problem => {
-      problem.tags?.forEach(tag => tagSet.add(tag.name));
-    });
-    return Array.from(tagSet).sort();
-  }, [problems]);
 
   // Select random problem
   const selectRandomProblem = useCallback(() => {
@@ -335,7 +342,7 @@ export const ProblemList = () => {
                       aria-label="Filter by tags"
                     >
                       {allTags.map(tag => (
-                        <SelectItem key={tag}>{tag}</SelectItem>
+                        <SelectItem key={tag.name}>{tag.name}</SelectItem>
                       ))}
                     </Select>
                   </label>
