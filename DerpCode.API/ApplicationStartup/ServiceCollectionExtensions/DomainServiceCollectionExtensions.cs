@@ -24,6 +24,7 @@ public static class DomainServiceCollectionExtensions
         services.AddScoped<IUserSubmissionService, UserSubmissionService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IArticleService, ArticleService>();
+        services.AddScoped<ITagService, TagService>();
 
         return services;
     }

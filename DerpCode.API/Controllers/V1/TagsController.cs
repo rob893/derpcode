@@ -17,37 +17,37 @@ namespace DerpCode.API.Controllers.V1;
 [ApiVersion("1.0")]
 public sealed class TagsController : ServiceControllerBase
 {
-    private readonly IProblemService problemService;
+    private readonly ITagService tagService;
 
-    public TagsController(ICorrelationIdService correlationIdService, IProblemService problemService)
+    public TagsController(ICorrelationIdService correlationIdService, ITagService tagService)
         : base(correlationIdService)
     {
-        this.problemService = problemService ?? throw new ArgumentNullException(nameof(problemService));
+        this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
     }
 
-    // [AllowAnonymous]
-    // [HttpGet(Name = nameof(GetTagsAsync))]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // public async Task<ActionResult<CursorPaginatedResponse<TagDto>>> GetTagsAsync([FromQuery] CursorPaginationQueryParameters searchParams)
-    // {
-    //     var tags = await this.problemService.GetProblemsAsync(searchParams, this.HttpContext.RequestAborted);
-    //     var response = tags.ToCursorPaginatedResponse(searchParams);
-    //     return this.Ok(response);
-    // }
+    [AllowAnonymous]
+    [HttpGet(Name = nameof(GetTagsAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CursorPaginatedResponse<TagDto>>> GetTagsAsync([FromQuery] CursorPaginationQueryParameters searchParams)
+    {
+        var tags = await this.tagService.GetTagsAsync(searchParams, this.HttpContext.RequestAborted);
+        var response = tags.ToCursorPaginatedResponse(searchParams);
+        return this.Ok(response);
+    }
 
-    // [AllowAnonymous]
-    // [HttpGet("{id}", Name = nameof(GetTagAsync))]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status404NotFound)]
-    // public async Task<ActionResult<TagDto>> GetTagAsync([FromRoute] int id)
-    // {
-    //     var tag = await this.problemService.GetProblemByIdAsync(id, this.HttpContext.RequestAborted);
+    [AllowAnonymous]
+    [HttpGet("{id}", Name = nameof(GetTagAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TagDto>> GetTagAsync([FromRoute] int id)
+    {
+        var tag = await this.tagService.GetTagByIdAsync(id, this.HttpContext.RequestAborted);
 
-    //     if (tag == null)
-    //     {
-    //         return this.NotFound($"Tag with ID {id} not found");
-    //     }
+        if (tag == null)
+        {
+            return this.NotFound($"Tag with ID {id} not found");
+        }
 
-    //     return this.Ok(tag);
-    // }
+        return this.Ok(tag);
+    }
 }

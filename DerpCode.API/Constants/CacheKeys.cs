@@ -6,4 +6,9 @@ public static class CacheKeys
     /// Key for caching the list of problems.
     /// </summary>
     public const string Problems = "Problems";
+
+    /// <summary>
+    /// Key for caching the list of tags.
+    /// </summary>
+    public const string Tags = "tags";
 }
