@@ -25,6 +25,12 @@ public sealed class TagsController : ServiceControllerBase
         this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
     }
 
+    /// <summary>
+    /// Gets a paginated list of tags.
+    /// </summary>
+    /// <param name="searchParams">The query parameters for pagination.</param>
+    /// <returns>A paginated list of tags.</returns>
+    /// <response code="200">Returns the paginated list of tags.</response>
     [AllowAnonymous]
     [HttpGet(Name = nameof(GetTagsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -35,6 +41,13 @@ public sealed class TagsController : ServiceControllerBase
         return this.Ok(response);
     }
 
+    /// <summary>
+    /// Gets a specific tag by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the tag to retrieve.</param>
+    /// <returns>The tag with the specified ID.</returns>
+    /// <response code="200">Returns the tag.</response>
+    /// <response code="404">If the tag is not found.</response>
     [AllowAnonymous]
     [HttpGet("{id}", Name = nameof(GetTagAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]

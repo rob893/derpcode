@@ -1,14 +1,13 @@
 import { useNavigate } from 'react-router';
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Input } from '@heroui/react';
 import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { ProblemDifficulty, ProblemOrderBy, OrderByDirection, type TagDto } from '../types/models';
+import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblemsLimitedPaginated } from '../hooks/api';
+import { useProblemsLimitedPaginated, useAllTags } from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
 import { useDebounce } from '../hooks/useDebounce';
-import { tagsApi } from '../services/api';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
@@ -20,8 +19,6 @@ export const ProblemList = () => {
   // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [allTags, setAllTags] = useState<TagDto[]>([]);
-  const [tagsError, setTagsError] = useState<Error | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ProblemOrderBy>(ProblemOrderBy.Difficulty);
@@ -29,34 +26,8 @@ export const ProblemList = () => {
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [previousCursors, setPreviousCursors] = useState<string[]>([]);
 
-  // Fetch all tags on component mount
-  useEffect(() => {
-    const fetchAllTags = async () => {
-      try {
-        setTagsError(null);
-        const allFetchedTags: TagDto[] = [];
-        let hasMore = true;
-        let afterCursor: string | undefined = undefined;
-
-        // Fetch tags in batches until we have all of them
-        while (hasMore) {
-          const response = await tagsApi.getTags({ first: 100, after: afterCursor, includeTotal: false });
-          // API returns nodes directly when includeNodes is true (default)
-          const tags = response.nodes || [];
-          allFetchedTags.push(...tags);
-
-          hasMore = response.pageInfo?.hasNextPage || false;
-          afterCursor = response.pageInfo?.endCursor || undefined;
-        }
-
-        setAllTags(allFetchedTags);
-      } catch (error) {
-        console.error('Failed to fetch tags:', error);
-        setTagsError(error instanceof Error ? error : new Error('Failed to fetch tags'));
-      }
-    };
-    fetchAllTags();
-  }, []);
+  // Fetch all tags using react-query
+  const { data: allTags = [], error: tagsError } = useAllTags();
 
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
