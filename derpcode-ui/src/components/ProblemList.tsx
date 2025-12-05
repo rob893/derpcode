@@ -21,6 +21,7 @@ export const ProblemList = () => {
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [allTags, setAllTags] = useState<TagDto[]>([]);
+  const [tagsError, setTagsError] = useState<Error | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ProblemOrderBy>(ProblemOrderBy.Difficulty);
@@ -30,17 +31,30 @@ export const ProblemList = () => {
 
   // Fetch all tags on component mount
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchAllTags = async () => {
       try {
-        // Fetch all tags with a high limit to get them all in one request
-        const response = await tagsApi.getTags({ first: 1000, includeTotal: false });
-        const tags = response.nodes || response.edges?.map(edge => edge.node) || [];
-        setAllTags(tags);
+        setTagsError(null);
+        const allFetchedTags: TagDto[] = [];
+        let hasMore = true;
+        let afterCursor: string | undefined = undefined;
+
+        // Fetch tags in batches until we have all of them
+        while (hasMore) {
+          const response = await tagsApi.getTags({ first: 100, after: afterCursor, includeTotal: false });
+          const tags = response.nodes || response.edges?.map(edge => edge.node) || [];
+          allFetchedTags.push(...tags);
+
+          hasMore = response.pageInfo?.hasNextPage || false;
+          afterCursor = response.pageInfo?.endCursor || undefined;
+        }
+
+        setAllTags(allFetchedTags);
       } catch (error) {
         console.error('Failed to fetch tags:', error);
+        setTagsError(error instanceof Error ? error : new Error('Failed to fetch tags'));
       }
     };
-    fetchTags();
+    fetchAllTags();
   }, []);
 
   // Debounce search query to avoid too many API calls
@@ -230,6 +244,15 @@ export const ProblemList = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-foreground">Problems</h2>
       </div>
+
+      {/* Tags loading error banner */}
+      {tagsError && (
+        <div className="bg-warning-50 border-l-4 border-warning p-4 rounded">
+          <p className="text-sm text-warning-800">
+            Unable to load tags for filtering. Tag filter may be incomplete.
+          </p>
+        </div>
+      )}
 
       {/* Action buttons row with search bar in center */}
       <div className="flex justify-between items-center gap-4">
