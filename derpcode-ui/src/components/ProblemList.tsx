@@ -220,9 +220,7 @@ export const ProblemList = () => {
       {/* Tags loading error banner */}
       {tagsError && (
         <div className="bg-warning-50 border-l-4 border-warning p-4 rounded">
-          <p className="text-sm text-warning-800">
-            Unable to load tags for filtering. Tag filter may be incomplete.
-          </p>
+          <p className="text-sm text-warning-800">Unable to load tags for filtering. Tag filter may be incomplete.</p>
         </div>
       )}
 
