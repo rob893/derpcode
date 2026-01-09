@@ -46,11 +46,19 @@ public static class UtilityFunctions
         ArgumentNullException.ThrowIfNull(end);
 
         int startIndex = source.IndexOf(start, StringComparison.Ordinal);
-        if (startIndex == -1) return string.Empty;
+        if (startIndex == -1)
+        {
+            return string.Empty;
+        }
+
         startIndex += start.Length;
 
         int endIndex = source.IndexOf(end, startIndex, StringComparison.Ordinal);
-        if (endIndex == -1) return string.Empty;
+
+        if (endIndex == -1)
+        {
+            return string.Empty;
+        }
 
         return source[startIndex..endIndex];
     }

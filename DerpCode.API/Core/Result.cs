@@ -6,10 +6,10 @@ public sealed class Result<T>
 {
     private Result(bool isSuccess, T? value, DomainErrorType? errorType, string? errorMessage)
     {
-        IsSuccess = isSuccess;
-        Value = value;
-        ErrorType = errorType;
-        ErrorMessage = errorMessage;
+        this.IsSuccess = isSuccess;
+        this.Value = value;
+        this.ErrorType = errorType;
+        this.ErrorMessage = errorMessage;
     }
 
     public bool IsSuccess { get; }

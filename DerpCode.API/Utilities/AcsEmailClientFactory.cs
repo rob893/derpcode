@@ -18,6 +18,6 @@ public sealed class AcsEmailClientFactory : IAcsEmailClientFactory
 
     public EmailClient CreateClient(TokenCredential? tokenCredential = null)
     {
-        return new EmailClient(emailSettings.AcsEndpoint, tokenCredential ?? new DefaultAzureCredential());
+        return new EmailClient(this.emailSettings.AcsEndpoint, tokenCredential ?? new DefaultAzureCredential());
     }
 }

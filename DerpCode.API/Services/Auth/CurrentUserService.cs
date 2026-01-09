@@ -20,19 +20,19 @@ public sealed class CurrentUserService : ICurrentUserService
         this.httpContextAccessor = httpContextAccessor;
     }
 
-    public int UserId => userOverride?.Id != null ? userOverride.Id :
+    public int UserId => this.userOverride?.Id != null ? this.userOverride.Id :
         this.User.TryGetUserId(out var id) ? id.Value : throw new InvalidOperationException("User ID claim missing or invalid.");
 
-    public string UserName => userOverride?.UserName != null ? userOverride.UserName :
+    public string UserName => this.userOverride?.UserName != null ? this.userOverride.UserName :
         this.User.TryGetUserName(out var userName) ? userName : throw new InvalidOperationException("User name claim missing or invalid.");
 
-    public bool EmailVerified => userOverride?.EmailConfirmed != null ? userOverride.EmailConfirmed :
+    public bool EmailVerified => this.userOverride?.EmailConfirmed != null ? this.userOverride.EmailConfirmed :
         this.User.TryGetEmailVerified(out var emailVerified) && emailVerified.Value;
 
     private ClaimsPrincipal User => this.httpContextAccessor.HttpContext?.User
         ?? throw new InvalidOperationException("No current user context.");
 
-    public bool IsInRole(string role) => userOverride != null ? userOverride.UserRoles.Any(r => r.Role?.Name?.Equals(role, StringComparison.OrdinalIgnoreCase) ?? false)
+    public bool IsInRole(string role) => this.userOverride != null ? this.userOverride.UserRoles.Any(r => r.Role?.Name?.Equals(role, StringComparison.OrdinalIgnoreCase) ?? false)
         : this.User.IsInRole(role);
 
     public bool IsUserAuthorizedForResource(IOwnedByUser<int> resource, bool isAdminAuthorized = true)

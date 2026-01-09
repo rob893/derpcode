@@ -276,7 +276,7 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         }
     }
 
-    private async Task SeedUsersAsync(CancellationToken cancellationToken = default)
+    private async Task SeedUsersAsync(CancellationToken _ = default)
     {
         if (this.context.Users.Any())
         {
