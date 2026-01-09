@@ -1,0 +1,75 @@
+import json
+import sys
+from typing import List, Dict, Any
+from base_driver import BaseDriver, BaseProblemDriver
+from solution import LRUCache
+
+
+class LRUCacheDriver(BaseProblemDriver):
+    """Problem-specific driver for LRUCache problem."""
+
+    def __init__(self):
+        super().__init__()
+        self.cache = None
+
+    def parse_test_cases(self, input_data: Any, expected_output: Any) -> List[Dict[str, Any]]:
+        """Parse input as operations and parameters arrays."""
+        input_array = json.loads(input_data) if isinstance(input_data, str) else input_data
+        expected_array = json.loads(expected_output) if isinstance(expected_output, str) else expected_output
+        
+        operations = input_array[0]
+        parameters = input_array[1]
+        
+        test_cases = []
+        
+        for i in range(len(operations)):
+            test_cases.append({
+                'input': {
+                    'operation': operations[i],
+                    'parameters': parameters[i] if i < len(parameters) else None
+                },
+                'expectedOutput': expected_array[i] if i < len(expected_array) else None
+            })
+        
+        return test_cases
+
+    def execute_test_case(self, test_case: Dict[str, Any], index: int) -> Any:
+        """Execute the LRUCache operation with the test case inputs."""
+        operation = test_case['input']['operation']
+        parameters = test_case['input']['parameters']
+        
+        result = None
+        
+        if operation == 'LRUCache':
+            capacity = parameters
+            self.cache = LRUCache(capacity)
+            result = None
+        elif operation == 'get':
+            key = parameters[0]
+            result = self.cache.get(key)
+        elif operation == 'put':
+            key = parameters[0]
+            value = parameters[1]
+            self.cache.put(key, value)
+            result = None
+        
+        return result
+
+    def compare_results(self, actual: Any, expected: Any) -> bool:
+        """Compare results, handling None values correctly."""
+        return (actual is None and expected is None) or (actual is not None and expected is not None and actual == expected)
+
+    def format_error_message(self, actual: Any, expected: Any) -> str:
+        """Format error message for failed tests."""
+        return f"Expected {expected} but got {actual}"
+
+
+def main():
+    """Main entry point for the driver."""
+    # Create and run the driver
+    driver = BaseDriver(LRUCacheDriver())
+    driver.run()
+
+
+if __name__ == "__main__":
+    main()

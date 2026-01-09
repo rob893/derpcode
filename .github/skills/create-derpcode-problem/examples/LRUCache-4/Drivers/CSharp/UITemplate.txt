@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+
+public class LRUCache
+{
+    public LRUCache(int capacity)
+    {
+        // Your initialization here
+    }
+
+    public int Get(int key)
+    {
+        // Your implementation here
+        return -1;
+    }
+
+    public void Put(int key, int value)
+    {
+        // Your implementation here
+    }
+}

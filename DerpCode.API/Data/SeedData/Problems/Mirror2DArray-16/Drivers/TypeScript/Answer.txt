@@ -1,0 +1,3 @@
+export function mirror2DArray(matrix: number[][]): number[][] {
+    return matrix.map(row => row.slice().reverse());
+}

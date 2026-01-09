@@ -1,0 +1,90 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+/**
+ * Problem-specific driver for LRUCache problem.
+ */
+class LRUCacheDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        JsonArray operations = input.get(0).getAsJsonArray();
+        JsonArray parameters = input.get(1).getAsJsonArray();
+        
+        for (int i = 0; i < operations.size(); i++) {
+            String operation = operations.get(i).getAsString();
+            JsonElement paramElement = i < parameters.size() ? parameters.get(i) : null;
+            Object expectedResult = i < expectedOutput.size() ? 
+                (expectedOutput.get(i).isJsonNull() ? null : expectedOutput.get(i).getAsInt()) : null;
+            
+            TestInput testInput = new TestInput(operation, paramElement);
+            testCases.add(new TestCase(testInput, expectedResult));
+        }
+        
+        return testCases;
+    }
+
+    private LRUCache cache = null;
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        TestInput input = (TestInput) testCase.getInput();
+        String operation = input.operation;
+        JsonElement parameters = input.parameters;
+        
+        if (operation.equals("LRUCache")) {
+            if (parameters != null && parameters.isJsonPrimitive()) {
+                int capacity = parameters.getAsInt();
+                cache = new LRUCache(capacity);
+            }
+            return null;
+        } else if (operation.equals("get")) {
+            if (parameters != null && parameters.isJsonArray()) {
+                JsonArray paramArray = parameters.getAsJsonArray();
+                if (paramArray.size() > 0) {
+                    int key = paramArray.get(0).getAsInt();
+                    return cache.get(key);
+                }
+            }
+        } else if (operation.equals("put")) {
+            if (parameters != null && parameters.isJsonArray()) {
+                JsonArray paramArray = parameters.getAsJsonArray();
+                if (paramArray.size() > 1) {
+                    int key = paramArray.get(0).getAsInt();
+                    int value = paramArray.get(1).getAsInt();
+                    cache.put(key, value);
+                }
+            }
+            return null;
+        }
+        
+        return null;
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+    
+    private static class TestInput {
+        public String operation;
+        public JsonElement parameters;
+        
+        public TestInput(String operation, JsonElement parameters) {
+            this.operation = operation;
+            this.parameters = parameters;
+        }
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new LRUCacheDriver());
+        driver.run(args);
+    }
+}

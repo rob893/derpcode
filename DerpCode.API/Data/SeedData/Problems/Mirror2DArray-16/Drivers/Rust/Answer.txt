@@ -1,0 +1,9 @@
+pub fn mirror_2d_array(matrix: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    matrix
+        .into_iter()
+        .map(|mut row| {
+            row.reverse();
+            row
+        })
+        .collect()
+}

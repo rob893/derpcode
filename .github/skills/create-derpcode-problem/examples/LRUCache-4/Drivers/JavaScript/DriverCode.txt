@@ -1,0 +1,75 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { LRUCache } from './solution.js';
+
+/**
+ * Problem-specific driver for LRUCache problem.
+ */
+class LRUCacheDriver extends IProblemDriver {
+    constructor() {
+        super();
+        this.cache = null;
+    }
+
+    /**
+     * Parse input as operations array and expected output.
+     */
+    parseTestCases(input, expectedOutput) {
+        const operations = input[0];
+        const parameters = input[1];
+        const testCases = [];
+        
+        for (let i = 0; i < operations.length; i++) {
+            testCases.push({
+                input: {
+                    operation: operations[i],
+                    parameters: i < parameters.length ? parameters[i] : null
+                },
+                expectedOutput: i < expectedOutput.length ? expectedOutput[i] : null
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute a single LRU cache operation.
+     */
+    executeTestCase(testCase) {
+        const { operation, parameters } = testCase.input;
+        
+        if (operation === 'LRUCache') {
+            const capacity = parameters;
+            this.cache = new LRUCache(capacity);
+            return null;
+        } else if (operation === 'get') {
+            const key = parameters[0];
+            return this.cache.get(key);
+        } else if (operation === 'put') {
+            const key = parameters[0];
+            const value = parameters[1];
+            this.cache.put(key, value);
+            return null;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Compare results handling nulls properly.
+     */
+    compareResults(actual, expected) {
+        return (actual === null && expected === null) || 
+               (actual !== null && expected !== null && actual === expected);
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new LRUCacheDriver());
+driver.run();

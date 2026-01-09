@@ -1,0 +1,96 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.Mirror2DArray
+{
+    /// <summary>
+    /// Problem-specific driver for Mirror 2D Array problem.
+    /// </summary>
+    public class Mirror2DArrayDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as an array of 2D integer arrays.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputMatrices = JsonSerializer.Deserialize<int[][][]>(input.ToString()!);
+            var expectedMatrices = JsonSerializer.Deserialize<int[][][]>(expectedOutput.ToString()!);
+
+            var testCases = new List<TestCase>();
+
+            for (int i = 0; i < inputMatrices!.Length; i++)
+            {
+                testCases.Add(new TestCase
+                {
+                    Input = inputMatrices[i],
+                    ExpectedOutput = expectedMatrices![i]
+                });
+            }
+
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the solution for a single test case.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var matrix = (int[][])testCase.Input;
+            return Solution.Mirror2DArray(matrix);
+        }
+
+        /// <summary>
+        /// Compare two 2D integer arrays for equality.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            if (actual is not int[][] actualMatrix || expected is not int[][] expectedMatrix)
+            {
+                return object.Equals(actual, expected);
+            }
+
+            if (actualMatrix.Length != expectedMatrix.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < actualMatrix.Length; i++)
+            {
+                if (actualMatrix[i].Length != expectedMatrix[i].Length)
+                {
+                    return false;
+                }
+
+                for (int j = 0; j < actualMatrix[i].Length; j++)
+                {
+                    if (actualMatrix[i][j] != expectedMatrix[i][j])
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {JsonSerializer.Serialize(expected)} but got {JsonSerializer.Serialize(actual)}";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var driver = new BaseDriver(new Mirror2DArrayDriver());
+            driver.Run(args);
+        }
+    }
+}

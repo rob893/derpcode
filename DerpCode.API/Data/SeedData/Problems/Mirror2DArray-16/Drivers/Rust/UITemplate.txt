@@ -1,0 +1,5 @@
+/// Mirror a 2D array across its vertical axis (reverse each row).
+pub fn mirror_2d_array(matrix: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    // Your code here
+    vec![]
+}

@@ -1,0 +1,59 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { mirror2DArray } from './solution.js';
+
+/**
+ * Problem-specific driver for Mirror 2D Array problem.
+ */
+class Mirror2DArrayDriver extends IProblemDriver {
+    constructor() {
+        super();
+    }
+
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
+        }
+
+        return testCases;
+    }
+
+    executeTestCase(testCase) {
+        return mirror2DArray(testCase.input);
+    }
+
+    compareResults(actual, expected) {
+        return matricesEqual(actual, expected);
+    }
+}
+
+function matricesEqual(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b)) {
+        return a === b;
+    }
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+        if (!Array.isArray(a[i]) || !Array.isArray(b[i]) || a[i].length !== b[i].length) {
+            return false;
+        }
+
+        for (let j = 0; j < a[i].length; j++) {
+            if (a[i][j] !== b[i][j]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+const driver = new BaseDriver(new Mirror2DArrayDriver());
+driver.run();

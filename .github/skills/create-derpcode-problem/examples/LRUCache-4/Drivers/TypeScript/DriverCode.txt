@@ -1,0 +1,89 @@
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+import { LRUCache } from './solution';
+
+interface LRUCacheOperation {
+    operation: string;
+    parameters: any[] | null;
+    expectedResult: any;
+}
+
+/**
+ * Problem-specific driver for LRUCache problem.
+ */
+class LRUCacheDriver extends ProblemDriverBase {
+    private cache: LRUCache | null = null;
+
+    /**
+     * Parse input as operations and parameters arrays, creating individual test cases for each operation.
+     */
+    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+        const operations: string[] = input[0];
+        const parameters: any[] = input[1];
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < operations.length; i++) {
+            const operation = operations[i];
+            let paramArray: any[] | null = null;
+            
+            if (i < parameters.length) {
+                const param = parameters[i];
+                if (Array.isArray(param)) {
+                    paramArray = param;
+                } else if (typeof param === 'number') {
+                    paramArray = [param];
+                }
+            }
+            
+            let expected: any = null;
+            if (i < expectedOutput.length) {
+                expected = expectedOutput[i];
+            }
+            
+            testCases.push({
+                input: {
+                    operation: operation,
+                    parameters: paramArray,
+                    expectedResult: expected
+                } as LRUCacheOperation,
+                expectedOutput: expected
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute a single LRU cache operation.
+     */
+    executeTestCase(testCase: TestCase, index: number): any {
+        const operation = testCase.input as LRUCacheOperation;
+        
+        if (operation.operation === 'LRUCache') {
+            const capacity = operation.parameters![0];
+            this.cache = new LRUCache(capacity);
+            return null;
+        } else if (operation.operation === 'get') {
+            const key = operation.parameters![0];
+            return this.cache!.get(key);
+        } else if (operation.operation === 'put') {
+            const key = operation.parameters![0];
+            const value = operation.parameters![1];
+            this.cache!.put(key, value);
+            return null;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Compare results handling nulls properly.
+     */
+    compareResults(actual: any, expected: any): boolean {
+        return (actual === null && expected === null) || 
+               (actual !== null && expected !== null && actual === expected);
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new LRUCacheDriver());
+driver.run();

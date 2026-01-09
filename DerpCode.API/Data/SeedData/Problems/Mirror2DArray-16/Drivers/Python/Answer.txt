@@ -1,0 +1,4 @@
+from typing import List
+
+def mirror_2d_array(matrix: List[List[int]]) -> List[List[int]]:
+    return [list(reversed(row)) for row in matrix]

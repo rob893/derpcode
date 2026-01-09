@@ -1,0 +1,56 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::mirror_2d_array;
+
+/// Problem-specific driver for Mirror 2D Array problem.
+pub struct Mirror2DArrayDriver;
+
+impl ProblemDriver for Mirror2DArrayDriver {
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+
+        input_array
+            .iter()
+            .enumerate()
+            .map(|(i, test_input)| TestCase {
+                input: test_input.clone(),
+                expected_output: expected_array[i].clone(),
+            })
+            .collect()
+    }
+
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let rows = test_case
+            .input
+            .as_array()
+            .ok_or("Matrix should be an array of rows")?;
+
+        let matrix: Vec<Vec<i32>> = rows
+            .iter()
+            .map(|row| {
+                row.as_array()
+                    .ok_or("Row should be an array")?
+                    .iter()
+                    .map(|v| v.as_i64().ok_or("Matrix elements must be integers").map(|n| n as i32))
+                    .collect::<Result<Vec<i32>, _>>()
+            })
+            .collect::<Result<Vec<Vec<i32>>, _>>()?;
+
+        let result = mirror_2d_array(matrix);
+        Ok(serde_json::json!(result))
+    }
+
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+fn main() {
+    let driver = BaseDriver::new(Mirror2DArrayDriver);
+    driver.run();
+}

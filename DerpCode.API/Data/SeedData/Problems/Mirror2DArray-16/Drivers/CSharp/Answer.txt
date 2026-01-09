@@ -1,0 +1,18 @@
+using System;
+
+public class Solution
+{
+    public static int[][] Mirror2DArray(int[][] matrix)
+    {
+        var result = new int[matrix.Length][];
+
+        for (int i = 0; i < matrix.Length; i++)
+        {
+            var row = (int[])matrix[i].Clone();
+            Array.Reverse(row);
+            result[i] = row;
+        }
+
+        return result;
+    }
+}

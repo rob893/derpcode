@@ -1,0 +1,8 @@
+/**
+ * @param {number[][]} matrix
+ * @return {number[][]}
+ */
+export function mirror2DArray(matrix) {
+    // Your code here
+    return [];
+}

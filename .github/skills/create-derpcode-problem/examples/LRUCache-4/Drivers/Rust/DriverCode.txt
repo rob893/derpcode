@@ -1,0 +1,148 @@
+use serde_json::Value;
+use std::cell::RefCell;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::LRUCache;
+
+/// Represents a single LRU cache operation.
+#[derive(Debug, Clone)]
+pub struct LRUCacheOperation {
+    pub operation: String,
+    pub parameters: Option<Vec<i32>>,
+    pub expected_result: Option<i32>,
+}
+
+/// Problem-specific driver for LRUCache problem.
+pub struct LRUCacheDriver {
+    cache: RefCell<Option<LRUCache>>,
+}
+
+impl LRUCacheDriver {
+    pub fn new() -> Self {
+        Self {
+            cache: RefCell::new(None),
+        }
+    }
+}
+
+impl ProblemDriver for LRUCacheDriver {
+    /// Parse input as operations array and expected output.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let operations: Vec<String> = serde_json::from_value(input_array[0].clone()).expect("First element should be operations array");
+        let parameters = &input_array[1];
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in 0..operations.len() {
+            let operation = &operations[i];
+            let params = if i < parameters.as_array().unwrap().len() {
+                let param_value = &parameters[i];
+                if param_value.is_array() {
+                    let param_array: Vec<i32> = serde_json::from_value(param_value.clone()).unwrap_or_default();
+                    Some(param_array)
+                } else if param_value.is_number() {
+                    Some(vec![param_value.as_i64().unwrap() as i32])
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+            
+            let expected = if i < expected_array.len() {
+                let expected_val = &expected_array[i];
+                if expected_val.is_null() {
+                    None
+                } else {
+                    Some(expected_val.as_i64().unwrap() as i32)
+                }
+            } else {
+                None
+            };
+            
+            let lru_operation = LRUCacheOperation {
+                operation: operation.clone(),
+                parameters: params,
+                expected_result: expected,
+            };
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!({
+                    "operation": operation,
+                    "parameters": lru_operation.parameters
+                }),
+                expected_output: if expected.is_some() {
+                    serde_json::json!(expected.unwrap())
+                } else {
+                    Value::Null
+                },
+            });
+        }
+        
+        test_cases
+    }
+
+    /// Execute a single LRU cache operation.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let operation = test_case.input["operation"].as_str().ok_or("Missing operation")?;
+        let parameters = test_case.input["parameters"].as_array();
+        
+        match operation {
+            "LRUCache" => {
+                let capacity = parameters
+                    .and_then(|p| p.first())
+                    .and_then(|v| v.as_i64())
+                    .ok_or("Missing capacity parameter")? as i32;
+                
+                *self.cache.borrow_mut() = Some(LRUCache::new(capacity));
+                Ok(Value::Null)
+            }
+            "get" => {
+                let key = parameters
+                    .and_then(|p| p.first())
+                    .and_then(|v| v.as_i64())
+                    .ok_or("Missing key parameter")? as i32;
+                
+                let result = self.cache.borrow_mut()
+                    .as_mut()
+                    .ok_or("Cache not initialized")?
+                    .get(key);
+                
+                Ok(serde_json::json!(result))
+            }
+            "put" => {
+                let params = parameters.ok_or("Missing parameters for put")?;
+                let key = params.get(0)
+                    .and_then(|v| v.as_i64())
+                    .ok_or("Missing key parameter")? as i32;
+                let value = params.get(1)
+                    .and_then(|v| v.as_i64())
+                    .ok_or("Missing value parameter")? as i32;
+                
+                self.cache.borrow_mut()
+                    .as_mut()
+                    .ok_or("Cache not initialized")?
+                    .put(key, value);
+                
+                Ok(Value::Null)
+            }
+            _ => Err(format!("Unknown operation: {}", operation).into())
+        }
+    }
+
+    /// Compare results handling nulls properly.
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+fn main() {
+    // Create and run the driver
+    let driver = BaseDriver::new(LRUCacheDriver::new());
+    driver.run();
+}

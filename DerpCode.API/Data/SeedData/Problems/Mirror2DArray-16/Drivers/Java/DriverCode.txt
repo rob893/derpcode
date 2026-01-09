@@ -1,0 +1,55 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+
+/**
+ * Problem-specific driver for Mirror 2D Array problem.
+ */
+class Mirror2DArrayDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+
+        for (int i = 0; i < input.size(); i++) {
+            int[][] matrix = parseMatrix(input.get(i).getAsJsonArray());
+            int[][] expected = parseMatrix(expectedOutput.get(i).getAsJsonArray());
+            testCases.add(new TestCase(matrix, expected));
+        }
+
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        int[][] matrix = (int[][]) testCase.getInput();
+        return Solution.mirror2DArray(matrix);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        if (!(actual instanceof int[][]) || !(expected instanceof int[][])) {
+            return Objects.equals(actual, expected);
+        }
+
+        return Arrays.deepEquals((int[][]) actual, (int[][]) expected);
+    }
+
+    private static int[][] parseMatrix(JsonArray rows) {
+        int[][] matrix = new int[rows.size()][];
+        for (int r = 0; r < rows.size(); r++) {
+            JsonArray row = rows.get(r).getAsJsonArray();
+            int[] arr = new int[row.size()];
+            for (int c = 0; c < row.size(); c++) {
+                arr[c] = row.get(c).getAsInt();
+            }
+            matrix[r] = arr;
+        }
+        return matrix;
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        BaseDriver driver = new BaseDriver(new Mirror2DArrayDriver());
+        driver.run(args);
+    }
+}

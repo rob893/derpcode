@@ -1,0 +1,22 @@
+class LRUCache {
+
+    public LRUCache(int capacity) {
+        // Your initialization here
+    }
+    
+    public int get(int key) {
+        // Your implementation here
+        return -1;
+    }
+    
+    public void put(int key, int value) {
+        // Your implementation here
+    }
+}
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */

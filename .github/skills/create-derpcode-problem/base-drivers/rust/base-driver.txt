@@ -1,0 +1,176 @@
+use std::fs;
+use std::env;
+use std::time::Instant;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+#[derive(Debug, Clone)]
+pub struct TestCase {
+    pub input: Value,
+    pub expected_output: Value,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TestResult {
+    pub test_case_index: usize,
+    pub pass: bool,
+    pub error_message: Option<String>,
+    pub execution_time_in_ms: u128,
+    pub input: Value,
+    pub expected_output: Value,
+    pub actual_output: Value,
+    pub is_hidden: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubmissionResult {
+    pub pass: bool,
+    pub test_case_count: usize,
+    pub passed_test_cases: usize,
+    pub failed_test_cases: usize,
+    pub error_message: String,
+    pub execution_time_in_ms: u128,
+    pub test_case_results: Vec<TestResult>,
+}
+
+impl Default for SubmissionResult {
+    fn default() -> Self {
+        Self {
+            pass: false,
+            test_case_count: 0,
+            passed_test_cases: 0,
+            failed_test_cases: 0,
+            error_message: String::new(),
+            execution_time_in_ms: 0,
+            test_case_results: Vec::new(),
+        }
+    }
+}
+
+pub trait ProblemDriver {
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase>;
+    fn execute_test_case(&self, test_case: &TestCase, index: usize) -> Result<Value, Box<dyn std::error::Error>>;
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool;
+}
+
+pub struct BaseDriver<T: ProblemDriver> {
+    problem_driver: T,
+}
+
+impl<T: ProblemDriver> BaseDriver<T> {
+    pub fn new(problem_driver: T) -> Self {
+        Self { problem_driver }
+    }
+
+    pub fn run(&self) {
+        let args: Vec<String> = env::args().collect();
+        if args.len() < 4 {
+            eprintln!("Usage: {} <inputFilePath> <expectedOutputFilePath> <resultFilePath>", args[0]);
+            std::process::exit(1);
+        }
+
+        let input_path = &args[1];
+        let expected_path = &args[2];
+        let result_path = &args[3];
+
+        let mut result = SubmissionResult::default();
+
+        match self.run_tests(input_path, expected_path) {
+            Ok((test_results, execution_time)) => {
+                result.pass = test_results.pass;
+                result.test_case_count = test_results.test_case_count;
+                result.passed_test_cases = test_results.passed_test_cases;
+                result.failed_test_cases = test_results.failed_test_cases;
+                result.test_case_results = test_results.test_case_results;
+                result.execution_time_in_ms = execution_time;
+            }
+            Err(err) => {
+                eprintln!("Error reading files: {}", err);
+                result.error_message = err.to_string();
+            }
+        }
+
+        match serde_json::to_string_pretty(&result) {
+            Ok(json) => {
+                if let Err(err) = fs::write(result_path, json) {
+                    eprintln!("Error writing result file: {}", err);
+                }
+            }
+            Err(err) => {
+                eprintln!("Error serializing result: {}", err);
+            }
+        }
+    }
+
+    fn run_tests(&self, input_path: &str, expected_path: &str) -> Result<(SubmissionResult, u128), Box<dyn std::error::Error>> {
+        let input = fs::read_to_string(input_path)?;
+        let expected_output = fs::read_to_string(expected_path)?;
+
+        let start = Instant::now();
+
+        let input_json: Value = serde_json::from_str(&input)?;
+        let expected_output_json: Value = serde_json::from_str(&expected_output)?;
+
+        let test_cases = self.problem_driver.parse_test_cases(&input_json, &expected_output_json);
+        let results = self.execute_test_cases(&test_cases);
+
+        let execution_time = start.elapsed().as_millis();
+        let aggregated_results = self.aggregate_results(results);
+
+        Ok((aggregated_results, execution_time))
+    }
+
+    fn execute_test_cases(&self, test_cases: &[TestCase]) -> Vec<TestResult> {
+        test_cases
+            .iter()
+            .enumerate()
+            .map(|(index, test_case)| {
+                println!("|derpcode-start-test-{}|", index);
+                let start = Instant::now();
+
+                let (actual_output, passed, error_message) = match self.problem_driver.execute_test_case(test_case, index) {
+                    Ok(output) => {
+                        let passed = self.problem_driver.compare_results(&output, &test_case.expected_output);
+                        let error_message = if passed {
+                            None
+                        } else {
+                            Some(format!("Expected {:?} but got {:?}", test_case.expected_output, output))
+                        };
+                        (output, passed, error_message)
+                    }
+                    Err(err) => {
+                        (Value::Null, false, Some(err.to_string()))
+                    }
+                };
+
+                println!("|derpcode-end-test-{}|", index);
+
+                TestResult {
+                    test_case_index: index,
+                    pass: passed,
+                    error_message,
+                    execution_time_in_ms: start.elapsed().as_millis(),
+                    input: test_case.input.clone(),
+                    expected_output: test_case.expected_output.clone(),
+                    actual_output,
+                    is_hidden: false,
+                }
+            })
+            .collect()
+    }
+
+    fn aggregate_results(&self, test_results: Vec<TestResult>) -> SubmissionResult {
+        let passed_test_cases = test_results.iter().filter(|r| r.pass).count();
+        
+        SubmissionResult {
+            test_case_count: test_results.len(),
+            passed_test_cases,
+            failed_test_cases: test_results.len() - passed_test_cases,
+            pass: passed_test_cases == test_results.len(),
+            test_case_results: test_results,
+            ..Default::default()
+        }
+    }
+}

@@ -1,0 +1,12 @@
+public class Solution {
+    /**
+     * Mirror a 2D array across its vertical axis (reverse each row).
+     *
+     * @param matrix 2D integer array
+     * @return mirrored 2D integer array
+     */
+    public static int[][] mirror2DArray(int[][] matrix) {
+        // Your code here
+        return new int[0][0];
+    }
+}

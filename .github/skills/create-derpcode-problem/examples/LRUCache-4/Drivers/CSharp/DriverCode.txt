@@ -1,0 +1,147 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.LRUCacheProblem
+{
+    /// <summary>
+    /// Represents a single LRU cache operation.
+    /// </summary>
+    public class LRUCacheOperation
+    {
+        public string Operation { get; set; } = string.Empty;
+        public object?[]? Parameters { get; set; }
+        public object? ExpectedResult { get; set; }
+    }
+
+    /// <summary>
+    /// Problem-specific driver for LRUCache problem.
+    /// </summary>
+    public class LRUCacheDriver : BaseProblemDriver
+    {
+        private LRUCache? _cache;
+
+        /// <summary>
+        /// Parse input as operations array and expected output.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputDoc = JsonDocument.Parse(input.ToString()!);
+            var expectedDoc = JsonDocument.Parse(expectedOutput.ToString()!);
+            
+            var operations = inputDoc.RootElement[0];
+            var parameters = inputDoc.RootElement[1];
+            var expectedArray = expectedDoc.RootElement;
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < operations.GetArrayLength(); i++)
+            {
+                var operation = operations[i].GetString()!;
+                object?[]? paramArray = null;
+                
+                if (i < parameters.GetArrayLength())
+                {
+                    var paramElement = parameters[i];
+                    if (paramElement.ValueKind == JsonValueKind.Array)
+                    {
+                        paramArray = new object?[paramElement.GetArrayLength()];
+                        for (int j = 0; j < paramElement.GetArrayLength(); j++)
+                        {
+                            paramArray[j] = paramElement[j].GetInt32();
+                        }
+                    }
+                    else if (paramElement.ValueKind == JsonValueKind.Number)
+                    {
+                        paramArray = new object?[] { paramElement.GetInt32() };
+                    }
+                }
+                
+                object? expected = null;
+                if (i < expectedArray.GetArrayLength())
+                {
+                    var expectedElement = expectedArray[i];
+                    if (expectedElement.ValueKind == JsonValueKind.Number)
+                    {
+                        expected = expectedElement.GetInt32();
+                    }
+                    else if (expectedElement.ValueKind == JsonValueKind.Null)
+                    {
+                        expected = null;
+                    }
+                }
+                
+                testCases.Add(new TestCase
+                {
+                    Input = new LRUCacheOperation
+                    {
+                        Operation = operation,
+                        Parameters = paramArray,
+                        ExpectedResult = expected
+                    },
+                    ExpectedOutput = expected
+                });
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute a single LRU cache operation.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var operation = (LRUCacheOperation)testCase.Input;
+            
+            if (operation.Operation == "LRUCache")
+            {
+                var capacity = (int)operation.Parameters![0]!;
+                _cache = new LRUCache(capacity);
+                return null;
+            }
+            else if (operation.Operation == "get")
+            {
+                var key = (int)operation.Parameters![0]!;
+                return _cache!.Get(key);
+            }
+            else if (operation.Operation == "put")
+            {
+                var key = (int)operation.Parameters![0]!;
+                var value = (int)operation.Parameters![1]!;
+                _cache!.Put(key, value);
+                return null;
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// Compare results handling nulls properly.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return (actual == null && expected == null) || 
+                   (actual != null && expected != null && actual.Equals(expected));
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new LRUCacheDriver());
+            driver.Run(args);
+        }
+    }
+}

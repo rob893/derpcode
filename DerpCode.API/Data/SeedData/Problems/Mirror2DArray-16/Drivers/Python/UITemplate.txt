@@ -1,0 +1,6 @@
+from typing import List
+
+def mirror_2d_array(matrix: List[List[int]]) -> List[List[int]]:
+    """Mirror a 2D array across its vertical axis (reverse each row)."""
+    # Your code here
+    return []
