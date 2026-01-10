@@ -4,28 +4,28 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 19,
+    "Id": 22,
     "UserId": 1,
     "Title": "Longest Substring Without Repeating Characters Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-15T03:55:00.171534+00:00",
-    "UpdatedAt": "2025-08-15T03:55:00.171534+00:00",
+    "CreatedAt": "2026-01-10T01:57:06.566049+00:00",
+    "UpdatedAt": "2026-01-10T02:04:05.247117+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 7,
-        "Name": "String"
-      },
-      {
-        "Id": 8,
+        "Id": 26,
         "Name": "Sliding Window"
       },
       {
-        "Id": 4,
+        "Id": 18,
         "Name": "Hash Table"
+      },
+      {
+        "Id": 23,
+        "Name": "String"
       }
     ]
   },
@@ -48,27 +48,27 @@
   ],
   "Hints": [
     "Use a sliding window approach with two pointers.",
-    "Keep track of characters you've seen using a hash table or set.",
+    "Keep track of characters you\u0027ve seen using a hash table or set.",
     "When you encounter a duplicate, move the left pointer forward.",
     "Update the maximum length as you go."
   ],
   "Tags": [
     {
-      "Id": 7,
+      "Id": 18,
+      "Name": "Hash Table"
+    },
+    {
+      "Id": 23,
       "Name": "String"
     },
     {
-      "Id": 8,
+      "Id": 26,
       "Name": "Sliding Window"
-    },
-    {
-      "Id": 4,
-      "Name": "Hash Table"
     }
   ],
   "Drivers": [
     {
-      "Id": 100,
+      "Id": 115,
       "ProblemId": 19,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/TypeScript/UITemplate.txt",
@@ -77,7 +77,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 101,
+      "Id": 116,
       "ProblemId": 19,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/CSharp/UITemplate.txt",
@@ -86,7 +86,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 102,
+      "Id": 117,
       "ProblemId": 19,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/JavaScript/UITemplate.txt",
@@ -95,7 +95,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 103,
+      "Id": 118,
       "ProblemId": 19,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/Rust/UITemplate.txt",
@@ -104,7 +104,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 104,
+      "Id": 119,
       "ProblemId": 19,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/Python/UITemplate.txt",
@@ -113,7 +113,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 105,
+      "Id": 120,
       "ProblemId": 19,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LongestSubstringWithoutRepeatingCharacters-19/Drivers/Java/UITemplate.txt",

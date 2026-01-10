@@ -4,23 +4,23 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 13,
+    "Id": 18,
     "UserId": 1,
     "Title": "Mirror 2D Array Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2026-01-09T00:00:00.000000+00:00",
-    "UpdatedAt": "2026-01-09T00:00:00.000000+00:00",
+    "CreatedAt": "2026-01-09T23:39:22.746378+00:00",
+    "UpdatedAt": "2026-01-09T23:39:22.746378+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 7,
+        "Id": 5,
         "Name": "Array"
       },
       {
-        "Id": 8,
+        "Id": 21,
         "Name": "Two Pointers"
       }
     ]
@@ -28,52 +28,127 @@
   "Difficulty": "Easy",
   "ExpectedOutput": [
     [
-      [3, 2, 1],
-      [6, 5, 4]
+      [
+        3,
+        2,
+        1
+      ],
+      [
+        6,
+        5,
+        4
+      ]
     ],
     [
-      [8, 7],
-      [10, 9],
-      [12, 11]
+      [
+        8,
+        7
+      ],
+      [
+        10,
+        9
+      ],
+      [
+        12,
+        11
+      ]
     ],
-    [[1]],
-    [[0, 1, 0, 1]],
     [
-      [-3, -2, -1],
-      [10, 5, 0]
+      [
+        1
+      ]
+    ],
+    [
+      [
+        0,
+        1,
+        0,
+        1
+      ]
+    ],
+    [
+      [
+        -3,
+        -2,
+        -1
+      ],
+      [
+        10,
+        5,
+        0
+      ]
     ]
   ],
   "Input": [
     [
-      [1, 2, 3],
-      [4, 5, 6]
+      [
+        1,
+        2,
+        3
+      ],
+      [
+        4,
+        5,
+        6
+      ]
     ],
     [
-      [7, 8],
-      [9, 10],
-      [11, 12]
+      [
+        7,
+        8
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        11,
+        12
+      ]
     ],
-    [[1]],
-    [[1, 0, 1, 0]],
     [
-      [-1, -2, -3],
-      [0, 5, 10]
+      [
+        1
+      ]
+    ],
+    [
+      [
+        1,
+        0,
+        1,
+        0
+      ]
+    ],
+    [
+      [
+        -1,
+        -2,
+        -3
+      ],
+      [
+        0,
+        5,
+        10
+      ]
     ]
   ],
-  "Hints": ["Reverse each row.", "Two pointers per row keeps it simple."],
+  "Hints": [
+    "Reverse each row.",
+    "Two pointers per row keeps it simple."
+  ],
   "Tags": [
     {
-      "Id": 7,
+      "Id": 5,
       "Name": "Array"
     },
     {
-      "Id": 8,
+      "Id": 21,
       "Name": "Two Pointers"
     }
   ],
   "Drivers": [
     {
-      "Id": 67,
+      "Id": 91,
       "ProblemId": 16,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/CSharp/UITemplate.txt",
@@ -82,7 +157,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 68,
+      "Id": 92,
       "ProblemId": 16,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/JavaScript/UITemplate.txt",
@@ -91,7 +166,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 69,
+      "Id": 93,
       "ProblemId": 16,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/TypeScript/UITemplate.txt",
@@ -100,7 +175,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 70,
+      "Id": 94,
       "ProblemId": 16,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/Rust/UITemplate.txt",
@@ -109,7 +184,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 71,
+      "Id": 95,
       "ProblemId": 16,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/Python/UITemplate.txt",
@@ -118,7 +193,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 72,
+      "Id": 96,
       "ProblemId": 16,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/Mirror2DArray-16/Drivers/Java/UITemplate.txt",

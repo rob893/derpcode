@@ -4,36 +4,36 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 8,
+    "Id": 7,
     "UserId": 1,
     "Title": "Invert Binary Tree Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-28T03:34:00.20143+00:00",
-    "UpdatedAt": "2025-08-28T03:34:00.201431+00:00",
+    "CreatedAt": "2025-11-24T03:48:41.376885+00:00",
+    "UpdatedAt": "2025-11-24T03:48:41.376886+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
+      {
+        "Id": 8,
+        "Name": "Recursion"
+      },
+      {
+        "Id": 13,
+        "Name": "Tree"
+      },
       {
         "Id": 15,
         "Name": "Breadth-First Search"
       },
       {
-        "Id": 14,
-        "Name": "Depth-First Search"
-      },
-      {
-        "Id": 13,
+        "Id": 10,
         "Name": "Binary Tree"
       },
       {
-        "Id": 12,
-        "Name": "Tree"
-      },
-      {
-        "Id": 10,
-        "Name": "Recursion"
+        "Id": 14,
+        "Name": "Depth-First Search"
       }
     ]
   },
@@ -101,16 +101,16 @@
   ],
   "Tags": [
     {
-      "Id": 10,
+      "Id": 8,
       "Name": "Recursion"
     },
     {
-      "Id": 12,
-      "Name": "Tree"
+      "Id": 10,
+      "Name": "Binary Tree"
     },
     {
       "Id": 13,
-      "Name": "Binary Tree"
+      "Name": "Tree"
     },
     {
       "Id": 14,
@@ -123,7 +123,7 @@
   ],
   "Drivers": [
     {
-      "Id": 43,
+      "Id": 37,
       "ProblemId": 5,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/CSharp/UITemplate.txt",
@@ -132,7 +132,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 44,
+      "Id": 38,
       "ProblemId": 5,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/JavaScript/UITemplate.txt",
@@ -141,7 +141,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 45,
+      "Id": 39,
       "ProblemId": 5,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/TypeScript/UITemplate.txt",
@@ -150,7 +150,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 46,
+      "Id": 40,
       "ProblemId": 5,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/Rust/UITemplate.txt",
@@ -159,7 +159,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 47,
+      "Id": 41,
       "ProblemId": 5,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/Python/UITemplate.txt",
@@ -168,7 +168,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 48,
+      "Id": 42,
       "ProblemId": 5,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/InvertBinaryTree-5/Drivers/Java/UITemplate.txt",

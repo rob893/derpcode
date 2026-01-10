@@ -4,14 +4,14 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 4,
+    "Id": 13,
     "UserId": 1,
     "Title": "Subtract Two Numbers Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-15T03:55:00.390669+00:00",
-    "UpdatedAt": "2025-08-15T03:55:00.39067+00:00",
+    "CreatedAt": "2025-11-24T03:48:41.855458+00:00",
+    "UpdatedAt": "2025-11-24T03:48:41.855458+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -43,7 +43,7 @@
   ],
   "Drivers": [
     {
-      "Id": 19,
+      "Id": 73,
       "ProblemId": 3,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/CSharp/UITemplate.txt",
@@ -52,7 +52,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 20,
+      "Id": 74,
       "ProblemId": 3,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/JavaScript/UITemplate.txt",
@@ -61,7 +61,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 21,
+      "Id": 75,
       "ProblemId": 3,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Rust/UITemplate.txt",
@@ -70,7 +70,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 22,
+      "Id": 76,
       "ProblemId": 3,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/TypeScript/UITemplate.txt",
@@ -79,7 +79,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 23,
+      "Id": 77,
       "ProblemId": 3,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Python/UITemplate.txt",
@@ -88,7 +88,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 24,
+      "Id": 78,
       "ProblemId": 3,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/SubtractTwoNumbers-3/Drivers/Java/UITemplate.txt",

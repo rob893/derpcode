@@ -4,28 +4,28 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 6,
+    "Id": 15,
     "UserId": 1,
     "Title": "Valid Palindrome Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-28T03:33:59.505748+00:00",
-    "UpdatedAt": "2025-08-28T03:33:59.505781+00:00",
+    "CreatedAt": "2025-11-24T03:48:42.00654+00:00",
+    "UpdatedAt": "2026-01-10T02:04:05.498726+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 9,
+        "Id": 23,
+        "Name": "String"
+      },
+      {
+        "Id": 24,
         "Name": "Character Manipulation"
       },
       {
-        "Id": 8,
+        "Id": 21,
         "Name": "Two Pointers"
-      },
-      {
-        "Id": 7,
-        "Name": "String"
       }
     ]
   },
@@ -55,21 +55,21 @@
   ],
   "Tags": [
     {
-      "Id": 7,
-      "Name": "String"
-    },
-    {
-      "Id": 8,
+      "Id": 21,
       "Name": "Two Pointers"
     },
     {
-      "Id": 9,
+      "Id": 23,
+      "Name": "String"
+    },
+    {
+      "Id": 24,
       "Name": "Character Manipulation"
     }
   ],
   "Drivers": [
     {
-      "Id": 31,
+      "Id": 85,
       "ProblemId": 7,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/CSharp/UITemplate.txt",
@@ -78,7 +78,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 32,
+      "Id": 86,
       "ProblemId": 7,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/JavaScript/UITemplate.txt",
@@ -87,7 +87,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 33,
+      "Id": 87,
       "ProblemId": 7,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/TypeScript/UITemplate.txt",
@@ -96,7 +96,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 34,
+      "Id": 88,
       "ProblemId": 7,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/Rust/UITemplate.txt",
@@ -105,7 +105,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 35,
+      "Id": 89,
       "ProblemId": 7,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/Python/UITemplate.txt",
@@ -114,7 +114,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 36,
+      "Id": 90,
       "ProblemId": 7,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidPalindrome-7/Drivers/Java/UITemplate.txt",
