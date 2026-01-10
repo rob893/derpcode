@@ -4,7 +4,7 @@ Write a function that takes two integers and returns their sum.
 
 Implement a function with the following signature:
 
-- `int add(int a, int b)` - Return the sum of the two input integers
+- `int add(int a, int b)` - Return the sum of the two input integers.
 
 ## Examples
 
