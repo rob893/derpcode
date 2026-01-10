@@ -1,0 +1,8 @@
+public class Solution
+{
+    public static bool IsValid(string s)
+    {
+        // Your implementation here
+        return false;
+    }
+}

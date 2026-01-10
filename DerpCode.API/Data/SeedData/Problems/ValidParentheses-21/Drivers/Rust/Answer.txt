@@ -1,0 +1,28 @@
+use std::collections::HashMap;
+
+pub fn is_valid(s: &str) -> bool {
+    let mut stack = Vec::new();
+    let mut pairs = HashMap::new();
+    pairs.insert(')', '(');
+    pairs.insert('}', '{');
+    pairs.insert(']', '[');
+    
+    for ch in s.chars() {
+        if ch == '(' || ch == '{' || ch == '[' {
+            stack.push(ch);
+        } else {
+            if stack.is_empty() {
+                return false;
+            }
+            
+            let top = stack.pop().unwrap();
+            if let Some(&expected) = pairs.get(&ch) {
+                if top != expected {
+                    return false;
+                }
+            }
+        }
+    }
+    
+    stack.is_empty()
+}

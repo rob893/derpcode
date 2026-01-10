@@ -1,0 +1,4 @@
+function isValid(s: string): boolean {
+    // Your implementation here
+    return false;
+}

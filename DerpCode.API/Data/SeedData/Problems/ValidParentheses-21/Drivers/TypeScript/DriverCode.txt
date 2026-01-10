@@ -1,0 +1,29 @@
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+import { isValid } from './solution';
+
+/**
+ * Problem-specific driver for Valid Parentheses problem.
+ */
+class ValidParenthesesDriver extends ProblemDriverBase {
+    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+        const inputs: string[] = input;
+        const outputs: boolean[] = expectedOutput;
+        
+        return inputs.map((str, index) => ({
+            input: str,
+            expectedOutput: outputs[index]
+        }));
+    }
+
+    executeTestCase(testCase: TestCase, index: number): any {
+        const input = testCase.input as string;
+        return isValid(input);
+    }
+
+    compareResults(actual: any, expected: any): boolean {
+        return actual === expected;
+    }
+}
+
+const driver = new BaseDriver(new ValidParenthesesDriver());
+driver.run();

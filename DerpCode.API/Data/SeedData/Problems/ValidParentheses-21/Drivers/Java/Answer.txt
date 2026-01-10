@@ -1,0 +1,28 @@
+import java.util.*;
+
+class Solution {
+    public static boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        Map<Character, Character> pairs = new HashMap<>();
+        pairs.put(')', '(');
+        pairs.put('}', '{');
+        pairs.put(']', '[');
+        
+        for (char ch : s.toCharArray()) {
+            if (ch == '(' || ch == '{' || ch == '[') {
+                stack.push(ch);
+            } else {
+                if (stack.isEmpty()) {
+                    return false;
+                }
+                
+                char top = stack.pop();
+                if (top != pairs.get(ch)) {
+                    return false;
+                }
+            }
+        }
+        
+        return stack.isEmpty();
+    }
+}

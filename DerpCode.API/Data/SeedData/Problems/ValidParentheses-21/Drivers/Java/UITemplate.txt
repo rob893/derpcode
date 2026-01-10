@@ -1,0 +1,6 @@
+class Solution {
+    public static boolean isValid(String s) {
+        // Your implementation here
+        return false;
+    }
+}

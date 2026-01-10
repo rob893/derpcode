@@ -1,0 +1,46 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::is_valid;
+
+pub struct ValidParenthesesDriver;
+
+impl ProblemDriver for ValidParenthesesDriver {
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in 0..input_array.len() {
+            let s = input_array[i].as_str().expect("Input should be string").to_string();
+            let expected = expected_array[i].clone();
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!(s),
+                expected_output: expected,
+            });
+        }
+        
+        test_cases
+    }
+
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let s = test_case.input.as_str().ok_or("Missing string input")?.to_string();
+        
+        let result = is_valid(&s);
+        Ok(serde_json::json!(result))
+    }
+
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+fn main() {
+    let driver = BaseDriver::new(ValidParenthesesDriver);
+    driver.run();
+}
