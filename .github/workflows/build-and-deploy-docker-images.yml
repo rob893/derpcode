@@ -7,6 +7,7 @@
 name: Build and Deploy Docker Images
 
 on:
+  workflow_dispatch:
   push:
     branches: [master]
     paths:
