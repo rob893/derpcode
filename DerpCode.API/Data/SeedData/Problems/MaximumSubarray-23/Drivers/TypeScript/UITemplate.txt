@@ -1,0 +1,4 @@
+function maxSubArray(nums: number[]): number {
+    // Your implementation here
+    return 0;
+}

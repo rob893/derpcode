@@ -1,0 +1,42 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+class MaximumSubarrayDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray arr = input.get(i).getAsJsonArray();
+            int[] nums = new int[arr.size()];
+            for (int j = 0; j < arr.size(); j++) {
+                nums[j] = arr.get(j).getAsInt();
+            }
+            int expected = expectedOutput.get(i).getAsInt();
+            
+            testCases.add(new TestCase(nums, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        int[] nums = (int[]) testCase.getInput();
+        return Solution.maxSubArray(nums);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        BaseDriver driver = new BaseDriver(new MaximumSubarrayDriver());
+        driver.run(args);
+    }
+}

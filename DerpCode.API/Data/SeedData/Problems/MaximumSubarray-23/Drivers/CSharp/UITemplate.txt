@@ -1,0 +1,8 @@
+public class Solution
+{
+    public static int MaxSubArray(int[] nums)
+    {
+        // Your implementation here
+        return 0;
+    }
+}

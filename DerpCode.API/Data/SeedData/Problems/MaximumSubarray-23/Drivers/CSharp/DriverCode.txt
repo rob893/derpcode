@@ -1,0 +1,71 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.MaximumSubarray
+{
+    public class MaximumSubarrayDriver : BaseProblemDriver
+    {
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputDoc = JsonDocument.Parse(input.ToString()!);
+            var expectedDoc = JsonDocument.Parse(expectedOutput.ToString()!);
+            
+            var inputArray = inputDoc.RootElement;
+            var expectedArray = expectedDoc.RootElement;
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray.GetArrayLength(); i++)
+            {
+                var nums = this.JsonElementToIntArray(inputArray[i]);
+                var expected = expectedArray[i].GetInt32();
+                
+                testCases.Add(new TestCase
+                {
+                    Input = nums,
+                    ExpectedOutput = expected
+                });
+            }
+            
+            return testCases;
+        }
+
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var nums = (int[])testCase.Input;
+            return Solution.MaxSubArray(nums);
+        }
+
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return object.Equals(actual, expected);
+        }
+
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+
+        private int[] JsonElementToIntArray(JsonElement element)
+        {
+            var list = new List<int>();
+            foreach (var item in element.EnumerateArray())
+            {
+                list.Add(item.GetInt32());
+            }
+            return list.ToArray();
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var driver = new BaseDriver(new MaximumSubarrayDriver());
+            driver.Run(args);
+        }
+    }
+}

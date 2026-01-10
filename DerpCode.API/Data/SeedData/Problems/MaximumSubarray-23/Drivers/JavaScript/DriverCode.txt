@@ -1,0 +1,26 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { maxSubArray } from './solution.js';
+
+class MaximumSubarrayDriver extends IProblemDriver {
+    parseTestCases(input, expectedOutput) {
+        return input.map((arr, index) => ({
+            input: arr,
+            expectedOutput: expectedOutput[index]
+        }));
+    }
+
+    executeTestCase(testCase, index) {
+        return maxSubArray(testCase.input);
+    }
+
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+const driver = new BaseDriver(new MaximumSubarrayDriver());
+driver.run();
