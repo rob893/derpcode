@@ -1,0 +1,6 @@
+function climbStairs(n) {
+    // Your implementation here
+    return 0;
+}
+
+export { climbStairs };

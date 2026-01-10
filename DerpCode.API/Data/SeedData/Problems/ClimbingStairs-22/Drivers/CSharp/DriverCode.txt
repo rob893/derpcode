@@ -1,0 +1,55 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.ClimbingStairs
+{
+    public class ClimbingStairsDriver : BaseProblemDriver
+    {
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputArray = JsonSerializer.Deserialize<int[]>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<int[]>(expectedOutput.ToString()!);
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray!.Length; i++)
+            {
+                testCases.Add(new TestCase
+                {
+                    Input = inputArray[i],
+                    ExpectedOutput = expectedArray![i]
+                });
+            }
+            
+            return testCases;
+        }
+
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var n = (int)testCase.Input;
+            return Solution.ClimbStairs(n);
+        }
+
+        public override bool CompareResults(object? actual, object expected)
+        {
+            return object.Equals(actual, expected);
+        }
+
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            return $"Expected {expected} but got {actual}";
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var driver = new BaseDriver(new ClimbingStairsDriver());
+            driver.Run(args);
+        }
+    }
+}
