@@ -1,4 +1,4 @@
-function lengthOfLongestSubstring(s: string): number {
+export function lengthOfLongestSubstring(s: string): number {
     // Your implementation here
     return 0;
 }

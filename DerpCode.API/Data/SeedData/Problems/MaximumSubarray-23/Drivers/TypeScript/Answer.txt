@@ -1,4 +1,4 @@
-function maxSubArray(nums: number[]): number {
+export function maxSubArray(nums: number[]): number {
     let maxSoFar = nums[0];
     let maxEndingHere = nums[0];
     

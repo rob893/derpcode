@@ -1,4 +1,4 @@
-function climbStairs(n: number): number {
+export function climbStairs(n: number): number {
     if (n === 1) return 1;
     if (n === 2) return 2;
     

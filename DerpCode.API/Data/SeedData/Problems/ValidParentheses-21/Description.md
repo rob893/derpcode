@@ -31,5 +31,4 @@ isValid("(((");      // returns false (unclosed brackets)
 ## Key Concepts
 
 - **Matching Brackets**: Each opening bracket must have a corresponding closing bracket of the same type
-- **Correct Order**: Brackets must close in the reverse order they were opened (LIFO - Last In First Out)
 - **Complete Pairing**: All brackets must be properly paired with no leftovers

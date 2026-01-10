@@ -35,7 +35,8 @@ pub fn merge_two_lists(
             list2 = next;
         }
         
-        current = current.borrow().next.clone().unwrap();
+        let next_current = { current.borrow().next.clone().unwrap() };
+        current = next_current;
     }
     
     current.borrow_mut().next = if list1.is_some() { list1 } else { list2 };

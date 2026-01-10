@@ -24,9 +24,3 @@ lRUCache.get(1);    // return -1 (not found)
 lRUCache.get(3);    // return 3
 lRUCache.get(4);    // return 4
 ```
-
-## Key Concepts
-
-- **Least Recently Used**: When the cache reaches capacity, the item that hasn't been accessed for the longest time gets evicted
-- **Access**: Both `get()` and `put()` operations count as accessing an item
-- **Recency Order**: Recently accessed items should be considered "most recent"",

@@ -28,9 +28,3 @@ maxSubArray([5,4,-1,7,8]);  // returns 23
 maxSubArray([-1]);  // returns -1
 // Explanation: The subarray [-1] has the largest sum of -1
 ```
-
-## Key Concepts
-
-- **Subarray**: Must be contiguous (adjacent elements)
-- **Kadane's Algorithm**: Efficient O(n) solution using dynamic programming
-- **Local vs Global Maximum**: Track both the best sum ending at current position and the overall best

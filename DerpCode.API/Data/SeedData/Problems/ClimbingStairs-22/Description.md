@@ -38,9 +38,3 @@ climbStairs(4);  // returns 5
 climbStairs(1);  // returns 1
 // Explanation: Only one way: 1 step
 ```
-
-## Key Concepts
-
-- **Dynamic Programming**: Build solution from smaller subproblems
-- **Recurrence Relation**: Ways to reach step n = ways to reach (n-1) + ways to reach (n-2)
-- **Fibonacci Pattern**: The solution follows the Fibonacci sequence
