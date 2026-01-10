@@ -1,0 +1,13 @@
+class ListNode {
+    constructor(val, next) {
+        this.val = val === undefined ? 0 : val;
+        this.next = next === undefined ? null : next;
+    }
+}
+
+function mergeTwoLists(list1, list2) {
+    // Your implementation here
+    return null;
+}
+
+export { mergeTwoLists, ListNode };

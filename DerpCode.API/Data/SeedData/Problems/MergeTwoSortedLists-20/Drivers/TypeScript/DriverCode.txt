@@ -1,0 +1,103 @@
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+import { mergeTwoLists, ListNode } from './solution';
+
+/**
+ * Problem-specific driver for Merge Two Sorted Lists problem.
+ */
+class MergeTwoSortedListsDriver extends ProblemDriverBase {
+    /**
+     * Parse input as pairs of arrays representing two linked lists.
+     */
+    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the mergeTwoLists function with the test case input.
+     */
+    executeTestCase(testCase: TestCase, index: number): any {
+        // Input is [list1Array, list2Array]
+        const [list1Array, list2Array] = testCase.input;
+        
+        // Convert input arrays to linked lists
+        const list1 = this.arrayToLinkedList(list1Array);
+        const list2 = this.arrayToLinkedList(list2Array);
+        
+        // Run the solution
+        const mergedHead = mergeTwoLists(list1, list2);
+        
+        // Convert result back to array
+        return this.linkedListToArray(mergedHead);
+    }
+
+    /**
+     * Compare result arrays.
+     */
+    compareResults(actual: any, expected: any): boolean {
+        return this.arraysEqual(actual, expected);
+    }
+
+    /**
+     * Converts an array to a linked list
+     */
+    private arrayToLinkedList(arr: number[]): ListNode | null {
+        if (!arr || arr.length === 0) {
+            return null;
+        }
+        
+        const head = new ListNode(arr[0]);
+        let current = head;
+        
+        for (let i = 1; i < arr.length; i++) {
+            current.next = new ListNode(arr[i]);
+            current = current.next;
+        }
+        
+        return head;
+    }
+
+    /**
+     * Converts a linked list to an array
+     */
+    private linkedListToArray(head: ListNode | null): number[] {
+        const result: number[] = [];
+        let current = head;
+        
+        while (current !== null) {
+            result.push(current.val);
+            current = current.next;
+        }
+        
+        return result;
+    }
+
+    /**
+     * Compare two arrays for equality
+     */
+    private arraysEqual(arr1: number[], arr2: number[]): boolean {
+        if (arr1.length !== arr2.length) {
+            return false;
+        }
+        
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new MergeTwoSortedListsDriver());
+driver.run();

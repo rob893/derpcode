@@ -1,0 +1,160 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.MergeTwoSortedLists
+{
+    /// <summary>
+    /// Problem-specific driver for Merge Two Sorted Lists problem.
+    /// </summary>
+    public class MergeTwoSortedListsDriver : BaseProblemDriver
+    {
+        /// <summary>
+        /// Parse input as pairs of linked list arrays.
+        /// </summary>
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputDoc = JsonDocument.Parse(input.ToString()!);
+            var expectedDoc = JsonDocument.Parse(expectedOutput.ToString()!);
+            
+            var inputArray = inputDoc.RootElement;
+            var expectedArray = expectedDoc.RootElement;
+            
+            var testCases = new List<TestCase>();
+            
+            for (int i = 0; i < inputArray.GetArrayLength(); i++)
+            {
+                var pairElement = inputArray[i];
+                var list1Array = this.JsonElementToIntArray(pairElement[0]);
+                var list2Array = this.JsonElementToIntArray(pairElement[1]);
+                
+                testCases.Add(new TestCase
+                {
+                    Input = new int[][] { list1Array, list2Array },
+                    ExpectedOutput = this.JsonElementToIntArray(expectedArray[i])
+                });
+            }
+            
+            return testCases;
+        }
+
+        /// <summary>
+        /// Execute the MergeTwoLists method with the test case input.
+        /// </summary>
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            var inputArrays = (int[][])testCase.Input;
+            var list1Array = inputArrays[0];
+            var list2Array = inputArrays[1];
+            
+            // Build linked lists from arrays
+            var list1 = this.BuildListFromArray(list1Array);
+            var list2 = this.BuildListFromArray(list2Array);
+            
+            // Run the solution
+            var result = Solution.MergeTwoLists(list1, list2);
+            
+            // Convert result back to array for comparison
+            return this.ListToArray(result);
+        }
+
+        /// <summary>
+        /// Compare linked list arrays.
+        /// </summary>
+        public override bool CompareResults(object? actual, object expected)
+        {
+            var actualArray = (int[])actual!;
+            var expectedArray = (int[])expected;
+            
+            return this.ArraysEqual(actualArray, expectedArray);
+        }
+
+        /// <summary>
+        /// Format error message for failed tests.
+        /// </summary>
+        public override string FormatErrorMessage(object? actual, object expected)
+        {
+            var actualArray = (int[])actual!;
+            var expectedArray = (int[])expected;
+            
+            return $"Expected [{string.Join(",", expectedArray)}] but got [{string.Join(",", actualArray)}]";
+        }
+
+        private ListNode BuildListFromArray(int[] values)
+        {
+            if (values.Length == 0)
+                return null;
+
+            ListNode head = null;
+            ListNode current = null;
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                var node = new ListNode(values[i]);
+                if (head == null)
+                {
+                    head = node;
+                    current = node;
+                }
+                else
+                {
+                    current.next = node;
+                    current = node;
+                }
+            }
+
+            return head;
+        }
+
+        private int[] ListToArray(ListNode head)
+        {
+            var result = new List<int>();
+            var current = head;
+
+            while (current != null)
+            {
+                result.Add(current.val);
+                current = current.next;
+            }
+
+            return result.ToArray();
+        }
+
+        private int[] JsonElementToIntArray(JsonElement element)
+        {
+            var list = new List<int>();
+            foreach (var item in element.EnumerateArray())
+            {
+                list.Add(item.GetInt32());
+            }
+            return list.ToArray();
+        }
+
+        private bool ArraysEqual(int[] arr1, int[] arr2)
+        {
+            if (arr1.Length != arr2.Length)
+                return false;
+
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i])
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Create and run the driver
+            var driver = new BaseDriver(new MergeTwoSortedListsDriver());
+            driver.Run(args);
+        }
+    }
+}

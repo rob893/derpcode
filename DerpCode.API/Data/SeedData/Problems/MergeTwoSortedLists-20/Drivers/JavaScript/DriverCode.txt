@@ -1,0 +1,106 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { mergeTwoLists, ListNode } from './solution.js';
+
+/**
+ * Problem-specific driver for Merge Two Sorted Lists problem.
+ */
+class MergeTwoSortedListsDriver extends IProblemDriver {
+    /**
+     * Parse input as pairs of arrays representing two linked lists.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the mergeTwoLists function with the test case input.
+     */
+    executeTestCase(testCase, index) {
+        const [list1Array, list2Array] = testCase.input;
+        
+        const list1 = this.arrayToLinkedList(list1Array);
+        const list2 = this.arrayToLinkedList(list2Array);
+        
+        const mergedHead = mergeTwoLists(list1, list2);
+        
+        return this.linkedListToArray(mergedHead);
+    }
+
+    /**
+     * Compare result arrays.
+     */
+    compareResults(actual, expected) {
+        return this.arraysEqual(actual, expected);
+    }
+
+    /**
+     * Converts an array to a linked list
+     */
+    arrayToLinkedList(arr) {
+        if (!arr || arr.length === 0) {
+            return null;
+        }
+        
+        const head = new ListNode(arr[0]);
+        let current = head;
+        
+        for (let i = 1; i < arr.length; i++) {
+            current.next = new ListNode(arr[i]);
+            current = current.next;
+        }
+        
+        return head;
+    }
+
+    /**
+     * Converts a linked list to an array
+     */
+    linkedListToArray(head) {
+        const result = [];
+        let current = head;
+        
+        while (current !== null) {
+            result.push(current.val);
+            current = current.next;
+        }
+        
+        return result;
+    }
+
+    /**
+     * Compare two arrays for equality
+     */
+    arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) {
+            return false;
+        }
+        
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected [${expected}] but got [${actual}]`;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new MergeTwoSortedListsDriver());
+driver.run();
