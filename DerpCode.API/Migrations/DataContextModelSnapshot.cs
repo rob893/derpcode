@@ -19,7 +19,7 @@ namespace DerpCode.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.11")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -230,7 +230,7 @@ namespace DerpCode.API.Migrations
                     b.Property<int>("ExplanationArticleId")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<List<string>>("Hints")
+                    b.PrimitiveCollection<string>("Hints")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
@@ -468,9 +468,6 @@ namespace DerpCode.API.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Experience")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -532,6 +529,26 @@ namespace DerpCode.API.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("DerpCode.API.Models.Entities.UserFavoriteProblem", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProblemId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("UserId", "ProblemId");
+
+                    b.HasIndex("ProblemId");
+
+                    b.ToTable("UserFavoriteProblem");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.UserRole", b =>
@@ -802,6 +819,25 @@ namespace DerpCode.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DerpCode.API.Models.Entities.UserFavoriteProblem", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.Problem", "Problem")
+                        .WithMany("FavoritedByUsers")
+                        .HasForeignKey("ProblemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DerpCode.API.Models.Entities.User", "User")
+                        .WithMany("FavoriteProblems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Problem");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DerpCode.API.Models.Entities.UserRole", b =>
                 {
                     b.HasOne("DerpCode.API.Models.Entities.Role", "Role")
@@ -886,6 +922,8 @@ namespace DerpCode.API.Migrations
                 {
                     b.Navigation("Drivers");
 
+                    b.Navigation("FavoritedByUsers");
+
                     b.Navigation("ProblemSubmissions");
 
                     b.Navigation("SolutionArticles");
@@ -898,6 +936,8 @@ namespace DerpCode.API.Migrations
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.User", b =>
                 {
+                    b.Navigation("FavoriteProblems");
+
                     b.Navigation("LinkedAccounts");
 
                     b.Navigation("ProblemSubmissions");

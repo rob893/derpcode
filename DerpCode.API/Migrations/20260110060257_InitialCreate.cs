@@ -41,7 +41,6 @@ namespace DerpCode.API.Migrations
                     LastEmailChange = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUsernameChange = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastEmailConfirmationSent = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    Experience = table.Column<int>(type: "integer", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -351,7 +350,7 @@ namespace DerpCode.API.Migrations
                     Difficulty = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: false),
                     ExpectedOutput = table.Column<List<object>>(type: "jsonb", nullable: false),
                     Input = table.Column<List<object>>(type: "jsonb", nullable: false),
-                    Hints = table.Column<List<string>>(type: "jsonb", nullable: false),
+                    Hints = table.Column<string>(type: "jsonb", nullable: false),
                     IsPublished = table.Column<bool>(type: "boolean", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -463,6 +462,31 @@ namespace DerpCode.API.Migrations
                         name: "FK_ProblemTag_Tags_TagsId",
                         column: x => x.TagsId,
                         principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserFavoriteProblem",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ProblemId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserFavoriteProblem", x => new { x.UserId, x.ProblemId });
+                    table.ForeignKey(
+                        name: "FK_UserFavoriteProblem_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserFavoriteProblem_Problems_ProblemId",
+                        column: x => x.ProblemId,
+                        principalTable: "Problems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -584,6 +608,11 @@ namespace DerpCode.API.Migrations
                 table: "ProblemTag",
                 column: "TagsId");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_UserFavoriteProblem_ProblemId",
+                table: "UserFavoriteProblem",
+                column: "ProblemId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_ArticleComments_Articles_ArticleId",
                 table: "ArticleComments",
@@ -645,6 +674,9 @@ namespace DerpCode.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "UserFavoriteProblem");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

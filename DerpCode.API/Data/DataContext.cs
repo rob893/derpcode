@@ -36,6 +36,24 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
         base.OnModelCreating(builder);
 
+        builder.Entity<UserFavoriteProblem>(b =>
+        {
+            b.HasKey(x => new { x.UserId, x.ProblemId });
+
+            b.HasOne(x => x.User)
+                .WithMany(u => u.FavoriteProblems)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Problem)
+                .WithMany(p => p.FavoritedByUsers)
+                .HasForeignKey(x => x.ProblemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.Property(x => x.CreatedAt)
+                .HasDefaultValueSql("now()"); // Postgres
+        });
+
         builder.Entity<UserRole>(userRole =>
         {
             userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
@@ -84,7 +102,6 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
         builder.Entity<ProblemSubmission>(submission =>
         {
             submission.Property(s => s.Language).HasConversion<string>();
-
             submission.Property(s => s.TestCaseResults).HasColumnType("jsonb");
         });
 

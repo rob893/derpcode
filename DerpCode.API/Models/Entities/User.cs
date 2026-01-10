@@ -24,9 +24,9 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
 
     public DateTimeOffset? LastEmailConfirmationSent { get; set; }
 
-    public int Experience { get; set; }
-
     public bool IsDeleted { get; set; }
 
     public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
+
+    public List<UserFavoriteProblem> FavoriteProblems { get; set; } = [];
 }
