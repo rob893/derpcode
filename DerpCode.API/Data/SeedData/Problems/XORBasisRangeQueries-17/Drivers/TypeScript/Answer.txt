@@ -1,0 +1,119 @@
+const MAX_BIT = 30;
+
+function basisEmpty(): number[] {
+    const b: number[] = new Array(MAX_BIT + 1);
+    b.fill(0);
+    return b;
+}
+
+function basisInsert(basis: number[], value: number): void {
+    let x = value | 0;
+    for (let bit = MAX_BIT; bit >= 0; bit--) {
+        if (((x >>> bit) & 1) === 0) {
+            continue;
+        }
+
+        const existing = basis[bit] | 0;
+        if (existing === 0) {
+            basis[bit] = x;
+            return;
+        }
+
+        x = (x ^ existing) | 0;
+    }
+}
+
+function basisMerge(left: number[], right: number[]): number[] {
+    const merged = left.slice();
+    for (let bit = 0; bit <= MAX_BIT; bit++) {
+        const v = right[bit] | 0;
+        if (v !== 0) {
+            basisInsert(merged, v);
+        }
+    }
+    return merged;
+}
+
+function basisMaxXor(basis: number[]): number {
+    let res = 0;
+    for (let bit = MAX_BIT; bit >= 0; bit--) {
+        const cand = (res ^ (basis[bit] | 0)) >>> 0;
+        if (cand > res) {
+            res = cand;
+        }
+    }
+    return res;
+}
+
+export function rangeMaxSubsetXor(nums: number[], queries: number[][]): number[] {
+    const n = nums.length;
+    let size = 1;
+    while (size < n) {
+        size <<= 1;
+    }
+
+    const tree: number[][] = new Array(2 * size);
+    for (let i = 0; i < 2 * size; i++) {
+        tree[i] = basisEmpty();
+    }
+
+    for (let i = 0; i < n; i++) {
+        const b = basisEmpty();
+        basisInsert(b, nums[i] | 0);
+        tree[size + i] = b;
+    }
+
+    for (let i = size - 1; i >= 1; i--) {
+        tree[i] = basisMerge(tree[i * 2], tree[i * 2 + 1]);
+    }
+
+    function update(index0: number, value: number): void {
+        let pos = size + index0;
+        const b = basisEmpty();
+        basisInsert(b, value | 0);
+        tree[pos] = b;
+
+        pos = Math.floor(pos / 2);
+        while (pos >= 1) {
+            tree[pos] = basisMerge(tree[pos * 2], tree[pos * 2 + 1]);
+            pos = Math.floor(pos / 2);
+        }
+    }
+
+    function query(left0: number, right0: number): number[] {
+        let left = left0 + size;
+        let right = right0 + size;
+        let res = basisEmpty();
+
+        while (left <= right) {
+            if ((left & 1) === 1) {
+                res = basisMerge(res, tree[left]);
+                left++;
+            }
+            if ((right & 1) === 0) {
+                res = basisMerge(res, tree[right]);
+                right--;
+            }
+            left = Math.floor(left / 2);
+            right = Math.floor(right / 2);
+        }
+
+        return res;
+    }
+
+    const out: number[] = [];
+    for (const q of queries) {
+        if (q.length === 0) {
+            continue;
+        }
+
+        if (q[0] === 1) {
+            update(q[1] - 1, q[2]);
+        } else {
+            const basis = query(q[1] - 1, q[2] - 1);
+            out.push(basisMaxXor(basis));
+        }
+    }
+
+    return out;
+}

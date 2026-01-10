@@ -1,6 +1,9 @@
 /* Syntax highlighting for code blocks */
 @import 'highlight.js/styles/github-dark.css' layer(base);
 
+/* Math rendering for markdown ($...$, $$...$$) */
+@import 'katex/dist/katex.min.css' layer(base);
+
 @import 'tailwindcss';
 
 @config '../tailwind.config.js';

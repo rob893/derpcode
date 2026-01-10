@@ -1,0 +1,160 @@
+{
+  "Id": 17,
+  "Name": "XOR Basis Range Queries",
+  "Description": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 14,
+    "UserId": 1,
+    "Title": "XOR Basis Range Queries Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2026-01-09T00:00:00.000000+00:00",
+    "UpdatedAt": "2026-01-09T00:00:00.000000+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 0,
+        "Name": "Data Structures"
+      },
+      {
+        "Id": 0,
+        "Name": "Bit Manipulation"
+      },
+      {
+        "Id": 0,
+        "Name": "Segment Tree"
+      }
+    ]
+  },
+  "Difficulty": "VeryHard",
+  "ExpectedOutput": [
+    [15, 7, 7],
+    [0, 1, 1023],
+    [31, 14, 15],
+    [5, 5, 7, 7],
+    [1920, 3456, 2304]
+  ],
+  "Input": [
+    [
+      [3, 10, 5],
+      [
+        [2, 1, 3],
+        [1, 2, 7],
+        [2, 1, 2],
+        [2, 2, 3]
+      ]
+    ],
+    [
+      [0, 0, 0, 0],
+      [
+        [2, 1, 4],
+        [1, 3, 1],
+        [2, 2, 3],
+        [1, 1, 1023],
+        [2, 1, 3]
+      ]
+    ],
+    [
+      [1, 2, 4, 8, 16],
+      [
+        [2, 1, 5],
+        [2, 2, 4],
+        [1, 5, 7],
+        [2, 4, 5]
+      ]
+    ],
+    [
+      [5, 1, 7, 3],
+      [
+        [2, 1, 1],
+        [2, 1, 2],
+        [2, 3, 4],
+        [1, 2, 6],
+        [2, 1, 4]
+      ]
+    ],
+    [
+      [1024, 512, 256, 128],
+      [
+        [2, 1, 4],
+        [1, 2, 2048],
+        [2, 1, 4],
+        [2, 2, 3]
+      ]
+    ]
+  ],
+  "Hints": ["A range query suggests a segment tree.", "For maximum subset XOR, think about a linear basis over XOR."],
+  "Tags": [
+    {
+      "Id": 0,
+      "Name": "Data Structures"
+    },
+    {
+      "Id": 0,
+      "Name": "Bit Manipulation"
+    },
+    {
+      "Id": 0,
+      "Name": "Segment Tree"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 73,
+      "ProblemId": 17,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 74,
+      "ProblemId": 17,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 75,
+      "ProblemId": 17,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 76,
+      "ProblemId": 17,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 77,
+      "ProblemId": 17,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 78,
+      "ProblemId": 17,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/XORBasisRangeQueries-17/Drivers/Java/Answer.txt"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+"""Process point updates and range queries.
+
+Each query is one of:
+- [1, i, x] => set nums[i] = x (1-indexed)
+- [2, l, r] => return maximum XOR of any subset of nums[l..r] (1-indexed)
+
+Return a list of answers for all type-2 queries, in order.
+"""
+
+from typing import List
+
+
+def range_max_subset_xor(nums: List[int], queries: List[List[int]]) -> List[int]:
+    # Your code here
+    return []

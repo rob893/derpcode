@@ -1,6 +1,8 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeKatex from 'rehype-katex';
 
 interface MarkdownRendererProps {
   content: string;
@@ -11,8 +13,8 @@ export const MarkdownRenderer = ({ content, className = '' }: MarkdownRendererPr
   return (
     <div className={`prose prose-slate dark:prose-invert max-w-none ${className}`}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex, rehypeHighlight]}
         components={{
           // Customize specific markdown elements to work better with Tailwind/HeroUI
           h1: ({ ...props }) => <h1 className="text-2xl font-bold mb-4 text-foreground" {...props} />,

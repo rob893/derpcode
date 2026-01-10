@@ -1,0 +1,46 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { rangeMaxSubsetXor } from './solution.js';
+
+class XorBasisRangeQueriesDriver extends IProblemDriver {
+    constructor() {
+        super();
+    }
+
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+
+        for (let i = 0; i < input.length; i++) {
+            const nums = input[i][0];
+            const queries = input[i][1];
+            testCases.push({
+                input: { nums, queries },
+                expectedOutput: expectedOutput[i]
+            });
+        }
+
+        return testCases;
+    }
+
+    executeTestCase(testCase) {
+        const { nums, queries } = testCase.input;
+        return rangeMaxSubsetXor(nums, queries);
+    }
+
+    compareResults(actual, expected) {
+        if (!Array.isArray(actual) || !Array.isArray(expected)) {
+            return actual === expected;
+        }
+        if (actual.length !== expected.length) {
+            return false;
+        }
+        for (let i = 0; i < actual.length; i++) {
+            if (actual[i] !== expected[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+const driver = new BaseDriver(new XorBasisRangeQueriesDriver());
+driver.run();

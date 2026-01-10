@@ -1,0 +1,68 @@
+#pragma warning disable CS8602
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using DerpCode.Driver.Base;
+
+namespace DerpCode.Driver.XorBasisRangeQueries
+{
+    public sealed class XorBasisRangeQueriesDriver : BaseProblemDriver
+    {
+        public override List<TestCase> ParseTestCases(object input, object expectedOutput)
+        {
+            var inputJson = JsonSerializer.Deserialize<JsonElement>(input.ToString()!);
+            var expectedArray = JsonSerializer.Deserialize<int[][]>(expectedOutput.ToString()!);
+            var testCases = new List<TestCase>();
+
+            var inputArray = inputJson.EnumerateArray().ToArray();
+
+            for (int i = 0; i < inputArray.Length; i++)
+            {
+                var testInput = inputArray[i].EnumerateArray().ToArray();
+
+                var nums = testInput[0].EnumerateArray().Select(x => x.GetInt32()).ToArray();
+
+                var queries = testInput[1]
+                    .EnumerateArray()
+                    .Select(q => q.EnumerateArray().Select(x => x.GetInt32()).ToArray())
+                    .ToArray();
+
+                testCases.Add(new TestCase
+                {
+                    Input = new { nums, queries },
+                    ExpectedOutput = expectedArray![i]
+                });
+            }
+
+            return testCases;
+        }
+
+        public override object? ExecuteTestCase(TestCase testCase, int index)
+        {
+            dynamic input = testCase.Input;
+            int[] nums = input.nums;
+            int[][] queries = input.queries;
+            return Solution.RangeMaxSubsetXor(nums, queries);
+        }
+
+        public override bool CompareResults(object? actual, object expected)
+        {
+            if (actual is not int[] actualArray || expected is not int[] expectedArray)
+            {
+                return object.Equals(actual, expected);
+            }
+
+            return actualArray.SequenceEqual(expectedArray);
+        }
+    }
+
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var driver = new BaseDriver(new XorBasisRangeQueriesDriver());
+            driver.Run(args);
+        }
+    }
+}

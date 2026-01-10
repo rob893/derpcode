@@ -1,0 +1,95 @@
+from typing import List
+
+
+MAX_BIT = 30
+
+
+def _basis_empty() -> List[int]:
+    return [0] * (MAX_BIT + 1)
+
+
+def _basis_insert(basis: List[int], x: int) -> None:
+    for bit in range(MAX_BIT, -1, -1):
+        if (x >> bit) & 1:
+            if basis[bit] == 0:
+                basis[bit] = x
+                return
+            x ^= basis[bit]
+
+
+def _basis_merge(left: List[int], right: List[int]) -> List[int]:
+    merged = left.copy()
+    for v in right:
+        if v != 0:
+            _basis_insert(merged, v)
+    return merged
+
+
+def _basis_max_xor(basis: List[int]) -> int:
+    res = 0
+    for bit in range(MAX_BIT, -1, -1):
+        cand = res ^ basis[bit]
+        if cand > res:
+            res = cand
+    return res
+
+
+def range_max_subset_xor(nums: List[int], queries: List[List[int]]) -> List[int]:
+    n = len(nums)
+    size = 1
+    while size < n:
+        size <<= 1
+
+    tree: List[List[int]] = [_basis_empty() for _ in range(2 * size)]
+
+    for i, value in enumerate(nums):
+        basis = _basis_empty()
+        _basis_insert(basis, int(value))
+        tree[size + i] = basis
+
+    for i in range(size - 1, 0, -1):
+        tree[i] = _basis_merge(tree[i * 2], tree[i * 2 + 1])
+
+    def update(index0: int, value: int) -> None:
+        pos = size + index0
+        basis = _basis_empty()
+        _basis_insert(basis, int(value))
+        tree[pos] = basis
+
+        pos //= 2
+        while pos >= 1:
+            tree[pos] = _basis_merge(tree[pos * 2], tree[pos * 2 + 1])
+            pos //= 2
+
+    def query(left0: int, right0: int) -> List[int]:
+        left = left0 + size
+        right = right0 + size
+        res = _basis_empty()
+
+        while left <= right:
+            if (left & 1) == 1:
+                res = _basis_merge(res, tree[left])
+                left += 1
+            if (right & 1) == 0:
+                res = _basis_merge(res, tree[right])
+                right -= 1
+            left //= 2
+            right //= 2
+
+        return res
+
+    output: List[int] = []
+    for q in queries:
+        if not q:
+            continue
+        if q[0] == 1:
+            i = q[1] - 1
+            x = q[2]
+            update(i, x)
+        else:
+            l = q[1] - 1
+            r = q[2] - 1
+            basis = query(l, r)
+            output.append(_basis_max_xor(basis))
+
+    return output

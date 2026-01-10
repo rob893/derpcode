@@ -1,0 +1,63 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+
+class XorBasisRangeQueriesDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray testInput = input.get(i).getAsJsonArray();
+            int[] nums = parseIntArray(testInput.get(0).getAsJsonArray());
+            int[][] queries = parseQueries(testInput.get(1).getAsJsonArray());
+            int[] expected = parseIntArray(expectedOutput.get(i).getAsJsonArray());
+            testCases.add(new TestCase(new Object[] { nums, queries }, expected));
+        }
+
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        Object[] input = (Object[]) testCase.getInput();
+        int[] nums = (int[]) input[0];
+        int[][] queries = (int[][]) input[1];
+        return Solution.rangeMaxSubsetXor(nums, queries);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        if (!(actual instanceof int[]) || !(expected instanceof int[])) {
+            return Objects.equals(actual, expected);
+        }
+        return Arrays.equals((int[]) actual, (int[]) expected);
+    }
+
+    private static int[] parseIntArray(JsonArray arr) {
+        int[] out = new int[arr.size()];
+        for (int i = 0; i < arr.size(); i++) {
+            out[i] = arr.get(i).getAsInt();
+        }
+        return out;
+    }
+
+    private static int[][] parseQueries(JsonArray arr) {
+        int[][] queries = new int[arr.size()][];
+        for (int i = 0; i < arr.size(); i++) {
+            JsonArray q = arr.get(i).getAsJsonArray();
+            int[] row = new int[q.size()];
+            for (int j = 0; j < q.size(); j++) {
+                row[j] = q.get(j).getAsInt();
+            }
+            queries[i] = row;
+        }
+        return queries;
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        BaseDriver driver = new BaseDriver(new XorBasisRangeQueriesDriver());
+        driver.run(args);
+    }
+}

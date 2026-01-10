@@ -40,4 +40,5 @@ You are creating a new coding problem for a leetcode style platform called DerpC
 Notes:
 
 - User submitted data and problem drivers are in seperate files when run in the container (see Docker/ folder for docker files). Meaning don't assume that user code is injected into the same file as the driver when you are making new drivers. Don't forget import statemenst for user files (like import { add } form 'solution.js' for javasctipt)
+- The DerpCode UI supports math rendering (KaTeX) in markdown. In `Explanation.md`, feel free to use `$...$` for inline math and `$$...$$` for block math (for example: `$GF(2)$`, `$O(N \cdot W)$`, `$O(\log N \cdot W)$`).
 - For JavaScript code, always use class syntax over 'function ClassName ()' syntax. Never use var for javascript. Prefer function foo() syntax over const foo = () syntax

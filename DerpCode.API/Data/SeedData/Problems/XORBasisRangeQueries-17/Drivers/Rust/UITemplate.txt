@@ -1,0 +1,9 @@
+/// Each query is one of:
+/// - [1, i, x] => set nums[i] = x (1-indexed)
+/// - [2, l, r] => maximum XOR of any subset of nums[l..r] (1-indexed)
+///
+/// Return answers for all type-2 queries, in order.
+pub fn range_max_subset_xor(nums: Vec<i64>, queries: Vec<Vec<i64>>) -> Vec<i64> {
+    // Your code here
+    vec![]
+}

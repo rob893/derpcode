@@ -1,0 +1,157 @@
+using System;
+
+public class Solution
+{
+    private const int MaxBit = 30;
+
+    private static void BasisInsert(int[] basis, int value)
+    {
+        var x = value;
+        for (var bit = MaxBit; bit >= 0; bit--)
+        {
+            if (((x >> bit) & 1) == 0)
+            {
+                continue;
+            }
+
+            if (basis[bit] == 0)
+            {
+                basis[bit] = x;
+                return;
+            }
+
+            x ^= basis[bit];
+        }
+    }
+
+    private static int[] BasisMerge(int[] left, int[] right)
+    {
+        var merged = (int[])left.Clone();
+
+        for (var bit = 0; bit <= MaxBit; bit++)
+        {
+            var v = right[bit];
+            if (v != 0)
+            {
+                BasisInsert(merged, v);
+            }
+        }
+
+        return merged;
+    }
+
+    private static int BasisMaxXor(int[] basis)
+    {
+        var res = 0;
+        for (var bit = MaxBit; bit >= 0; bit--)
+        {
+            var cand = res ^ basis[bit];
+            if (cand > res)
+            {
+                res = cand;
+            }
+        }
+
+        return res;
+    }
+
+    public static int[] RangeMaxSubsetXor(int[] nums, int[][] queries)
+    {
+        var n = nums.Length;
+        var size = 1;
+        while (size < n)
+        {
+            size <<= 1;
+        }
+
+        var tree = new int[2 * size][];
+        for (var i = 0; i < tree.Length; i++)
+        {
+            tree[i] = new int[MaxBit + 1];
+        }
+
+        for (var i = 0; i < n; i++)
+        {
+            var basis = new int[MaxBit + 1];
+            BasisInsert(basis, nums[i]);
+            tree[size + i] = basis;
+        }
+
+        for (var i = size - 1; i >= 1; i--)
+        {
+            tree[i] = BasisMerge(tree[i * 2], tree[i * 2 + 1]);
+        }
+
+        void Update(int index0, int value)
+        {
+            var pos = size + index0;
+            var basis = new int[MaxBit + 1];
+            BasisInsert(basis, value);
+            tree[pos] = basis;
+
+            pos /= 2;
+            while (pos >= 1)
+            {
+                tree[pos] = BasisMerge(tree[pos * 2], tree[pos * 2 + 1]);
+                pos /= 2;
+            }
+        }
+
+        int[] QueryBasis(int left0, int right0)
+        {
+            var left = left0 + size;
+            var right = right0 + size;
+            var res = new int[MaxBit + 1];
+
+            while (left <= right)
+            {
+                if ((left & 1) == 1)
+                {
+                    res = BasisMerge(res, tree[left]);
+                    left++;
+                }
+
+                if ((right & 1) == 0)
+                {
+                    res = BasisMerge(res, tree[right]);
+                    right--;
+                }
+
+                left /= 2;
+                right /= 2;
+            }
+
+            return res;
+        }
+
+        var results = new int[queries.Length];
+        var outCount = 0;
+
+        foreach (var q in queries)
+        {
+            if (q.Length == 0)
+            {
+                continue;
+            }
+
+            if (q[0] == 1)
+            {
+                Update(q[1] - 1, q[2]);
+            }
+            else
+            {
+                var basis = QueryBasis(q[1] - 1, q[2] - 1);
+                results[outCount++] = BasisMaxXor(basis);
+            }
+        }
+
+        if (outCount == results.Length)
+        {
+            return results;
+        }
+
+        var trimmed = new int[outCount];
+        Array.Copy(results, trimmed, outCount);
+        return trimmed;
+    }
+}

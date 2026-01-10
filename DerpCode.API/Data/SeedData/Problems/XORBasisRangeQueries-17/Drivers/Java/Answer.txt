@@ -1,0 +1,106 @@
+public class Solution {
+    private static final int MAX_BIT = 30;
+
+    private static void basisInsert(int[] basis, int value) {
+        int x = value;
+        for (int bit = MAX_BIT; bit >= 0; bit--) {
+            if (((x >> bit) & 1) == 0) {
+                continue;
+            }
+            if (basis[bit] == 0) {
+                basis[bit] = x;
+                return;
+            }
+            x ^= basis[bit];
+        }
+    }
+
+    private static int[] basisMerge(int[] left, int[] right) {
+        int[] merged = left.clone();
+        for (int bit = 0; bit <= MAX_BIT; bit++) {
+            int v = right[bit];
+            if (v != 0) {
+                basisInsert(merged, v);
+            }
+        }
+        return merged;
+    }
+
+    private static int basisMaxXor(int[] basis) {
+        int res = 0;
+        for (int bit = MAX_BIT; bit >= 0; bit--) {
+            int cand = res ^ basis[bit];
+            if (cand > res) {
+                res = cand;
+            }
+        }
+        return res;
+    }
+
+    public static int[] rangeMaxSubsetXor(int[] nums, int[][] queries) {
+        int n = nums.length;
+        int size = 1;
+        while (size < n) {
+            size <<= 1;
+        }
+
+        int[][] tree = new int[2 * size][MAX_BIT + 1];
+
+        for (int i = 0; i < n; i++) {
+            int[] b = new int[MAX_BIT + 1];
+            basisInsert(b, nums[i]);
+            tree[size + i] = b;
+        }
+
+        for (int i = size - 1; i >= 1; i--) {
+            tree[i] = basisMerge(tree[i * 2], tree[i * 2 + 1]);
+        }
+
+        java.util.ArrayList<Integer> out = new java.util.ArrayList<>();
+
+        for (int[] q : queries) {
+            if (q.length == 0) {
+                continue;
+            }
+            if (q[0] == 1) {
+                int index0 = q[1] - 1;
+                int value = q[2];
+                int pos = size + index0;
+                int[] b = new int[MAX_BIT + 1];
+                basisInsert(b, value);
+                tree[pos] = b;
+
+                pos /= 2;
+                while (pos >= 1) {
+                    tree[pos] = basisMerge(tree[pos * 2], tree[pos * 2 + 1]);
+                    pos /= 2;
+                }
+            } else {
+                int left = (q[1] - 1) + size;
+                int right = (q[2] - 1) + size;
+                int[] resBasis = new int[MAX_BIT + 1];
+
+                while (left <= right) {
+                    if ((left & 1) == 1) {
+                        resBasis = basisMerge(resBasis, tree[left]);
+                        left++;
+                    }
+                    if ((right & 1) == 0) {
+                        resBasis = basisMerge(resBasis, tree[right]);
+                        right--;
+                    }
+                    left /= 2;
+                    right /= 2;
+                }
+
+                out.add(basisMaxXor(resBasis));
+            }
+        }
+
+        int[] result = new int[out.size()];
+        for (int i = 0; i < out.size(); i++) {
+            result[i] = out.get(i);
+        }
+        return result;
+    }
+}

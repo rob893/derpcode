@@ -1,0 +1,11 @@
+/**
+ * Each query is one of:
+ * - [1, i, x] => set nums[i] = x (1-indexed)
+ * - [2, l, r] => maximum XOR of any subset of nums[l..r] (1-indexed)
+ *
+ * Return answers for all type-2 queries, in order.
+ */
+export function rangeMaxSubsetXor(nums: number[], queries: number[][]): number[] {
+    // Your code here
+    return [];
+}

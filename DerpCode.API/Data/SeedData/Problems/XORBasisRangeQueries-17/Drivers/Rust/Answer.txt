@@ -1,0 +1,110 @@
+const MAX_BIT: usize = 30;
+
+fn basis_insert(basis: &mut [i64; MAX_BIT + 1], value: i64) {
+    let mut x = value;
+    for bit in (0..=MAX_BIT).rev() {
+        if ((x >> bit) & 1) == 0 {
+            continue;
+        }
+
+        if basis[bit] == 0 {
+            basis[bit] = x;
+            return;
+        }
+
+        x ^= basis[bit];
+    }
+}
+
+fn basis_merge(left: &[i64; MAX_BIT + 1], right: &[i64; MAX_BIT + 1]) -> [i64; MAX_BIT + 1] {
+    let mut merged = *left;
+    for bit in 0..=MAX_BIT {
+        let v = right[bit];
+        if v != 0 {
+            basis_insert(&mut merged, v);
+        }
+    }
+    merged
+}
+
+fn basis_max_xor(basis: &[i64; MAX_BIT + 1]) -> i64 {
+    let mut res: i64 = 0;
+    for bit in (0..=MAX_BIT).rev() {
+        let cand = res ^ basis[bit];
+        if cand > res {
+            res = cand;
+        }
+    }
+    res
+}
+
+pub fn range_max_subset_xor(nums: Vec<i64>, queries: Vec<Vec<i64>>) -> Vec<i64> {
+    let n = nums.len();
+    let mut size: usize = 1;
+    while size < n {
+        size <<= 1;
+    }
+
+    let mut tree: Vec<[i64; MAX_BIT + 1]> = vec![[0; MAX_BIT + 1]; 2 * size];
+
+    for (i, &v) in nums.iter().enumerate() {
+        let mut b = [0; MAX_BIT + 1];
+        basis_insert(&mut b, v);
+        tree[size + i] = b;
+    }
+
+    for i in (1..size).rev() {
+        tree[i] = basis_merge(&tree[i * 2], &tree[i * 2 + 1]);
+    }
+
+    let mut out: Vec<i64> = Vec::new();
+
+    for q in queries {
+        if q.is_empty() {
+            continue;
+        }
+
+        if q[0] == 1 {
+            let index0 = (q[1] - 1) as usize;
+            let value = q[2];
+
+            let mut pos = size + index0;
+            let mut b = [0; MAX_BIT + 1];
+            basis_insert(&mut b, value);
+            tree[pos] = b;
+
+            pos /= 2;
+            while pos >= 1 {
+                tree[pos] = basis_merge(&tree[pos * 2], &tree[pos * 2 + 1]);
+                if pos == 1 {
+                    break;
+                }
+                pos /= 2;
+            }
+        } else {
+            let mut left = (q[1] - 1) as usize + size;
+            let mut right = (q[2] - 1) as usize + size;
+            let mut res = [0; MAX_BIT + 1];
+
+            while left <= right {
+                if (left & 1) == 1 {
+                    res = basis_merge(&res, &tree[left]);
+                    left += 1;
+                }
+                if (right & 1) == 0 {
+                    res = basis_merge(&res, &tree[right]);
+                    if right == 0 {
+                        break;
+                    }
+                    right -= 1;
+                }
+                left /= 2;
+                right /= 2;
+            }
+
+            out.push(basis_max_xor(&res));
+        }
+    }
+
+    out
+}
