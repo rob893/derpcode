@@ -4,31 +4,31 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 3,
+    "Id": 9,
     "UserId": 1,
     "Title": "LRU Cache Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-15T03:55:00.171534+00:00",
-    "UpdatedAt": "2025-08-15T03:55:00.171534+00:00",
+    "CreatedAt": "2025-11-24T03:48:41.538634+00:00",
+    "UpdatedAt": "2025-11-24T03:48:41.538634+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 3,
+        "Id": 9,
         "Name": "Data Structures"
       },
       {
-        "Id": 4,
+        "Id": 18,
         "Name": "Hash Table"
       },
       {
-        "Id": 5,
+        "Id": 19,
         "Name": "Linked List"
       },
       {
-        "Id": 6,
+        "Id": 20,
         "Name": "Design"
       }
     ]
@@ -102,25 +102,25 @@
   ],
   "Tags": [
     {
-      "Id": 3,
+      "Id": 9,
       "Name": "Data Structures"
     },
     {
-      "Id": 4,
+      "Id": 18,
       "Name": "Hash Table"
     },
     {
-      "Id": 5,
+      "Id": 19,
       "Name": "Linked List"
     },
     {
-      "Id": 6,
+      "Id": 20,
       "Name": "Design"
     }
   ],
   "Drivers": [
     {
-      "Id": 13,
+      "Id": 49,
       "ProblemId": 4,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/CSharp/UITemplate.txt",
@@ -129,7 +129,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 14,
+      "Id": 50,
       "ProblemId": 4,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/JavaScript/UITemplate.txt",
@@ -138,7 +138,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 15,
+      "Id": 51,
       "ProblemId": 4,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/TypeScript/UITemplate.txt",
@@ -147,7 +147,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 16,
+      "Id": 52,
       "ProblemId": 4,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Rust/UITemplate.txt",
@@ -156,7 +156,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 17,
+      "Id": 53,
       "ProblemId": 4,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Python/UITemplate.txt",
@@ -165,7 +165,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 18,
+      "Id": 54,
       "ProblemId": 4,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/LRUCache-4/Drivers/Java/UITemplate.txt",

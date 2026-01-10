@@ -4,24 +4,24 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 17,
+    "Id": 21,
     "UserId": 1,
     "Title": "Contains Duplicate Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2026-01-10T00:54:00.000000+00:00",
-    "UpdatedAt": "2026-01-10T00:54:00.000000+00:00",
+    "CreatedAt": "2026-01-10T01:57:06.487525+00:00",
+    "UpdatedAt": "2026-01-10T01:57:06.487525+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 1,
-        "Name": "Array"
+        "Id": 18,
+        "Name": "Hash Table"
       },
       {
-        "Id": 4,
-        "Name": "Hash Table"
+        "Id": 5,
+        "Name": "Array"
       }
     ]
   },
@@ -34,11 +34,40 @@
     true
   ],
   "Input": [
-    [1, 2, 3, 1],
-    [1, 2, 3, 4],
-    [1, 1, 1, 3, 3, 4, 3, 2, 4, 2],
-    [5],
-    [1, 5, -2, 4, 1]
+    [
+      1,
+      2,
+      3,
+      1
+    ],
+    [
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      1,
+      1,
+      1,
+      3,
+      3,
+      4,
+      3,
+      2,
+      4,
+      2
+    ],
+    [
+      5
+    ],
+    [
+      1,
+      5,
+      -2,
+      4,
+      1
+    ]
   ],
   "Hints": [
     "Think about using a data structure that allows fast lookup.",
@@ -46,17 +75,17 @@
   ],
   "Tags": [
     {
-      "Id": 1,
+      "Id": 5,
       "Name": "Array"
     },
     {
-      "Id": 4,
+      "Id": 18,
       "Name": "Hash Table"
     }
   ],
   "Drivers": [
     {
-      "Id": 61,
+      "Id": 109,
       "ProblemId": 18,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/CSharp/UITemplate.txt",
@@ -65,7 +94,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 62,
+      "Id": 110,
       "ProblemId": 18,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/JavaScript/UITemplate.txt",
@@ -74,7 +103,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 63,
+      "Id": 111,
       "ProblemId": 18,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/TypeScript/UITemplate.txt",
@@ -83,7 +112,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 64,
+      "Id": 112,
       "ProblemId": 18,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/Rust/UITemplate.txt",
@@ -92,7 +121,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 65,
+      "Id": 113,
       "ProblemId": 18,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/Python/UITemplate.txt",
@@ -101,7 +130,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 66,
+      "Id": 114,
       "ProblemId": 18,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ContainsDuplicate-18/Drivers/Java/UITemplate.txt",

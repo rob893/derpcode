@@ -4,24 +4,24 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 22,
+    "Id": 20,
     "UserId": 1,
     "Title": "Climbing Stairs Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-15T03:55:00.171534+00:00",
-    "UpdatedAt": "2025-08-15T03:55:00.171534+00:00",
+    "CreatedAt": "2026-01-10T01:57:06.240009+00:00",
+    "UpdatedAt": "2026-01-10T02:12:24.794862+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 1,
-        "Name": "Math"
+        "Id": 7,
+        "Name": "Dynamic Programming"
       },
       {
-        "Id": 13,
-        "Name": "Dynamic Programming"
+        "Id": 1,
+        "Name": "Math"
       }
     ]
   },
@@ -53,13 +53,13 @@
       "Name": "Math"
     },
     {
-      "Id": 13,
+      "Id": 7,
       "Name": "Dynamic Programming"
     }
   ],
   "Drivers": [
     {
-      "Id": 118,
+      "Id": 103,
       "ProblemId": 22,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/TypeScript/UITemplate.txt",
@@ -68,7 +68,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 119,
+      "Id": 104,
       "ProblemId": 22,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/CSharp/UITemplate.txt",
@@ -77,7 +77,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 120,
+      "Id": 105,
       "ProblemId": 22,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/JavaScript/UITemplate.txt",
@@ -86,7 +86,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 121,
+      "Id": 106,
       "ProblemId": 22,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/Rust/UITemplate.txt",
@@ -95,7 +95,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 122,
+      "Id": 107,
       "ProblemId": 22,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/Python/UITemplate.txt",
@@ -104,7 +104,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 123,
+      "Id": 108,
       "ProblemId": 22,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ClimbingStairs-22/Drivers/Java/UITemplate.txt",

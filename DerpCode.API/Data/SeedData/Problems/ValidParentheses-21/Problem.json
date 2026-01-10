@@ -4,14 +4,14 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 21,
+    "Id": 25,
     "UserId": 1,
     "Title": "Valid Parentheses Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-15T03:55:00.171534+00:00",
-    "UpdatedAt": "2025-08-15T03:55:00.171534+00:00",
+    "CreatedAt": "2026-01-10T01:57:06.804204+00:00",
+    "UpdatedAt": "2026-01-10T02:12:25.106841+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
@@ -20,7 +20,7 @@
         "Name": "Stack"
       },
       {
-        "Id": 7,
+        "Id": 23,
         "Name": "String"
       }
     ]
@@ -53,13 +53,13 @@
       "Name": "Stack"
     },
     {
-      "Id": 7,
+      "Id": 23,
       "Name": "String"
     }
   ],
   "Drivers": [
     {
-      "Id": 112,
+      "Id": 133,
       "ProblemId": 21,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/TypeScript/UITemplate.txt",
@@ -68,7 +68,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 113,
+      "Id": 134,
       "ProblemId": 21,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/CSharp/UITemplate.txt",
@@ -77,7 +77,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 114,
+      "Id": 135,
       "ProblemId": 21,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/JavaScript/UITemplate.txt",
@@ -86,7 +86,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 115,
+      "Id": 136,
       "ProblemId": 21,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/Rust/UITemplate.txt",
@@ -95,7 +95,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 116,
+      "Id": 137,
       "ProblemId": 21,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/Python/UITemplate.txt",
@@ -104,7 +104,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 117,
+      "Id": 138,
       "ProblemId": 21,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ValidParentheses-21/Drivers/Java/UITemplate.txt",

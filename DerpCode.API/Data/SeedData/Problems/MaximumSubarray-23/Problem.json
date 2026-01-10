@@ -10,17 +10,17 @@
     "Content": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-15T03:55:00.171534+00:00",
-    "UpdatedAt": "2025-08-15T03:55:00.171534+00:00",
+    "CreatedAt": "2026-01-10T01:57:06.646449+00:00",
+    "UpdatedAt": "2026-01-10T02:12:24.985492+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 2,
+        "Id": 5,
         "Name": "Array"
       },
       {
-        "Id": 13,
+        "Id": 7,
         "Name": "Dynamic Programming"
       }
     ]
@@ -33,29 +33,49 @@
     -1
   ],
   "Input": [
-    [-2, 1, -3, 4, -1, 2, 1, -5, 4],
-    [1],
-    [5, 4, -1, 7, 8],
-    [-1]
+    [
+      -2,
+      1,
+      -3,
+      4,
+      -1,
+      2,
+      1,
+      -5,
+      4
+    ],
+    [
+      1
+    ],
+    [
+      5,
+      4,
+      -1,
+      7,
+      8
+    ],
+    [
+      -1
+    ]
   ],
   "Hints": [
-    "Consider using Kadane's algorithm for an O(n) solution.",
+    "Consider using Kadane\u0027s algorithm for an O(n) solution.",
     "At each position, decide whether to extend the current subarray or start a new one.",
     "Keep track of the maximum sum seen so far."
   ],
   "Tags": [
     {
-      "Id": 2,
+      "Id": 5,
       "Name": "Array"
     },
     {
-      "Id": 13,
+      "Id": 7,
       "Name": "Dynamic Programming"
     }
   ],
   "Drivers": [
     {
-      "Id": 124,
+      "Id": 121,
       "ProblemId": 23,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/TypeScript/UITemplate.txt",
@@ -64,7 +84,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 125,
+      "Id": 122,
       "ProblemId": 23,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/CSharp/UITemplate.txt",
@@ -73,7 +93,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 126,
+      "Id": 123,
       "ProblemId": 23,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/JavaScript/UITemplate.txt",
@@ -82,7 +102,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 127,
+      "Id": 124,
       "ProblemId": 23,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/Rust/UITemplate.txt",
@@ -91,7 +111,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 128,
+      "Id": 125,
       "ProblemId": 23,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/Python/UITemplate.txt",
@@ -100,7 +120,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 129,
+      "Id": 126,
       "ProblemId": 23,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/MaximumSubarray-23/Drivers/Java/UITemplate.txt",

@@ -4,32 +4,32 @@
   "Description": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Description.md",
   "IsPublished": true,
   "ExplanationArticle": {
-    "Id": 7,
+    "Id": 12,
     "UserId": 1,
     "Title": "Reverse Linked List Explanation",
     "Content": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Explanation.md",
     "UpVotes": 0,
     "DownVotes": 0,
-    "CreatedAt": "2025-08-28T03:33:59.977931+00:00",
-    "UpdatedAt": "2025-08-28T03:33:59.977931+00:00",
+    "CreatedAt": "2025-11-24T03:48:41.777671+00:00",
+    "UpdatedAt": "2025-11-24T03:48:41.777671+00:00",
     "LastEditedById": 1,
     "Type": "ProblemSolution",
     "Tags": [
       {
-        "Id": 10,
-        "Name": "Recursion"
-      },
-      {
-        "Id": 11,
-        "Name": "Iterative"
-      },
-      {
-        "Id": 8,
+        "Id": 21,
         "Name": "Two Pointers"
       },
       {
-        "Id": 5,
+        "Id": 22,
+        "Name": "Iterative"
+      },
+      {
+        "Id": 19,
         "Name": "Linked List"
+      },
+      {
+        "Id": 8,
+        "Name": "Recursion"
       }
     ]
   },
@@ -86,25 +86,25 @@
   ],
   "Tags": [
     {
-      "Id": 5,
-      "Name": "Linked List"
-    },
-    {
       "Id": 8,
-      "Name": "Two Pointers"
-    },
-    {
-      "Id": 10,
       "Name": "Recursion"
     },
     {
-      "Id": 11,
+      "Id": 19,
+      "Name": "Linked List"
+    },
+    {
+      "Id": 21,
+      "Name": "Two Pointers"
+    },
+    {
+      "Id": 22,
       "Name": "Iterative"
     }
   ],
   "Drivers": [
     {
-      "Id": 37,
+      "Id": 67,
       "ProblemId": 6,
       "Language": "CSharp",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/CSharp/UITemplate.txt",
@@ -113,7 +113,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/CSharp/Answer.txt"
     },
     {
-      "Id": 38,
+      "Id": 68,
       "ProblemId": 6,
       "Language": "JavaScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/JavaScript/UITemplate.txt",
@@ -122,7 +122,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/JavaScript/Answer.txt"
     },
     {
-      "Id": 39,
+      "Id": 69,
       "ProblemId": 6,
       "Language": "TypeScript",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/TypeScript/UITemplate.txt",
@@ -131,7 +131,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/TypeScript/Answer.txt"
     },
     {
-      "Id": 40,
+      "Id": 70,
       "ProblemId": 6,
       "Language": "Rust",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Rust/UITemplate.txt",
@@ -140,7 +140,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Rust/Answer.txt"
     },
     {
-      "Id": 41,
+      "Id": 71,
       "ProblemId": 6,
       "Language": "Python",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Python/UITemplate.txt",
@@ -149,7 +149,7 @@
       "Answer": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Python/Answer.txt"
     },
     {
-      "Id": 42,
+      "Id": 72,
       "ProblemId": 6,
       "Language": "Java",
       "UITemplate": "DerpCode.API/Data/SeedData/Problems/ReverseLinkedList-6/Drivers/Java/UITemplate.txt",

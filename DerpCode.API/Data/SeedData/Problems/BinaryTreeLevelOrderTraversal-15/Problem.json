@@ -1,0 +1,171 @@
+{
+  "Id": 15,
+  "Name": "Binary Tree Level Order Traversal",
+  "Description": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 8,
+    "UserId": 1,
+    "Title": "Binary Tree Level Order Traversal Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-11-24T03:48:41.458063+00:00",
+    "UpdatedAt": "2025-11-24T03:48:41.458063+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 10,
+        "Name": "Binary Tree"
+      },
+      {
+        "Id": 9,
+        "Name": "Data Structures"
+      },
+      {
+        "Id": 11,
+        "Name": "Tree Traversal"
+      },
+      {
+        "Id": 16,
+        "Name": "Queue"
+      },
+      {
+        "Id": 17,
+        "Name": "BFS"
+      }
+    ]
+  },
+  "Difficulty": "Medium",
+  "ExpectedOutput": [
+    [
+      1,
+      2,
+      3
+    ],
+    [],
+    [
+      1
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  ],
+  "Input": [
+    {
+      "tree": [
+        1,
+        null,
+        2,
+        3
+      ]
+    },
+    {
+      "tree": []
+    },
+    {
+      "tree": [
+        1
+      ]
+    },
+    {
+      "tree": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        null,
+        6
+      ]
+    }
+  ],
+  "Hints": [
+    "Use a queue to track nodes level by level.",
+    "Process all nodes at the current level before moving to the next level."
+  ],
+  "Tags": [
+    {
+      "Id": 9,
+      "Name": "Data Structures"
+    },
+    {
+      "Id": 10,
+      "Name": "Binary Tree"
+    },
+    {
+      "Id": 11,
+      "Name": "Tree Traversal"
+    },
+    {
+      "Id": 16,
+      "Name": "Queue"
+    },
+    {
+      "Id": 17,
+      "Name": "BFS"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 43,
+      "ProblemId": 15,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 44,
+      "ProblemId": 15,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 45,
+      "ProblemId": 15,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 46,
+      "ProblemId": 15,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 47,
+      "ProblemId": 15,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 48,
+      "ProblemId": 15,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/BinaryTreeLevelOrderTraversal-15/Drivers/Java/Answer.txt"
+    }
+  ]
+}
