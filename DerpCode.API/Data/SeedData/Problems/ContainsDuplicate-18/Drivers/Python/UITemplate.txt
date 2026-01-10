@@ -1,0 +1,5 @@
+class Solution:
+    @staticmethod
+    def contains_duplicate(nums):
+        # Your code here
+        pass

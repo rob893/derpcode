@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+
+public class Solution
+{
+    public static bool ContainsDuplicate(int[] nums)
+    {
+        var seen = new HashSet<int>();
+        
+        foreach (var num in nums)
+        {
+            if (seen.Contains(num))
+            {
+                return true;
+            }
+            seen.Add(num);
+        }
+        
+        return false;
+    }
+}

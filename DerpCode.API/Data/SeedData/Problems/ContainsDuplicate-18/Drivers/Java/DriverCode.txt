@@ -1,0 +1,45 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
+/**
+ * Problem-specific driver for Contains Duplicate problem.
+ */
+class ContainsDuplicateDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray numsArray = input.get(i).getAsJsonArray();
+            int[] nums = new int[numsArray.size()];
+            for (int j = 0; j < numsArray.size(); j++) {
+                nums[j] = numsArray.get(j).getAsInt();
+            }
+            boolean expected = expectedOutput.get(i).getAsBoolean();
+            
+            testCases.add(new TestCase(nums, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        int[] nums = (int[]) testCase.getInput();
+        return Solution.containsDuplicate(nums);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return Objects.equals(actual, expected);
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new ContainsDuplicateDriver());
+        driver.run(args);
+    }
+}

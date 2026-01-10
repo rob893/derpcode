@@ -1,0 +1,41 @@
+import { ProblemDriverBase, BaseDriver, TestCase } from './base-driver';
+import { containsDuplicate } from './solution';
+
+/**
+ * Problem-specific driver for Contains Duplicate problem.
+ */
+class ContainsDuplicateDriver extends ProblemDriverBase {
+    /**
+     * Parse input as array of arrays and expected output as array of booleans.
+     */
+    parseTestCases(input: any, expectedOutput: any): TestCase[] {
+        const testCases: TestCase[] = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the containsDuplicate function with the test case input.
+     */
+    executeTestCase(testCase: TestCase, index: number): any {
+        return containsDuplicate(testCase.input);
+    }
+
+    /**
+     * Compare results using boolean equality.
+     */
+    compareResults(actual: any, expected: any): boolean {
+        return actual === expected;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new ContainsDuplicateDriver());
+driver.run();

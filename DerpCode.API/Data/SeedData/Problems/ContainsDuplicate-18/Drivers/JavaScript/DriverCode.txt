@@ -1,0 +1,48 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { containsDuplicate } from './solution.js';
+
+/**
+ * Problem-specific driver for Contains Duplicate problem.
+ */
+class ContainsDuplicateDriver extends IProblemDriver {
+    /**
+     * Parse input as array of arrays and expected output as array of booleans.
+     */
+    parseTestCases(input, expectedOutput) {
+        const testCases = [];
+        
+        for (let i = 0; i < input.length; i++) {
+            testCases.push({
+                input: input[i],
+                expectedOutput: expectedOutput[i]
+            });
+        }
+        
+        return testCases;
+    }
+
+    /**
+     * Execute the containsDuplicate function with the test case input.
+     */
+    executeTestCase(testCase) {
+        return containsDuplicate(testCase.input);
+    }
+
+    /**
+     * Compare results using boolean equality.
+     */
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new ContainsDuplicateDriver());
+driver.run();
