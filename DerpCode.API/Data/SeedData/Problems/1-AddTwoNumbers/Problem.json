@@ -1,0 +1,108 @@
+{
+  "Id": 1,
+  "Name": "Add Two Numbers",
+  "Description": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 1,
+    "UserId": 1,
+    "Title": "Add Two Numbers Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-11-24T03:48:40.777252+00:00",
+    "UpdatedAt": "2025-11-24T04:09:18.357951+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 2,
+        "Name": "Addition"
+      },
+      {
+        "Id": 1,
+        "Name": "Math"
+      }
+    ]
+  },
+  "Difficulty": "VeryEasy",
+  "ExpectedOutput": [
+    6,
+    10
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the '+' operator to add two numbers.."
+  ],
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "Math"
+    },
+    {
+      "Id": 2,
+      "Name": "Addition"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 1,
+      "ProblemId": 1,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 2,
+      "ProblemId": 1,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 3,
+      "ProblemId": 1,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 4,
+      "ProblemId": 1,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 5,
+      "ProblemId": 1,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 6,
+      "ProblemId": 1,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/1-AddTwoNumbers/Drivers/Java/Answer.txt"
+    }
+  ]
+}

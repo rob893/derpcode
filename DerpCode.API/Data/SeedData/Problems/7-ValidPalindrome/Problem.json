@@ -1,0 +1,126 @@
+{
+  "Id": 7,
+  "Name": "Valid Palindrome",
+  "Description": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 15,
+    "UserId": 1,
+    "Title": "Valid Palindrome Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-11-24T03:48:42.00654+00:00",
+    "UpdatedAt": "2026-01-10T02:04:05.498726+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 23,
+        "Name": "String"
+      },
+      {
+        "Id": 24,
+        "Name": "Character Manipulation"
+      },
+      {
+        "Id": 21,
+        "Name": "Two Pointers"
+      }
+    ]
+  },
+  "Difficulty": "Easy",
+  "ExpectedOutput": [
+    true,
+    false,
+    true,
+    true,
+    true,
+    true
+  ],
+  "Input": [
+    "A man a plan a canal Panama",
+    "race a car",
+    "",
+    "a",
+    "Madam",
+    "No 'x' in Nixon"
+  ],
+  "Hints": [
+    "Convert the string to lowercase and remove non-alphanumeric characters first.",
+    "Use two pointers - one at the start and one at the end of the cleaned string.",
+    "Compare characters at both pointers and move them towards each other.",
+    "An empty string is considered a valid palindrome.",
+    "Remember that palindromes read the same forwards and backwards."
+  ],
+  "Tags": [
+    {
+      "Id": 21,
+      "Name": "Two Pointers"
+    },
+    {
+      "Id": 23,
+      "Name": "String"
+    },
+    {
+      "Id": 24,
+      "Name": "Character Manipulation"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 85,
+      "ProblemId": 7,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 86,
+      "ProblemId": 7,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 87,
+      "ProblemId": 7,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 88,
+      "ProblemId": 7,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 89,
+      "ProblemId": 7,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 90,
+      "ProblemId": 7,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/7-ValidPalindrome/Drivers/Java/Answer.txt"
+    }
+  ]
+}

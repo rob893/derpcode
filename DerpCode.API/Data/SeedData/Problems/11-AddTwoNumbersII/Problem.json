@@ -1,0 +1,163 @@
+{
+  "Id": 11,
+  "Name": "Add Two Numbers II",
+  "Description": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 2,
+    "UserId": 1,
+    "Title": "Add Two Numbers II Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-11-24T03:48:40.986498+00:00",
+    "UpdatedAt": "2025-11-24T03:48:40.986499+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 1,
+        "Name": "Math"
+      },
+      {
+        "Id": 4,
+        "Name": "Binary"
+      },
+      {
+        "Id": 3,
+        "Name": "Bit Manipulation"
+      }
+    ]
+  },
+  "Difficulty": "Medium",
+  "ExpectedOutput": [
+    3,
+    5,
+    0,
+    22,
+    10,
+    -3,
+    100,
+    -1,
+    0,
+    999
+  ],
+  "Input": [
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      -1,
+      1
+    ],
+    [
+      15,
+      7
+    ],
+    [
+      7,
+      3
+    ],
+    [
+      -5,
+      2
+    ],
+    [
+      50,
+      50
+    ],
+    [
+      -10,
+      9
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      500,
+      499
+    ]
+  ],
+  "Hints": [
+    "Think about how addition works at the bit level.",
+    "XOR gives you the sum without carry, AND gives you the carry positions.",
+    "Use left shift to move carries to the correct position.",
+    "Repeat the process until there are no more carries."
+  ],
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "Math"
+    },
+    {
+      "Id": 3,
+      "Name": "Bit Manipulation"
+    },
+    {
+      "Id": 4,
+      "Name": "Binary"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 7,
+      "ProblemId": 11,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 8,
+      "ProblemId": 11,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 9,
+      "ProblemId": 11,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 10,
+      "ProblemId": 11,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 11,
+      "ProblemId": 11,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 12,
+      "ProblemId": 11,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/11-AddTwoNumbersII/Drivers/Java/Answer.txt"
+    }
+  ]
+}

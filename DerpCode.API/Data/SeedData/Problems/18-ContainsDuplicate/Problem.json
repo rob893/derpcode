@@ -1,0 +1,142 @@
+{
+  "Id": 18,
+  "Name": "Contains Duplicate",
+  "Description": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 21,
+    "UserId": 1,
+    "Title": "Contains Duplicate Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2026-01-10T01:57:06.487525+00:00",
+    "UpdatedAt": "2026-01-10T01:57:06.487525+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 18,
+        "Name": "Hash Table"
+      },
+      {
+        "Id": 5,
+        "Name": "Array"
+      }
+    ]
+  },
+  "Difficulty": "Easy",
+  "ExpectedOutput": [
+    true,
+    false,
+    true,
+    false,
+    true
+  ],
+  "Input": [
+    [
+      1,
+      2,
+      3,
+      1
+    ],
+    [
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      1,
+      1,
+      1,
+      3,
+      3,
+      4,
+      3,
+      2,
+      4,
+      2
+    ],
+    [
+      5
+    ],
+    [
+      1,
+      5,
+      -2,
+      4,
+      1
+    ]
+  ],
+  "Hints": [
+    "Think about using a data structure that allows fast lookup.",
+    "A hash set can check if an element exists in O(1) time."
+  ],
+  "Tags": [
+    {
+      "Id": 5,
+      "Name": "Array"
+    },
+    {
+      "Id": 18,
+      "Name": "Hash Table"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 109,
+      "ProblemId": 18,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 110,
+      "ProblemId": 18,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 111,
+      "ProblemId": 18,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 112,
+      "ProblemId": 18,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 113,
+      "ProblemId": 18,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 114,
+      "ProblemId": 18,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/18-ContainsDuplicate/Drivers/Java/Answer.txt"
+    }
+  ]
+}

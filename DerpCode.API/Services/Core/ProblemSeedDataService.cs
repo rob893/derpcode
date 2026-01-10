@@ -202,7 +202,8 @@ public sealed partial class ProblemSeedDataService : IProblemSeedDataService
             throw new ArgumentException("Problem must have at least one driver.", nameof(problem));
         }
 
-        var problemPath = this.fileSystemService.CombinePaths(this.GetProblemsDirectoryPath(), RemoveWhitespaceRegex().Replace(problem.Name, "") + "-" + problem.Id);
+        var sanitizedProblemName = RemoveWhitespaceRegex().Replace(problem.Name, "");
+        var problemPath = this.fileSystemService.CombinePaths(this.GetProblemsDirectoryPath(), $"{problem.Id}-{sanitizedProblemName}");
 
         var seedDataFiles = new Dictionary<string, string>();
 

@@ -1,0 +1,100 @@
+{
+  "Id": 3,
+  "Name": "Subtract Two Numbers",
+  "Description": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Description.md",
+  "IsPublished": true,
+  "ExplanationArticle": {
+    "Id": 13,
+    "UserId": 1,
+    "Title": "Subtract Two Numbers Explanation",
+    "Content": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Explanation.md",
+    "UpVotes": 0,
+    "DownVotes": 0,
+    "CreatedAt": "2025-11-24T03:48:41.855458+00:00",
+    "UpdatedAt": "2025-11-24T03:48:41.855458+00:00",
+    "LastEditedById": 1,
+    "Type": "ProblemSolution",
+    "Tags": [
+      {
+        "Id": 1,
+        "Name": "Math"
+      }
+    ]
+  },
+  "Difficulty": "VeryEasy",
+  "ExpectedOutput": [
+    4,
+    2
+  ],
+  "Input": [
+    5,
+    1,
+    6,
+    4
+  ],
+  "Hints": [
+    "Use the '-' operator"
+  ],
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "Math"
+    }
+  ],
+  "Drivers": [
+    {
+      "Id": 73,
+      "ProblemId": 3,
+      "Language": "CSharp",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/CSharp/UITemplate.txt",
+      "Image": "code-executor-csharp",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/CSharp/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/CSharp/Answer.txt"
+    },
+    {
+      "Id": 74,
+      "ProblemId": 3,
+      "Language": "JavaScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/JavaScript/UITemplate.txt",
+      "Image": "code-executor-javascript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/JavaScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/JavaScript/Answer.txt"
+    },
+    {
+      "Id": 75,
+      "ProblemId": 3,
+      "Language": "Rust",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Rust/UITemplate.txt",
+      "Image": "code-executor-rust",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Rust/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Rust/Answer.txt"
+    },
+    {
+      "Id": 76,
+      "ProblemId": 3,
+      "Language": "TypeScript",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/TypeScript/UITemplate.txt",
+      "Image": "code-executor-typescript",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/TypeScript/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/TypeScript/Answer.txt"
+    },
+    {
+      "Id": 77,
+      "ProblemId": 3,
+      "Language": "Python",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Python/UITemplate.txt",
+      "Image": "code-executor-python",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Python/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Python/Answer.txt"
+    },
+    {
+      "Id": 78,
+      "ProblemId": 3,
+      "Language": "Java",
+      "UITemplate": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Java/UITemplate.txt",
+      "Image": "code-executor-java",
+      "DriverCode": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Java/DriverCode.txt",
+      "Answer": "DerpCode.API/Data/SeedData/Problems/3-SubtractTwoNumbers/Drivers/Java/Answer.txt"
+    }
+  ]
+}
