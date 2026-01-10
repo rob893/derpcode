@@ -1,0 +1,44 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ListNode {
+    pub val: i32,
+    pub next: Option<Rc<RefCell<ListNode>>>,
+}
+
+impl ListNode {
+    #[inline]
+    pub fn new(val: i32) -> Self {
+        ListNode { next: None, val }
+    }
+}
+
+pub fn merge_two_lists(
+    mut list1: Option<Rc<RefCell<ListNode>>>,
+    mut list2: Option<Rc<RefCell<ListNode>>>
+) -> Option<Rc<RefCell<ListNode>>> {
+    let dummy = Rc::new(RefCell::new(ListNode::new(0)));
+    let mut current = dummy.clone();
+    
+    while list1.is_some() && list2.is_some() {
+        let l1_node = list1.as_ref().unwrap();
+        let l2_node = list2.as_ref().unwrap();
+        
+        if l1_node.borrow().val <= l2_node.borrow().val {
+            let next = l1_node.borrow().next.clone();
+            current.borrow_mut().next = list1.clone();
+            list1 = next;
+        } else {
+            let next = l2_node.borrow().next.clone();
+            current.borrow_mut().next = list2.clone();
+            list2 = next;
+        }
+        
+        current = current.borrow().next.clone().unwrap();
+    }
+    
+    current.borrow_mut().next = if list1.is_some() { list1 } else { list2 };
+    
+    dummy.borrow().next.clone()
+}

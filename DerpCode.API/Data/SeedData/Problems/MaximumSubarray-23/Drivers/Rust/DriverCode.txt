@@ -1,0 +1,52 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::max_sub_array;
+
+pub struct MaximumSubarrayDriver;
+
+impl ProblemDriver for MaximumSubarrayDriver {
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in 0..input_array.len() {
+            let nums_array = input_array[i].as_array().expect("Input element should be array");
+            let nums: Vec<i32> = nums_array.iter()
+                .map(|v| v.as_i64().expect("Should be integer") as i32)
+                .collect();
+            let expected = expected_array[i].clone();
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!(nums),
+                expected_output: expected,
+            });
+        }
+        
+        test_cases
+    }
+
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let nums_array = test_case.input.as_array().ok_or("Input should be array")?;
+        let nums: Vec<i32> = nums_array.iter()
+            .map(|v| v.as_i64().expect("Should be integer") as i32)
+            .collect();
+        
+        let result = max_sub_array(&nums);
+        Ok(serde_json::json!(result))
+    }
+
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+fn main() {
+    let driver = BaseDriver::new(MaximumSubarrayDriver);
+    driver.run();
+}

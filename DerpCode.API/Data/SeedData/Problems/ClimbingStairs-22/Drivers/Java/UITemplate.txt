@@ -1,0 +1,6 @@
+class Solution {
+    public static int climbStairs(int n) {
+        // Your implementation here
+        return 0;
+    }
+}

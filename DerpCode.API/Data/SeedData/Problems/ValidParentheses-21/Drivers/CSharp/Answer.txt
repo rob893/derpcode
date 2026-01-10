@@ -1,0 +1,38 @@
+using System.Collections.Generic;
+
+public class Solution
+{
+    public static bool IsValid(string s)
+    {
+        var stack = new Stack<char>();
+        var pairs = new Dictionary<char, char>
+        {
+            { ')', '(' },
+            { '}', '{' },
+            { ']', '[' }
+        };
+        
+        foreach (var ch in s)
+        {
+            if (ch == '(' || ch == '{' || ch == '[')
+            {
+                stack.Push(ch);
+            }
+            else
+            {
+                if (stack.Count == 0)
+                {
+                    return false;
+                }
+                
+                var top = stack.Pop();
+                if (top != pairs[ch])
+                {
+                    return false;
+                }
+            }
+        }
+        
+        return stack.Count == 0;
+    }
+}

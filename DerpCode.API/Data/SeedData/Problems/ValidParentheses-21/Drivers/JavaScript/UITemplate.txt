@@ -1,0 +1,6 @@
+function isValid(s) {
+    // Your implementation here
+    return false;
+}
+
+export { isValid };

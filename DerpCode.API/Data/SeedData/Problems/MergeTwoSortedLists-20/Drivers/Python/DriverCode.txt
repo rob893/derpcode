@@ -1,0 +1,81 @@
+import json
+import sys
+from typing import List, Dict, Any, Optional
+from base_driver import BaseDriver, BaseProblemDriver
+from solution import merge_two_lists, ListNode
+
+
+class MergeTwoSortedListsDriver(BaseProblemDriver):
+    """Problem-specific driver for Merge Two Sorted Lists problem."""
+
+    def parse_test_cases(self, input_data: Any, expected_output: Any) -> List[Dict[str, Any]]:
+        """Parse input as array of [list1, list2] pairs and expected output as array of list arrays."""
+        input_array = json.loads(input_data) if isinstance(input_data, str) else input_data
+        expected_array = json.loads(expected_output) if isinstance(expected_output, str) else expected_output
+        
+        test_cases = []
+        
+        for i in range(len(input_array)):
+            test_cases.append({
+                'input': input_array[i],
+                'expectedOutput': expected_array[i] if i < len(expected_array) else []
+            })
+        
+        return test_cases
+
+    def execute_test_case(self, test_case: Dict[str, Any], index: int) -> Any:
+        """Execute the merge_two_lists function with the test case input."""
+        list1_array, list2_array = test_case['input']
+        
+        # Build input linked lists from arrays
+        list1 = self.build_list_from_array(list1_array)
+        list2 = self.build_list_from_array(list2_array)
+        
+        # Run the solution
+        result = merge_two_lists(list1, list2)
+        
+        # Convert result back to array for comparison
+        return self.list_to_array(result)
+
+    def compare_results(self, actual: Any, expected: Any) -> bool:
+        """Compare list arrays."""
+        return actual == expected
+
+    def format_error_message(self, actual: Any, expected: Any) -> str:
+        """Format error message for failed tests."""
+        return f"Expected {expected} but got {actual}"
+
+    def build_list_from_array(self, arr):
+        """Build a linked list from array representation."""
+        if not arr:
+            return None
+        
+        head = ListNode(arr[0])
+        current = head
+        
+        for i in range(1, len(arr)):
+            current.next = ListNode(arr[i])
+            current = current.next
+        
+        return head
+
+    def list_to_array(self, head):
+        """Convert linked list to array representation."""
+        result = []
+        current = head
+        
+        while current:
+            result.append(current.val)
+            current = current.next
+        
+        return result
+
+
+def main():
+    """Main entry point for the driver."""
+    driver = BaseDriver(MergeTwoSortedListsDriver())
+    driver.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,3 @@
+def climb_stairs(n: int) -> int:
+    # Your implementation here
+    return 0

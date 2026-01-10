@@ -1,0 +1,26 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { climbStairs } from './solution.js';
+
+class ClimbingStairsDriver extends IProblemDriver {
+    parseTestCases(input, expectedOutput) {
+        return input.map((n, index) => ({
+            input: n,
+            expectedOutput: expectedOutput[index]
+        }));
+    }
+
+    executeTestCase(testCase, index) {
+        return climbStairs(testCase.input);
+    }
+
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+const driver = new BaseDriver(new ClimbingStairsDriver());
+driver.run();

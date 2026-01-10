@@ -1,0 +1,8 @@
+public class Solution
+{
+    public static int ClimbStairs(int n)
+    {
+        // Your implementation here
+        return 0;
+    }
+}

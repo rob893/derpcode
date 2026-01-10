@@ -1,0 +1,30 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { isValid } from './solution.js';
+
+class ValidParenthesesDriver extends IProblemDriver {
+    parseTestCases(input, expectedOutput) {
+        const inputs = input;
+        const outputs = expectedOutput;
+        
+        return inputs.map((str, index) => ({
+            input: str,
+            expectedOutput: outputs[index]
+        }));
+    }
+
+    executeTestCase(testCase, index) {
+        const input = testCase.input;
+        return isValid(input);
+    }
+
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+const driver = new BaseDriver(new ValidParenthesesDriver());
+driver.run();

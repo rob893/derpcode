@@ -1,0 +1,4 @@
+function climbStairs(n: number): number {
+    // Your implementation here
+    return 0;
+}

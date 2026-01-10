@@ -1,0 +1,6 @@
+function maxSubArray(nums) {
+    // Your implementation here
+    return 0;
+}
+
+export { maxSubArray };

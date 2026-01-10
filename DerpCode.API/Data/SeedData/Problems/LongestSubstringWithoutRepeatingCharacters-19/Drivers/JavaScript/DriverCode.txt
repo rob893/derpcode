@@ -1,0 +1,46 @@
+import { BaseDriver, IProblemDriver } from './base-driver.js';
+import { lengthOfLongestSubstring } from './solution.js';
+
+/**
+ * Problem-specific driver for Longest Substring Without Repeating Characters problem.
+ */
+class LongestSubstringDriver extends IProblemDriver {
+    /**
+     * Parse input strings and expected lengths.
+     */
+    parseTestCases(input, expectedOutput) {
+        const inputs = input;
+        const outputs = expectedOutput;
+        
+        return inputs.map((str, index) => ({
+            input: str,
+            expectedOutput: outputs[index]
+        }));
+    }
+
+    /**
+     * Execute the function with the test input.
+     */
+    executeTestCase(testCase, index) {
+        const input = testCase.input;
+        return lengthOfLongestSubstring(input);
+    }
+
+    /**
+     * Compare actual and expected integer results.
+     */
+    compareResults(actual, expected) {
+        return actual === expected;
+    }
+
+    /**
+     * Format error message for failed tests.
+     */
+    formatErrorMessage(actual, expected) {
+        return `Expected ${expected} but got ${actual}`;
+    }
+}
+
+// Create and run the driver
+const driver = new BaseDriver(new LongestSubstringDriver());
+driver.run();

@@ -1,0 +1,74 @@
+import java.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+/**
+ * Problem-specific driver for Merge Two Sorted Lists problem.
+ */
+class MergeTwoSortedListsDriver extends ProblemDriverBase {
+    @Override
+    public List<TestCase> parseTestCases(JsonArray input, JsonArray expectedOutput) {
+        List<TestCase> testCases = new ArrayList<>();
+        
+        for (int i = 0; i < input.size(); i++) {
+            JsonArray pairArray = input.get(i).getAsJsonArray();
+            JsonArray list1Array = pairArray.get(0).getAsJsonArray();
+            JsonArray list2Array = pairArray.get(1).getAsJsonArray();
+            JsonArray expectedArray = expectedOutput.get(i).getAsJsonArray();
+            
+            ListNode list1 = arrayToLinkedList(list1Array);
+            ListNode list2 = arrayToLinkedList(list2Array);
+            ListNode expected = arrayToLinkedList(expectedArray);
+            
+            testCases.add(new TestCase(new ListNode[] {list1, list2}, expected));
+        }
+        
+        return testCases;
+    }
+
+    @Override
+    public Object executeTestCase(TestCase testCase, int index) throws Exception {
+        ListNode[] input = (ListNode[]) testCase.getInput();
+        ListNode list1 = input[0];
+        ListNode list2 = input[1];
+        
+        return Solution.mergeTwoLists(list1, list2);
+    }
+
+    @Override
+    public boolean compareResults(Object actual, Object expected) {
+        return compareLinkedLists((ListNode) actual, (ListNode) expected);
+    }
+    
+    private ListNode arrayToLinkedList(JsonArray array) {
+        if (array.size() == 0) return null;
+        
+        ListNode dummy = new ListNode(0);
+        ListNode current = dummy;
+        
+        for (int i = 0; i < array.size(); i++) {
+            current.next = new ListNode(array.get(i).getAsInt());
+            current = current.next;
+        }
+        
+        return dummy.next;
+    }
+    
+    private boolean compareLinkedLists(ListNode list1, ListNode list2) {
+        while (list1 != null && list2 != null) {
+            if (list1.val != list2.val) return false;
+            list1 = list1.next;
+            list2 = list2.next;
+        }
+        return list1 == null && list2 == null;
+    }
+}
+
+class Program {
+    public static void main(String[] args) {
+        // Create and run the driver
+        BaseDriver driver = new BaseDriver(new MergeTwoSortedListsDriver());
+        driver.run(args);
+    }
+}
