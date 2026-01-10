@@ -1,0 +1,4 @@
+function lengthOfLongestSubstring(s: string): number {
+    // Your implementation here
+    return 0;
+}

@@ -1,0 +1,6 @@
+class Solution {
+    public static int lengthOfLongestSubstring(String s) {
+        // Your implementation here
+        return 0;
+    }
+}

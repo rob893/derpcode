@@ -1,0 +1,20 @@
+use std::collections::HashSet;
+
+pub fn length_of_longest_substring(s: &str) -> i32 {
+    let chars: Vec<char> = s.chars().collect();
+    let mut char_set = HashSet::new();
+    let mut left = 0;
+    let mut max_length = 0;
+
+    for right in 0..chars.len() {
+        while char_set.contains(&chars[right]) {
+            char_set.remove(&chars[left]);
+            left += 1;
+        }
+        
+        char_set.insert(chars[right]);
+        max_length = max_length.max((right - left + 1) as i32);
+    }
+
+    max_length
+}
