@@ -1,0 +1,5 @@
+public class Solution {
+    public static boolean containsDuplicate(int[] nums) {
+        // Your code here
+    }
+}

@@ -1,0 +1,59 @@
+use serde_json::Value;
+
+mod base_driver;
+use base_driver::{BaseDriver, ProblemDriver, TestCase};
+
+mod solution;
+use solution::Solution;
+
+/// Problem-specific driver for Contains Duplicate problem.
+pub struct ContainsDuplicateDriver;
+
+impl ProblemDriver for ContainsDuplicateDriver {
+    /// Parse input as array of arrays and expected output as array of booleans.
+    fn parse_test_cases(&self, input: &Value, expected_output: &Value) -> Vec<TestCase> {
+        let input_array = input.as_array().expect("Input should be an array");
+        let expected_array = expected_output.as_array().expect("Expected output should be an array");
+        
+        let mut test_cases = Vec::new();
+        
+        for i in 0..input_array.len() {
+            let nums_array = input_array[i].as_array().expect("Input element should be an array");
+            let nums: Vec<i32> = nums_array
+                .iter()
+                .map(|v| v.as_i64().expect("Array element should be integer") as i32)
+                .collect();
+            let expected = expected_array[i].clone();
+            
+            test_cases.push(TestCase {
+                input: serde_json::json!(nums),
+                expected_output: expected,
+            });
+        }
+        
+        test_cases
+    }
+
+    /// Execute the contains_duplicate function with the test case input.
+    fn execute_test_case(&self, test_case: &TestCase, _index: usize) -> Result<Value, Box<dyn std::error::Error>> {
+        let nums_array = test_case.input.as_array().ok_or("Missing nums input")?;
+        let nums: Vec<i32> = nums_array
+            .iter()
+            .map(|v| v.as_i64().unwrap_or(0) as i32)
+            .collect();
+        
+        let result = Solution::contains_duplicate(nums);
+        Ok(serde_json::json!(result))
+    }
+
+    /// Compare results using boolean equality.
+    fn compare_results(&self, actual: &Value, expected: &Value) -> bool {
+        actual == expected
+    }
+}
+
+fn main() {
+    // Create and run the driver
+    let driver = BaseDriver::new(ContainsDuplicateDriver);
+    driver.run();
+}

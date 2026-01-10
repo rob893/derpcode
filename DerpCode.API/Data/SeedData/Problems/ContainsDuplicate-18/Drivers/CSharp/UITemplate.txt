@@ -1,0 +1,9 @@
+using System;
+
+public class Solution
+{
+    public static bool ContainsDuplicate(int[] nums)
+    {
+        // Your code here
+    }
+}
