@@ -9,3 +9,6 @@ if (!globalThis.crypto.randomUUID) {
   (globalThis.crypto as unknown as { randomUUID: () => string }).randomUUID = () =>
     '00000000-0000-0000-0000-000000000000';
 }
+
+// React 18+ expects this flag for act() in test environments.
+(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
