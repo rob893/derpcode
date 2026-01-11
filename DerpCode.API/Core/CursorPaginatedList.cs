@@ -8,7 +8,7 @@ public sealed class CursorPaginatedList<TEntity, TEntityKey> : IEnumerable<TEnti
     where TEntity : class
     where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
 {
-    private readonly List<TEntity> items;
+    private readonly IReadOnlyList<TEntity> items;
 
     public CursorPaginatedList(ICollection<TEntity> items, bool hasNextPage, bool hasPreviousPage, string? startCursor, string? endCursor, int? totalCount)
     {

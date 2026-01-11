@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
 
@@ -30,7 +31,7 @@ public sealed record UserDto : IIdentifiable<int>
 
     public required DateTimeOffset? LastEmailConfirmationSent { get; init; }
 
-    public static UserDto FromEntity(Entities.User user)
+    public static UserDto FromEntity(User user)
     {
         ArgumentNullException.ThrowIfNull(user);
 

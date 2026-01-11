@@ -50,7 +50,11 @@ DerpCode is a LeetCode-style algorithm practice platform (snarky/gamified). Itâ€
   - Adds `X-Correlation-Id` for every request.
   - Uses a refresh-token flow on 401 when `x-token-expired` is present.
   - Uses double-submit CSRF (cookie `csrf_token` + header `X-CSRF-Token`) and sends cookies (`withCredentials: true`).
-- API calls are centralized in `derpcode-ui/src/services/api.ts` (typed wrappers around `/api/v1/...`).
+- API calls are centralized in `derpcode-ui/src/services/api.ts` (typed wrappers around `/api/v1/...`) but are all managed and cached using tanstack/react-query through `derpcode-ui/src/hooks/api.ts`. IMPORTANT!! NO API CALLS SHOULD BE MADE WITHOUT GOING THROUGH REACT QUERY!!!!
+
+## UI Testing
+
+- Use the Playwright MCP server to test UI changes. Credentials for the test user to use are found locally in `appsettings.Local.json` (note that this file is not tracked by git and will not exist in CI or deployed environments).
 
 ## UI styling (typography + color scheme)
 

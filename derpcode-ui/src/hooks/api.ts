@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { problemsApi, driverTemplatesApi, submissionsApi, articlesApi, tagsApi } from '../services/api';
+import {
+  problemsApi,
+  driverTemplatesApi,
+  submissionsApi,
+  articlesApi,
+  tagsApi,
+  userFavoritesApi
+} from '../services/api';
 import { authApi } from '../services/auth';
 import { useAuth } from './useAuth';
 import type {
@@ -10,7 +17,8 @@ import type {
   CreateArticleCommentRequest,
   ArticleCommentQueryParameters,
   JsonPatchDocument,
-  CursorPaginationQueryParameters
+  CursorPaginationQueryParameters,
+  UserFavoriteProblem
 } from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
 
@@ -20,6 +28,7 @@ export const queryKeys = {
   problem: (id: number) => ['problems', id] as const,
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
+  userFavoriteProblems: (userId: number) => ['users', userId, 'favoriteProblems'] as const,
   problemSubmission: (problemId: number, submissionId: number) =>
     ['problems', problemId, 'submissions', submissionId] as const,
   // Properly typed query parameters
@@ -36,6 +45,93 @@ export const queryKeys = {
   tags: (queryParams?: Partial<CursorPaginationQueryParameters>) => ['tags', queryParams] as const,
   tag: (id: number) => ['tags', id] as const
 } as const;
+
+// Favorites hooks
+export const useUserFavoriteProblems = (userId?: number) => {
+  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.userFavoriteProblems(userId || 0),
+    queryFn: () => userFavoritesApi.getFavoriteProblemsForUser(userId!),
+    enabled: !!userId && isAuthenticated && !isAuthLoading,
+    staleTime: 5 * 60 * 1000
+  });
+};
+
+export const useFavoriteProblemForUser = (userId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (problemId: number) => userFavoritesApi.favoriteProblemForUser(userId, problemId),
+    onMutate: async problemId => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.userFavoriteProblems(userId) });
+
+      const previous = queryClient.getQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId));
+
+      if (previous) {
+        const alreadyExists = previous.some(f => f.problemId === problemId);
+        if (!alreadyExists) {
+          const optimistic: UserFavoriteProblem = {
+            userId,
+            problemId,
+            createdAt: new Date().toISOString()
+          };
+          queryClient.setQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId), [
+            ...previous,
+            optimistic
+          ]);
+        }
+      }
+
+      return { previous };
+    },
+    onError: (_err, _problemId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.userFavoriteProblems(userId), context.previous);
+      }
+    },
+    onSuccess: favorite => {
+      queryClient.setQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId), current => {
+        const existing = current || [];
+        const withoutDup = existing.filter(f => f.problemId !== favorite.problemId);
+        return [...withoutDup, favorite];
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.userFavoriteProblems(userId) });
+    }
+  });
+};
+
+export const useUnfavoriteProblemForUser = (userId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (problemId: number) => userFavoritesApi.unfavoriteProblemForUser(userId, problemId),
+    onMutate: async problemId => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.userFavoriteProblems(userId) });
+
+      const previous = queryClient.getQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId));
+
+      if (previous) {
+        queryClient.setQueryData<UserFavoriteProblem[]>(
+          queryKeys.userFavoriteProblems(userId),
+          previous.filter(f => f.problemId !== problemId)
+        );
+      }
+
+      return { previous };
+    },
+    onError: (_err, _problemId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.userFavoriteProblems(userId), context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.userFavoriteProblems(userId) });
+    }
+  });
+};
 
 // Problem hooks
 export const useProblemsLimitedPaginated = (queryParams?: Partial<ProblemQueryParameters>) => {

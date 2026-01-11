@@ -14,7 +14,8 @@ import {
   type ArticleCommentQueryParameters,
   type JsonPatchDocument,
   type CursorPaginationQueryParameters,
-  type TagDto
+  type TagDto,
+  type UserFavoriteProblem
 } from '../types/models';
 import apiClient from './axiosConfig';
 
@@ -252,5 +253,21 @@ export const tagsApi = {
   async getTag(id: number): Promise<TagDto> {
     const response = await apiClient.get<TagDto>(`/api/v1/tags/${id}`);
     return response.data;
+  }
+};
+
+export const userFavoritesApi = {
+  async getFavoriteProblemsForUser(userId: number): Promise<UserFavoriteProblem[]> {
+    const response = await apiClient.get<UserFavoriteProblem[]>(`/api/v1/users/${userId}/favoriteProblems`);
+    return response.data;
+  },
+
+  async favoriteProblemForUser(userId: number, problemId: number): Promise<UserFavoriteProblem> {
+    const response = await apiClient.put<UserFavoriteProblem>(`/api/v1/users/${userId}/favoriteProblems/${problemId}`);
+    return response.data;
+  },
+
+  async unfavoriteProblemForUser(userId: number, problemId: number): Promise<void> {
+    await apiClient.delete(`/api/v1/users/${userId}/favoriteProblems/${problemId}`);
   }
 };

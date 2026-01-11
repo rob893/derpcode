@@ -1,17 +1,29 @@
 import { useNavigate } from 'react-router';
 import { useState, useMemo, useCallback } from 'react';
-import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Input } from '@heroui/react';
-import { FunnelIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Card, CardBody, Chip, Button, Spinner, Divider, Select, SelectItem, Input, Tooltip } from '@heroui/react';
+import {
+  FunnelIcon,
+  ArrowPathIcon,
+  MagnifyingGlassIcon,
+  StarIcon as StarIconOutline
+} from '@heroicons/react/24/outline';
+import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/models';
 import { ApiErrorDisplay } from './ApiErrorDisplay';
-import { useProblemsLimitedPaginated, useAllTags } from '../hooks/api';
+import {
+  useProblemsLimitedPaginated,
+  useAllTags,
+  useUserFavoriteProblems,
+  useFavoriteProblemForUser,
+  useUnfavoriteProblemForUser
+} from '../hooks/api';
 import { useAuth } from '../hooks/useAuth';
 import { hasAdminRole } from '../utils/auth';
 import { useDebounce } from '../hooks/useDebounce';
 
 export const ProblemList = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const isAdmin = hasAdminRole(user);
 
   const pageSize = 5;
@@ -68,6 +80,19 @@ export const ProblemList = () => {
   ]);
 
   const { data, isLoading, error } = useProblemsLimitedPaginated(queryParams);
+
+  const { data: favoriteProblems } = useUserFavoriteProblems(user?.id);
+  const favoriteProblem = useFavoriteProblemForUser(user?.id || 0);
+  const unfavoriteProblem = useUnfavoriteProblemForUser(user?.id || 0);
+
+  const favoriteProblemIds = useMemo(() => {
+    if (!favoriteProblems) {
+      return new Set<number>();
+    }
+    return new Set<number>(favoriteProblems.map(f => f.problemId));
+  }, [favoriteProblems]);
+
+  const isFavoriteMutationInFlight = favoriteProblem.isPending || unfavoriteProblem.isPending;
 
   // Memoize problems to avoid dependency issues in other useMemo hooks
   const problems = useMemo(() => data?.problems || [], [data?.problems]);
@@ -437,46 +462,88 @@ export const ProblemList = () => {
           </Card>
         ) : (
           filteredProblems.map(problem => (
-            <Card
+            <div
               key={problem.id}
-              isPressable
-              isHoverable
-              onPress={() => navigate(`/problems/${problem.id}`)}
-              className="transition-all duration-200 hover:scale-[1.02]"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/problems/${problem.id}`)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/problems/${problem.id}`);
+                }
+              }}
+              className="outline-none"
             >
-              <CardBody className="p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-semibold text-foreground hover:text-primary transition-colors">
-                    {problem.name}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <Chip
-                      color={getDifficultyColor(problem.difficulty)}
-                      variant="flat"
-                      size="sm"
-                      className="font-medium"
-                    >
-                      {getDifficultyLabel(problem.difficulty)}
-                    </Chip>
-                    {!problem.isPublished && (
-                      <Chip color="warning" variant="flat" size="sm" className="font-medium">
-                        Unpublished
-                      </Chip>
-                    )}
-                  </div>
-                </div>
+              <Card isHoverable className="transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+                <CardBody className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-xl font-semibold text-foreground hover:text-primary transition-colors">
+                      {problem.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      {isAuthenticated && (
+                        <Tooltip
+                          content={favoriteProblemIds.has(problem.id) ? 'Unfavorite' : 'Favorite'}
+                          placement="bottom"
+                        >
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            color={favoriteProblemIds.has(problem.id) ? 'warning' : 'default'}
+                            aria-label={favoriteProblemIds.has(problem.id) ? 'Unfavorite problem' : 'Favorite problem'}
+                            data-testid={`favorite-toggle-${problem.id}`}
+                            isDisabled={isFavoriteMutationInFlight}
+                            onClick={e => e.stopPropagation()}
+                            onPress={async () => {
+                              if (!user) {
+                                return;
+                              }
 
-                {problem.tags && problem.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {problem.tags.map((tag: any, index: number) => (
-                      <Chip key={index} size="sm" variant="bordered" color="secondary" className="text-xs">
-                        {tag.name}
+                              if (favoriteProblemIds.has(problem.id)) {
+                                await unfavoriteProblem.mutateAsync(problem.id);
+                              } else {
+                                await favoriteProblem.mutateAsync(problem.id);
+                              }
+                            }}
+                          >
+                            {favoriteProblemIds.has(problem.id) ? (
+                              <StarIconSolid className="h-5 w-5" />
+                            ) : (
+                              <StarIconOutline className="h-5 w-5" />
+                            )}
+                          </Button>
+                        </Tooltip>
+                      )}
+                      <Chip
+                        color={getDifficultyColor(problem.difficulty)}
+                        variant="flat"
+                        size="sm"
+                        className="font-medium"
+                      >
+                        {getDifficultyLabel(problem.difficulty)}
                       </Chip>
-                    ))}
+                      {!problem.isPublished && (
+                        <Chip color="warning" variant="flat" size="sm" className="font-medium">
+                          Unpublished
+                        </Chip>
+                      )}
+                    </div>
                   </div>
-                )}
-              </CardBody>
-            </Card>
+
+                  {problem.tags && problem.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {problem.tags.map((tag: any, index: number) => (
+                        <Chip key={index} size="sm" variant="bordered" color="secondary" className="text-xs">
+                          {tag.name}
+                        </Chip>
+                      ))}
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </div>
           ))
         )}
       </div>

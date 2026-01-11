@@ -548,7 +548,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("ProblemId");
 
-                    b.ToTable("UserFavoriteProblem");
+                    b.ToTable("UserFavoriteProblems");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.UserRole", b =>

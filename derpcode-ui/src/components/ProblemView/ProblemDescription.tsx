@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Card, CardBody, CardHeader, Button, Chip, Divider, Tabs, Tab } from '@heroui/react';
+import { Card, CardBody, CardHeader, Button, Chip, Divider, Tabs, Tab, Tooltip } from '@heroui/react';
 import {
   EyeIcon,
   EyeSlashIcon,
+  StarIcon as StarIconOutline,
   PencilIcon,
   TrashIcon,
   DocumentDuplicateIcon,
   GlobeAltIcon,
   NoSymbolIcon
 } from '@heroicons/react/24/outline';
+import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import type { Problem, ProblemSubmission } from '../../types/models';
 import type { User } from '../../types/auth';
 import { hasAdminRole } from '../../utils/auth';
@@ -20,6 +22,10 @@ import { getDifficultyColor, getDifficultyLabel } from '../../utils/utilities';
 interface ProblemDescriptionProps {
   problem: Problem;
   user: User | null;
+  isAuthenticated: boolean;
+  isFavorited: boolean;
+  isFavoriteLoading: boolean;
+  onToggleFavorite: () => void;
   onEdit: () => void;
   onClone: () => void;
   onDelete: (problem: { id: number; name: string }) => void;
@@ -32,6 +38,10 @@ interface ProblemDescriptionProps {
 export const ProblemDescription = ({
   problem,
   user,
+  isAuthenticated,
+  isFavorited,
+  isFavoriteLoading,
+  onToggleFavorite,
   onEdit,
   onClone,
   onDelete,
@@ -50,6 +60,23 @@ export const ProblemDescription = ({
         <div className="flex justify-between items-start w-full">
           <h2 className="text-2xl font-bold text-foreground">{problem.name}</h2>
           <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <Tooltip content={isFavorited ? 'Unfavorite' : 'Favorite'} placement="bottom">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  color={isFavorited ? 'warning' : 'default'}
+                  aria-label={isFavorited ? 'Unfavorite problem' : 'Favorite problem'}
+                  data-testid="favorite-toggle-details"
+                  isDisabled={isFavoriteLoading}
+                  isLoading={isFavoriteLoading}
+                  onPress={onToggleFavorite}
+                >
+                  {isFavorited ? <StarIconSolid className="h-5 w-5" /> : <StarIconOutline className="h-5 w-5" />}
+                </Button>
+              </Tooltip>
+            )}
             {hasAdminRole(user) && (
               <div className="flex items-center gap-3">
                 <Button

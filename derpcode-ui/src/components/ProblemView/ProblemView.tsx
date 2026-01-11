@@ -15,7 +15,10 @@ import {
   useSubmitSolution,
   useRunSolution,
   useCloneProblem,
-  useToggleProblemPublished
+  useToggleProblemPublished,
+  useUserFavoriteProblems,
+  useFavoriteProblemForUser,
+  useUnfavoriteProblemForUser
 } from '../../hooks/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useCurrentUser } from '../../hooks/useUser';
@@ -37,6 +40,13 @@ export const ProblemView = () => {
   const deleteProblem = useDeleteProblem();
   const cloneProblem = useCloneProblem();
   const togglePublished = useToggleProblemPublished();
+
+  const { data: favoriteProblems } = useUserFavoriteProblems(user?.id);
+  const favoriteProblem = useFavoriteProblemForUser(user?.id || 0);
+  const unfavoriteProblem = useUnfavoriteProblemForUser(user?.id || 0);
+
+  const isFavorited = !!problem && !!favoriteProblems?.some(f => f.problemId === problem.id);
+  const isFavoriteLoading = favoriteProblem.isPending || unfavoriteProblem.isPending;
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure();
   const { isOpen: isResetOpen, onOpen: onResetOpen, onOpenChange: onResetOpenChange } = useDisclosure();
@@ -199,6 +209,21 @@ export const ProblemView = () => {
     }
   };
 
+  const handleToggleFavorite = async () => {
+    if (!problem) return;
+
+    if (!isAuthenticated || !user) {
+      navigate('/login', { state: { from: { pathname: `/problems/${id}` } } });
+      return;
+    }
+
+    if (isFavorited) {
+      await unfavoriteProblem.mutateAsync(problem.id);
+    } else {
+      await favoriteProblem.mutateAsync(problem.id);
+    }
+  };
+
   // Handle reset code to template
   const handleResetCode = () => {
     if (!problem || !selectedLanguage) return;
@@ -281,6 +306,10 @@ export const ProblemView = () => {
             <ProblemDescription
               problem={problem}
               user={user}
+              isAuthenticated={isAuthenticated}
+              isFavorited={isFavorited}
+              isFavoriteLoading={isFavoriteLoading}
+              onToggleFavorite={handleToggleFavorite}
               onEdit={() => navigate(`/problems/${problem.id}/edit`)}
               onClone={handleCloneProblem}
               onDelete={handleDeleteClick}
@@ -328,6 +357,10 @@ export const ProblemView = () => {
                 <ProblemDescription
                   problem={problem}
                   user={user}
+                  isAuthenticated={isAuthenticated}
+                  isFavorited={isFavorited}
+                  isFavoriteLoading={isFavoriteLoading}
+                  onToggleFavorite={handleToggleFavorite}
                   onEdit={() => navigate(`/problems/${problem.id}/edit`)}
                   onClone={handleCloneProblem}
                   onDelete={handleDeleteClick}

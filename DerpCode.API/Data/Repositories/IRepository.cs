@@ -32,9 +32,9 @@ public interface IRepository<TEntity, TEntityKey, TSearchParams>
 
     Task<TEntity?> GetByIdAsync(TEntityKey id, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default);
 
-    Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default);
 
-    Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default);
 
     Task<CursorPaginatedList<TEntity, TEntityKey>> SearchAsync(TSearchParams searchParams, bool track = true, CancellationToken cancellationToken = default);
 }

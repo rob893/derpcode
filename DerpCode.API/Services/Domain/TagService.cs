@@ -72,7 +72,7 @@ public sealed class TagService : ITagService
 
     private async Task<IReadOnlyList<Tag>> GetTagsFromCacheAsync(CancellationToken cancellationToken)
     {
-        if (!this.cache.TryGetValue(CacheKeys.Tags, out List<Tag>? tags))
+        if (!this.cache.TryGetValue(CacheKeys.Tags, out IReadOnlyList<Tag>? tags))
         {
             // Retrieve all tags from the database
             tags = await this.tagRepository.SearchAsync(_ => true, track: false, cancellationToken);

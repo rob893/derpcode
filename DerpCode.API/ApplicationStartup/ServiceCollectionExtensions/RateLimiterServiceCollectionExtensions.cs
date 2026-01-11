@@ -30,6 +30,21 @@ public static class RateLimiterServiceCollectionExtensions
                 var path = httpContext.Request.Path.ToString();
                 var method = httpContext.Request.Method;
 
+                // Health checks are hit frequently by probes and test harnesses.
+                // Avoid rate-limiting them to prevent flakiness and false negatives.
+                if (path.StartsWith("/health", StringComparison.OrdinalIgnoreCase))
+                {
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.GetPartitionKey(),
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 10_000,
+                            QueueLimit = 0,
+                            Window = TimeSpan.FromSeconds(1)
+                        });
+                }
+
                 if (path.StartsWith("/api/v1/auth/register", StringComparison.OrdinalIgnoreCase))
                 {
                     return RateLimitPartition.GetFixedWindowLimiter(

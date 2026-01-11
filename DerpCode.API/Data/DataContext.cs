@@ -22,6 +22,8 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
     public DbSet<DriverTemplate> DriverTemplates => this.Set<DriverTemplate>();
 
+    public DbSet<UserFavoriteProblem> UserFavoriteProblems => this.Set<UserFavoriteProblem>();
+
     public DbSet<Tag> Tags => this.Set<Tag>();
 
     public DbSet<ProblemSubmission> ProblemSubmissions => this.Set<ProblemSubmission>();
@@ -51,7 +53,7 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
                 .OnDelete(DeleteBehavior.Cascade);
 
             b.Property(x => x.CreatedAt)
-                .HasDefaultValueSql("now()"); // Postgres
+                .HasDefaultValueSql("now()"); // Postgres specific
         });
 
         builder.Entity<UserRole>(userRole =>

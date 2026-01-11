@@ -30,7 +30,13 @@ public interface IUserRepository : IRepository<User, CursorPaginationQueryParame
 
     Task<CursorPaginatedList<Role, int>> GetRolesAsync(CursorPaginationQueryParameters searchParams, CancellationToken cancellationToken = default);
 
-    Task<List<Role>> GetRolesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Role>> GetRolesAsync(CancellationToken cancellationToken = default);
 
-    Task<List<RefreshToken>> GetRefreshTokensForDeviceAsync(string deviceId, bool track = true, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RefreshToken>> GetRefreshTokensForDeviceAsync(string deviceId, bool track = true, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<UserFavoriteProblem>> GetFavoriteProblemsForUserAsync(int userId, CancellationToken cancellationToken = default);
+
+    Task<UserFavoriteProblem> FavoriteProblemForUserAsync(int userId, int problemId, CancellationToken cancellationToken = default);
+
+    Task<bool> UnfavoriteProblemForUserAsync(int userId, int problemId, CancellationToken cancellationToken = default);
 }

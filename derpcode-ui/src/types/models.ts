@@ -42,6 +42,12 @@ export interface ProblemLimited {
   isPublished: boolean;
 }
 
+export interface UserFavoriteProblem {
+  userId: number;
+  problemId: number;
+  createdAt: string;
+}
+
 export enum Language {
   CSharp = 'CSharp',
   JavaScript = 'JavaScript',

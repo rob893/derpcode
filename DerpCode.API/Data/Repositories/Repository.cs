@@ -104,12 +104,12 @@ public abstract class Repository<TEntity, TEntityKey, TSearchParams> : IReposito
             cancellationToken);
     }
 
-    public virtual async Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyList<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, bool track = true, CancellationToken cancellationToken = default)
     {
         return await this.SearchAsync(condition, [], track, cancellationToken);
     }
 
-    public virtual async Task<List<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyList<TEntity>> SearchAsync(Expression<Func<TEntity, bool>> condition, Expression<Func<TEntity, object>>[] includes, bool track = true, CancellationToken cancellationToken = default)
     {
         IQueryable<TEntity> query = this.Context.Set<TEntity>();
 

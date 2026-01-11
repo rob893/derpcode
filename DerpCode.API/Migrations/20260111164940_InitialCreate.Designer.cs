@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260110060257_InitialCreate")]
+    [Migration("20260111164940_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -551,7 +551,7 @@ namespace DerpCode.API.Migrations
 
                     b.HasIndex("ProblemId");
 
-                    b.ToTable("UserFavoriteProblem");
+                    b.ToTable("UserFavoriteProblems");
                 });
 
             modelBuilder.Entity("DerpCode.API.Models.Entities.UserRole", b =>

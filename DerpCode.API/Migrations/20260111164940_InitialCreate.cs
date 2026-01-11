@@ -467,7 +467,7 @@ namespace DerpCode.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserFavoriteProblem",
+                name: "UserFavoriteProblems",
                 columns: table => new
                 {
                     UserId = table.Column<int>(type: "integer", nullable: false),
@@ -476,15 +476,15 @@ namespace DerpCode.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserFavoriteProblem", x => new { x.UserId, x.ProblemId });
+                    table.PrimaryKey("PK_UserFavoriteProblems", x => new { x.UserId, x.ProblemId });
                     table.ForeignKey(
-                        name: "FK_UserFavoriteProblem_AspNetUsers_UserId",
+                        name: "FK_UserFavoriteProblems_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserFavoriteProblem_Problems_ProblemId",
+                        name: "FK_UserFavoriteProblems_Problems_ProblemId",
                         column: x => x.ProblemId,
                         principalTable: "Problems",
                         principalColumn: "Id",
@@ -609,8 +609,8 @@ namespace DerpCode.API.Migrations
                 column: "TagsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserFavoriteProblem_ProblemId",
-                table: "UserFavoriteProblem",
+                name: "IX_UserFavoriteProblems_ProblemId",
+                table: "UserFavoriteProblems",
                 column: "ProblemId");
 
             migrationBuilder.AddForeignKey(
@@ -676,7 +676,7 @@ namespace DerpCode.API.Migrations
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "UserFavoriteProblem");
+                name: "UserFavoriteProblems");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

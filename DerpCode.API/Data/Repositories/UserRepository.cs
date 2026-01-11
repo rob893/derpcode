@@ -11,6 +11,7 @@ using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace DerpCode.API.Data.Repositories;
 
@@ -22,8 +23,8 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
 
     public UserRepository(DataContext context, UserManager<User> userManager, SignInManager<User> signInManager) : base(context)
     {
-        this.UserManager = userManager;
-        this.signInManager = signInManager;
+        this.UserManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+        this.signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     }
 
     public async Task<IdentityResult> CreateUserWithoutPasswordAsync(User user, CancellationToken cancellationToken = default)
@@ -129,12 +130,14 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
         return query.ToCursorPaginatedListAsync(searchParams, cancellationToken);
     }
 
-    public Task<List<Role>> GetRolesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Role>> GetRolesAsync(CancellationToken cancellationToken = default)
     {
-        return this.Context.Roles.ToListAsync(cancellationToken);
+        var roles = await this.Context.Roles.ToListAsync(cancellationToken);
+
+        return roles;
     }
 
-    public Task<List<RefreshToken>> GetRefreshTokensForDeviceAsync(string deviceId, bool track = true, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RefreshToken>> GetRefreshTokensForDeviceAsync(string deviceId, bool track = true, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
 
@@ -145,7 +148,7 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
             query = query.AsNoTracking();
         }
 
-        return query
+        var tokens = await query
             .Where(t => t.DeviceId == deviceId)
             .Include(t => t.User)
             .ThenInclude(u => u.UserRoles)
@@ -153,6 +156,61 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
             .Include(t => t.User)
             .ThenInclude(u => u.RefreshTokens)
             .ToListAsync(cancellationToken);
+
+        return tokens;
+    }
+
+    public async Task<IReadOnlyList<UserFavoriteProblem>> GetFavoriteProblemsForUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var problems = await this.Context.UserFavoriteProblems
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        return problems;
+    }
+
+    public async Task<UserFavoriteProblem> FavoriteProblemForUserAsync(int userId, int problemId, CancellationToken cancellationToken = default)
+    {
+        var favorite = new UserFavoriteProblem
+        {
+            UserId = userId,
+            ProblemId = problemId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        try
+        {
+            this.Context.UserFavoriteProblems.Add(favorite);
+            await this.SaveChangesAsync(cancellationToken);
+
+            return favorite;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg) // postgres specific logic
+        {
+            // 23505 = unique_violation (includes PK violation)
+            if (pg.SqlState == PostgresErrorCodes.UniqueViolation)
+            {
+                return favorite; // already favorited
+            }
+
+            // 23503 = foreign_key_violation (user or problem doesn't exist)
+            if (pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+            {
+                throw new KeyNotFoundException($"User or problem not found. UserId {userId} ProblemId {problemId}", ex);
+            }
+
+            throw;
+        }
+    }
+
+    public async Task<bool> UnfavoriteProblemForUserAsync(int userId, int problemId, CancellationToken cancellationToken = default)
+    {
+        var rows = await this.Context.UserFavoriteProblems
+            .Where(x => x.UserId == userId && x.ProblemId == problemId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return rows == 1;
     }
 
     protected override IQueryable<User> AddIncludes(IQueryable<User> query)
