@@ -68,19 +68,18 @@ export const useFavoriteProblemForUser = (userId: number) => {
 
       const previous = queryClient.getQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId));
 
-      if (previous) {
-        const alreadyExists = previous.some(f => f.problemId === problemId);
-        if (!alreadyExists) {
-          const optimistic: UserFavoriteProblem = {
-            userId,
-            problemId,
-            createdAt: new Date().toISOString()
-          };
-          queryClient.setQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId), [
-            ...previous,
-            optimistic
-          ]);
-        }
+      const alreadyExists = previous?.some(f => f.problemId === problemId) ?? false;
+      if (!alreadyExists) {
+        const optimistic: UserFavoriteProblem = {
+          userId,
+          problemId,
+          createdAt: new Date().toISOString()
+        };
+
+        queryClient.setQueryData<UserFavoriteProblem[]>(queryKeys.userFavoriteProblems(userId), [
+          ...(previous ?? []),
+          optimistic
+        ]);
       }
 
       return { previous };
@@ -96,9 +95,6 @@ export const useFavoriteProblemForUser = (userId: number) => {
         const withoutDup = existing.filter(f => f.problemId !== favorite.problemId);
         return [...withoutDup, favorite];
       });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.userFavoriteProblems(userId) });
     }
   });
 };
@@ -126,9 +122,6 @@ export const useUnfavoriteProblemForUser = (userId: number) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.userFavoriteProblems(userId), context.previous);
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.userFavoriteProblems(userId) });
     }
   });
 };
