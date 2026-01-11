@@ -40,6 +40,8 @@ public sealed class ProblemService : IProblemService
 
     private readonly ITagRepository tagRepository;
 
+    private readonly IUserRepository userRepository;
+
     private readonly IMemoryCache cache;
 
     /// <summary>
@@ -49,6 +51,7 @@ public sealed class ProblemService : IProblemService
     /// <param name="codeExecutionService">The code execution service</param>
     /// <param name="problemRepository">The problem repository</param>
     /// <param name="tagRepository">The tag repository</param>
+    /// <param name="userRepository">The user repository</param>
     /// <param name="currentUserService">The current user service</param>
     /// <param name="cache">The memory cache</param>
     public ProblemService(
@@ -56,6 +59,7 @@ public sealed class ProblemService : IProblemService
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
         ITagRepository tagRepository,
+        IUserRepository userRepository,
         ICurrentUserService currentUserService,
         IMemoryCache cache)
     {
@@ -64,70 +68,25 @@ public sealed class ProblemService : IProblemService
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
         this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
+        this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     /// <inheritdoc />
     public Task<CursorPaginatedList<ProblemDto, int>> GetProblemsAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
     {
-        return this.GetProblemsInternalAsync(
+        return this.GetProblemsWithFavoritesFirstAsync(
             searchParams,
             x => ProblemDto.FromEntity(x, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser),
-            list =>
-            {
-                var pagedList = searchParams.OrderBy switch
-                {
-                    ProblemOrderBy.Name => list.ToCursorPaginatedList(
-                        item => item.Id,
-                        item => item.Name,
-                        CursorConverters.CreateCompositeKeyConverterStringInt(),
-                        CursorConverters.CreateCompositeCursorConverterStringInt(),
-                        searchParams,
-                        searchParams.OrderByDirection == OrderByDirection.Ascending),
-                    ProblemOrderBy.Difficulty => list.ToCursorPaginatedList(
-                        item => item.Id,
-                        item => (int)item.Difficulty,
-                        CursorConverters.CreateCompositeKeyConverterIntInt(),
-                        CursorConverters.CreateCompositeCursorConverterIntInt(),
-                        searchParams,
-                        searchParams.OrderByDirection == OrderByDirection.Ascending),
-                    _ => throw new InvalidOperationException("Invalid OrderBy value")
-                };
-
-                return pagedList;
-            },
             cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<CursorPaginatedList<ProblemLimitedDto, int>> GetProblemsLimitedAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken)
     {
-        return this.GetProblemsInternalAsync(
+        return this.GetProblemsWithFavoritesFirstAsync(
             searchParams,
             ProblemLimitedDto.FromEntity,
-            list =>
-            {
-                var pagedList = searchParams.OrderBy switch
-                {
-                    ProblemOrderBy.Name => list.ToCursorPaginatedList(
-                        item => item.Id,
-                        item => item.Name,
-                        CursorConverters.CreateCompositeKeyConverterStringInt(),
-                        CursorConverters.CreateCompositeCursorConverterStringInt(),
-                        searchParams,
-                        searchParams.OrderByDirection == OrderByDirection.Ascending),
-                    ProblemOrderBy.Difficulty => list.ToCursorPaginatedList(
-                        item => item.Id,
-                        item => (int)item.Difficulty,
-                        CursorConverters.CreateCompositeKeyConverterIntInt(),
-                        CursorConverters.CreateCompositeCursorConverterIntInt(),
-                        searchParams,
-                        searchParams.OrderByDirection == OrderByDirection.Ascending),
-                    _ => throw new InvalidOperationException("Invalid OrderBy value")
-                };
-
-                return pagedList;
-            },
             cancellationToken);
     }
 
@@ -143,6 +102,15 @@ public sealed class ProblemService : IProblemService
 
         return ProblemDto.FromEntity(problem, this.currentUserService.IsAdmin, this.currentUserService.IsPremiumUser);
     }
+
+    /// <inheritdoc />
+    public async Task<int> GetProblemsCountAsync(CancellationToken cancellationToken)
+    {
+        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+
+        return problems.Count;
+    }
+
 
     /// <inheritdoc />
     public async Task<Result<ProblemDto>> CreateProblemAsync(CreateProblemRequest request, CancellationToken cancellationToken)
@@ -545,24 +513,15 @@ public sealed class ProblemService : IProblemService
             hasCorrectTag = searchParams.Tags.Any(t => problem.Tags.Select(xt => xt.Name.ToUpperInvariant()).Contains(t.ToUpperInvariant()));
         }
 
-        return (searchParams.IncludeUnpublished || problem.IsPublished) && isCorrectDifficulty && hasCorrectTag;
-    }
+        var hasMatchingSearchTerm = true;
 
-    private async Task<CursorPaginatedList<T, int>> GetProblemsInternalAsync<T>(
-        ProblemQueryParameters searchParams,
-        Func<Problem, T> selector,
-        Func<IEnumerable<T>, CursorPaginatedList<T, int>> pagedListConverter,
-        CancellationToken cancellationToken)
-        where T : class, IIdentifiable<int>
-    {
-        ArgumentNullException.ThrowIfNull(searchParams);
-        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(searchParams.SearchTerm))
+        {
+            hasMatchingSearchTerm = problem.Name.Contains(searchParams.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                    problem.Tags.Any(t => t.Name.Contains(searchParams.SearchTerm, StringComparison.OrdinalIgnoreCase));
+        }
 
-        var list = problems.Values
-            .Where(x => ApplyProblemFilter(x, searchParams))
-            .Select(selector);
-
-        return pagedListConverter(list);
+        return (searchParams.IncludeUnpublished || problem.IsPublished) && isCorrectDifficulty && hasCorrectTag && hasMatchingSearchTerm;
     }
 
     private async Task<IReadOnlyDictionary<int, Problem>> GetProblemsFromCacheAsync(CancellationToken cancellationToken)
@@ -580,5 +539,106 @@ public sealed class ProblemService : IProblemService
         }
 
         return problemLookup ?? throw new InvalidOperationException("Failed to retrieve problems from cache.");
+    }
+
+    private async Task<CursorPaginatedList<TDto, int>> GetProblemsWithFavoritesFirstAsync<TDto>(
+        ProblemQueryParameters searchParams,
+        Func<Problem, TDto> selector,
+        CancellationToken cancellationToken)
+        where TDto : class, IIdentifiable<int>
+    {
+        ArgumentNullException.ThrowIfNull(searchParams);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
+
+        int? currentUserId = this.currentUserService.IsUserLoggedIn ? this.currentUserService.UserId : null;
+
+        var favoriteProblemIds = await this.GetFavoriteProblemIdsForUserAsync(currentUserId, cancellationToken);
+
+        var items = problems.Values
+            .Where(x => ApplyProblemFilter(x, searchParams))
+            .Select(problem =>
+            {
+                var isFavorite = currentUserId.HasValue && favoriteProblemIds.Contains(problem.Id);
+
+                return new FavoriteSortedItem<TDto>
+                {
+                    Id = problem.Id,
+                    FavoriteRank = isFavorite ? 0 : 1,
+                    Name = problem.Name,
+                    Difficulty = (int)problem.Difficulty,
+                    Item = selector(problem)
+                };
+            });
+
+        CursorPaginatedList<FavoriteSortedItem<TDto>, int> wrapperPage = searchParams.OrderBy switch
+        {
+            ProblemOrderBy.Name => items.ToCursorPaginatedList(
+                x => x.Id,
+                x => x.FavoriteRank,
+                x => x.Name,
+                CursorConverters.CreateCompositeKeyConverterIntStringInt(),
+                CursorConverters.CreateCompositeCursorConverterIntStringInt(),
+                searchParams,
+                primaryAscending: true,
+                secondaryAscending: searchParams.OrderByDirection == OrderByDirection.Ascending),
+            ProblemOrderBy.Difficulty => items.ToCursorPaginatedList(
+                x => x.Id,
+                x => x.FavoriteRank,
+                x => x.Difficulty,
+                CursorConverters.CreateCompositeKeyConverterIntIntInt(),
+                CursorConverters.CreateCompositeCursorConverterIntIntInt(),
+                searchParams,
+                primaryAscending: true,
+                secondaryAscending: searchParams.OrderByDirection == OrderByDirection.Ascending),
+            _ => throw new InvalidOperationException("Invalid OrderBy value")
+        };
+
+        var dtoItems = wrapperPage.Select(x => x.Item).ToList();
+
+        return new CursorPaginatedList<TDto, int>(
+            dtoItems,
+            wrapperPage.HasNextPage,
+            wrapperPage.HasPreviousPage,
+            wrapperPage.StartCursor,
+            wrapperPage.EndCursor,
+            wrapperPage.TotalCount);
+    }
+
+    private async Task<IReadOnlySet<int>> GetFavoriteProblemIdsForUserAsync(int? userId, CancellationToken cancellationToken)
+    {
+        if (!userId.HasValue)
+        {
+            return new HashSet<int>();
+        }
+
+        var cacheKey = CacheKeys.UserFavoriteProblemIdsPrefix + userId.Value;
+
+        if (this.cache.TryGetValue(cacheKey, out HashSet<int>? favoriteIds) && favoriteIds != null)
+        {
+            return favoriteIds;
+        }
+
+        var favorites = await this.userRepository.GetFavoriteProblemsForUserAsync(userId.Value, cancellationToken);
+        favoriteIds = favorites.Select(x => x.ProblemId).ToHashSet();
+
+        this.cache.Set(cacheKey, favoriteIds, TimeSpan.FromMinutes(60));
+
+        return favoriteIds;
+    }
+
+    private sealed record FavoriteSortedItem<T> : IIdentifiable<int>
+        where T : class, IIdentifiable<int>
+    {
+        public required int Id { get; init; }
+
+        public required int FavoriteRank { get; init; }
+
+        public required string Name { get; init; }
+
+        public required int Difficulty { get; init; }
+
+        public required T Item { get; init; }
     }
 }

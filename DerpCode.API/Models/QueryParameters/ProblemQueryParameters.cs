@@ -7,6 +7,8 @@ public sealed record ProblemQueryParameters : CursorPaginationQueryParameters
 {
     public bool IncludeUnpublished { get; init; }
 
+    public string? SearchTerm { get; init; }
+
     public IReadOnlyList<ProblemDifficulty>? Difficulties { get; init; }
 
     public IReadOnlyList<string>? Tags { get; init; }

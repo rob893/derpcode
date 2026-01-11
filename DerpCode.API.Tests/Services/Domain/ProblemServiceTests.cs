@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
+using DerpCode.API.Models;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
@@ -25,7 +26,11 @@ public sealed class ProblemServiceTests
 
     private readonly Mock<IProblemRepository> mockProblemRepository;
 
+    private readonly Mock<IUserRepository> mockUserRepository;
+
     private readonly Mock<IMemoryCache> mockCache;
+
+    private readonly Mock<ICacheEntry> mockCacheEntry;
 
     private readonly Mock<ICurrentUserService> mockCurrentUserService;
 
@@ -38,19 +43,32 @@ public sealed class ProblemServiceTests
         this.mockLogger = new Mock<ILogger<ProblemService>>();
         this.mockCodeExecutionService = new Mock<ICodeExecutionService>();
         this.mockProblemRepository = new Mock<IProblemRepository>();
+        this.mockUserRepository = new Mock<IUserRepository>();
         this.mockCurrentUserService = new Mock<ICurrentUserService>();
         this.mockCache = new Mock<IMemoryCache>();
+        this.mockCacheEntry = new Mock<ICacheEntry>();
         this.mockTagRepository = new Mock<ITagRepository>();
 
+        this.mockCacheEntry.SetupAllProperties();
+        this.mockCache
+            .Setup(x => x.CreateEntry(It.IsAny<object>()))
+            .Returns(this.mockCacheEntry.Object);
+
         this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
+        this.mockCurrentUserService.Setup(x => x.IsUserLoggedIn).Returns(true);
         this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
         this.mockCurrentUserService.Setup(x => x.IsPremiumUser).Returns(false);
+
+        this.mockUserRepository
+            .Setup(x => x.GetFavoriteProblemsForUserAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
 
         this.problemService = new ProblemService(
             this.mockLogger.Object,
             this.mockCodeExecutionService.Object,
             this.mockProblemRepository.Object,
             this.mockTagRepository.Object,
+            this.mockUserRepository.Object,
             this.mockCurrentUserService.Object,
             this.mockCache.Object);
     }
@@ -62,7 +80,7 @@ public sealed class ProblemServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new ProblemService(null!, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
+            new ProblemService(null!, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockUserRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
 
         Assert.Equal("logger", exception.ParamName);
     }
@@ -72,7 +90,7 @@ public sealed class ProblemServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new ProblemService(this.mockLogger.Object, null!, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
+            new ProblemService(this.mockLogger.Object, null!, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockUserRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
 
         Assert.Equal("codeExecutionService", exception.ParamName);
     }
@@ -82,7 +100,7 @@ public sealed class ProblemServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, null!, this.mockTagRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
+            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, null!, this.mockTagRepository.Object, this.mockUserRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
 
         Assert.Equal("problemRepository", exception.ParamName);
     }
@@ -92,7 +110,7 @@ public sealed class ProblemServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, null!, this.mockCache.Object));
+            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockUserRepository.Object, null!, this.mockCache.Object));
 
         Assert.Equal("currentUserService", exception.ParamName);
     }
@@ -102,9 +120,19 @@ public sealed class ProblemServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, null!, this.mockCurrentUserService.Object, this.mockCache.Object));
+            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, null!, this.mockUserRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
 
         Assert.Equal("tagRepository", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNullUserRepository_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, null!, this.mockCurrentUserService.Object, this.mockCache.Object));
+
+        Assert.Equal("userRepository", exception.ParamName);
     }
 
     [Fact]
@@ -112,7 +140,7 @@ public sealed class ProblemServiceTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockCurrentUserService.Object, null!));
+            new ProblemService(this.mockLogger.Object, this.mockCodeExecutionService.Object, this.mockProblemRepository.Object, this.mockTagRepository.Object, this.mockUserRepository.Object, this.mockCurrentUserService.Object, null!));
 
         Assert.Equal("cache", exception.ParamName);
     }
@@ -126,6 +154,7 @@ public sealed class ProblemServiceTests
             this.mockCodeExecutionService.Object,
             this.mockProblemRepository.Object,
             this.mockTagRepository.Object,
+            this.mockUserRepository.Object,
             this.mockCurrentUserService.Object,
             this.mockCache.Object);
 
@@ -213,6 +242,160 @@ public sealed class ProblemServiceTests
             It.IsAny<Expression<Func<Problem, object>>[]>(),
             false,
             cancellationToken), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProblemsAsync_WhenUserHasFavorites_ReturnsFavoritesFirst_ThenOrdersByNameAscending()
+    {
+        // Arrange
+        var searchParams = new ProblemQueryParameters
+        {
+            First = 10,
+            OrderBy = ProblemOrderBy.Name,
+            OrderByDirection = OrderByDirection.Ascending
+        };
+
+        var problems = new List<Problem>
+        {
+            CreateTestProblem(1, "Alpha", ProblemDifficulty.Easy),
+            CreateTestProblem(2, "Zulu", ProblemDifficulty.Medium),
+            CreateTestProblem(3, "Echo", ProblemDifficulty.Hard),
+            CreateTestProblem(4, "Beta", ProblemDifficulty.Easy)
+        };
+
+        this.mockCache
+            .Setup(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Returns(false);
+
+        this.mockProblemRepository
+            .Setup(x => x.SearchAsync(
+                It.IsAny<Expression<Func<Problem, bool>>>(),
+                It.IsAny<Expression<Func<Problem, object>>[]>(),
+                false,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(problems);
+
+        this.mockUserRepository
+            .Setup(x => x.GetFavoriteProblemsForUserAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                new UserFavoriteProblem { UserId = 1, ProblemId = 2 },
+                new UserFavoriteProblem { UserId = 1, ProblemId = 3 }
+            ]);
+
+        // Act
+        var result = await this.problemService.GetProblemsAsync(searchParams, CancellationToken.None);
+
+        // Assert
+        var orderedIds = result.Select(x => x.Id).ToList();
+        Assert.Equal([3, 2, 1, 4], orderedIds);
+    }
+
+    [Fact]
+    public async Task GetProblemsAsync_WhenUserHasFavorites_PaginatesWithAfterCursor_WithoutBreakingFavoritesFirst()
+    {
+        // Arrange
+        var baseParams = new ProblemQueryParameters
+        {
+            OrderBy = ProblemOrderBy.Name,
+            OrderByDirection = OrderByDirection.Ascending
+        };
+
+        var problems = new List<Problem>
+        {
+            CreateTestProblem(1, "Alpha", ProblemDifficulty.Easy),
+            CreateTestProblem(2, "Zulu", ProblemDifficulty.Medium),
+            CreateTestProblem(3, "Echo", ProblemDifficulty.Hard),
+            CreateTestProblem(4, "Beta", ProblemDifficulty.Easy)
+        };
+
+        this.mockCache
+            .Setup(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Returns(false);
+
+        this.mockProblemRepository
+            .Setup(x => x.SearchAsync(
+                It.IsAny<Expression<Func<Problem, bool>>>(),
+                It.IsAny<Expression<Func<Problem, object>>[]>(),
+                false,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(problems);
+
+        this.mockUserRepository
+            .Setup(x => x.GetFavoriteProblemsForUserAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+            [
+                new UserFavoriteProblem { UserId = 1, ProblemId = 2 },
+                new UserFavoriteProblem { UserId = 1, ProblemId = 3 }
+            ]);
+
+        // Act
+        var page1Params = new ProblemQueryParameters
+        {
+            First = 2,
+            OrderBy = baseParams.OrderBy,
+            OrderByDirection = baseParams.OrderByDirection
+        };
+
+        var page1 = await this.problemService.GetProblemsAsync(page1Params, CancellationToken.None);
+
+        var page2Params = new ProblemQueryParameters
+        {
+            First = 2,
+            After = page1.EndCursor,
+            OrderBy = baseParams.OrderBy,
+            OrderByDirection = baseParams.OrderByDirection
+        };
+
+        var page2 = await this.problemService.GetProblemsAsync(page2Params, CancellationToken.None);
+
+        // Assert
+        Assert.Equal([3, 2], page1.Select(x => x.Id).ToList());
+        Assert.True(page1.HasNextPage);
+
+        Assert.Equal([1, 4], page2.Select(x => x.Id).ToList());
+        Assert.False(page2.HasNextPage);
+        Assert.True(page2.HasPreviousPage);
+    }
+
+    [Fact]
+    public async Task GetProblemsAsync_WhenNotLoggedIn_DoesNotQueryUserFavorites_AndOrdersByNameAscending()
+    {
+        // Arrange
+        this.mockCurrentUserService.Setup(x => x.IsUserLoggedIn).Returns(false);
+
+        var searchParams = new ProblemQueryParameters
+        {
+            First = 10,
+            OrderBy = ProblemOrderBy.Name,
+            OrderByDirection = OrderByDirection.Ascending
+        };
+
+        var problems = new List<Problem>
+        {
+            CreateTestProblem(1, "Zulu", ProblemDifficulty.Easy),
+            CreateTestProblem(2, "Alpha", ProblemDifficulty.Medium),
+            CreateTestProblem(3, "Beta", ProblemDifficulty.Hard)
+        };
+
+        this.mockCache
+            .Setup(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny))
+            .Returns(false);
+
+        this.mockProblemRepository
+            .Setup(x => x.SearchAsync(
+                It.IsAny<Expression<Func<Problem, bool>>>(),
+                It.IsAny<Expression<Func<Problem, object>>[]>(),
+                false,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(problems);
+
+        // Act
+        var result = await this.problemService.GetProblemsAsync(searchParams, CancellationToken.None);
+
+        // Assert
+        Assert.Equal([2, 3, 1], result.Select(x => x.Id).ToList());
+        this.mockUserRepository.Verify(x => x.GetFavoriteProblemsForUserAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     #endregion
@@ -1034,6 +1217,16 @@ public sealed class ProblemServiceTests
             SolutionArticles = [],
             ProblemSubmissions = []
         };
+    }
+
+    private static Problem CreateTestProblem(int id, string name, ProblemDifficulty difficulty)
+    {
+        var problem = CreateTestProblem();
+        problem.Id = id;
+        problem.Name = name;
+        problem.Difficulty = difficulty;
+        problem.IsPublished = true;
+        return problem;
     }
 
     private static CreateProblemRequest CreateTestCreateProblemRequest()

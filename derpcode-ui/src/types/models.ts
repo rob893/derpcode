@@ -203,6 +203,7 @@ export interface UserSubmissionQueryParameters extends CursorPaginationQueryPara
 
 export interface ProblemQueryParameters extends CursorPaginationQueryParameters {
   includeUnpublished?: boolean;
+  searchTerm?: string;
   difficulties?: ProblemDifficulty[];
   tags?: string[];
   orderBy?: ProblemOrderBy;

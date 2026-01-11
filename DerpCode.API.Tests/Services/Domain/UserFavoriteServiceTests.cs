@@ -4,6 +4,7 @@ using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Domain;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Tests.Services.Domain;
@@ -19,6 +20,8 @@ public sealed class UserFavoriteServiceTests
 
     private readonly Mock<ICurrentUserService> mockCurrentUserService;
 
+    private readonly Mock<IMemoryCache> mockCache;
+
     private readonly UserFavoriteService userFavoriteService;
 
     public UserFavoriteServiceTests()
@@ -26,11 +29,13 @@ public sealed class UserFavoriteServiceTests
         this.mockLogger = new Mock<ILogger<UserFavoriteService>>();
         this.mockUserRepository = new Mock<IUserRepository>();
         this.mockCurrentUserService = new Mock<ICurrentUserService>();
+        this.mockCache = new Mock<IMemoryCache>();
 
         this.userFavoriteService = new UserFavoriteService(
             this.mockLogger.Object,
             this.mockUserRepository.Object,
-            this.mockCurrentUserService.Object);
+            this.mockCurrentUserService.Object,
+            this.mockCache.Object);
     }
 
     #region Constructor Tests
@@ -39,7 +44,7 @@ public sealed class UserFavoriteServiceTests
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserFavoriteService(null!, this.mockUserRepository.Object, this.mockCurrentUserService.Object));
+            new UserFavoriteService(null!, this.mockUserRepository.Object, this.mockCurrentUserService.Object, this.mockCache.Object));
 
         Assert.Equal("logger", exception.ParamName);
     }
@@ -48,7 +53,7 @@ public sealed class UserFavoriteServiceTests
     public void Constructor_WithNullUserRepository_ThrowsArgumentNullException()
     {
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserFavoriteService(this.mockLogger.Object, null!, this.mockCurrentUserService.Object));
+            new UserFavoriteService(this.mockLogger.Object, null!, this.mockCurrentUserService.Object, this.mockCache.Object));
 
         Assert.Equal("userRepository", exception.ParamName);
     }
@@ -57,9 +62,18 @@ public sealed class UserFavoriteServiceTests
     public void Constructor_WithNullCurrentUserService_ThrowsArgumentNullException()
     {
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new UserFavoriteService(this.mockLogger.Object, this.mockUserRepository.Object, null!));
+            new UserFavoriteService(this.mockLogger.Object, this.mockUserRepository.Object, null!, this.mockCache.Object));
 
         Assert.Equal("currentUserService", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNullCache_ThrowsArgumentNullException()
+    {
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            new UserFavoriteService(this.mockLogger.Object, this.mockUserRepository.Object, this.mockCurrentUserService.Object, null!));
+
+        Assert.Equal("cache", exception.ParamName);
     }
 
     #endregion

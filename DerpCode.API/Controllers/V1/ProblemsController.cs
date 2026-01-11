@@ -66,6 +66,20 @@ public sealed class ProblemsController : ServiceControllerBase
     }
 
     /// <summary>
+    /// Gets the total count of problems.
+    /// </summary>
+    /// <returns>The total count of problems.</returns>
+    /// <response code="200">Returns the total count of problems.</response>
+    [AllowAnonymous]
+    [HttpGet("count", Name = nameof(GetProblemsCountAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<int>> GetProblemsCountAsync()
+    {
+        var count = await this.problemService.GetProblemsCountAsync(this.HttpContext.RequestAborted);
+        return this.Ok(count);
+    }
+
+    /// <summary>
     /// Gets a specific problem by its ID.
     /// </summary>
     /// <param name="id">The ID of the problem to retrieve.</param>

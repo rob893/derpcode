@@ -39,6 +39,13 @@ public interface IProblemService
     Task<ProblemDto?> GetProblemByIdAsync(int id, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves the total count of problems
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The total count of problems</returns>
+    Task<int> GetProblemsCountAsync(CancellationToken cancellationToken);
+
+    /// <summary>
     /// Creates a new problem
     /// </summary>
     /// <param name="request">The create problem request</param>

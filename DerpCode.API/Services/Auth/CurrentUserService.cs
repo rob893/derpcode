@@ -20,6 +20,8 @@ public sealed class CurrentUserService : ICurrentUserService
         this.httpContextAccessor = httpContextAccessor;
     }
 
+    public bool IsUserLoggedIn => this.userOverride?.Id != null || this.User.TryGetUserId(out var _);
+
     public int UserId => this.userOverride?.Id != null ? this.userOverride.Id :
         this.User.TryGetUserId(out var id) ? id.Value : throw new InvalidOperationException("User ID claim missing or invalid.");
 

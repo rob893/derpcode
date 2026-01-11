@@ -12,6 +12,7 @@ import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/mo
 import { ApiErrorDisplay } from './ApiErrorDisplay';
 import {
   useProblemsLimitedPaginated,
+  useProblemsCount,
   useAllTags,
   useUserFavoriteProblems,
   useFavoriteProblemForUser,
@@ -26,7 +27,7 @@ export const ProblemList = () => {
   const { user, isAuthenticated } = useAuth();
   const isAdmin = hasAdminRole(user);
 
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState(5);
 
   // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
@@ -46,40 +47,20 @@ export const ProblemList = () => {
 
   // Build query parameters
   const queryParams = useMemo(() => {
-    // Reset cursor when filters change
-    if (
-      debouncedSearchQuery !== searchQuery ||
-      Array.from(selectedDifficulties).join(',') !== Array.from(new Set()).join(',') ||
-      Array.from(selectedTags).join(',') !== Array.from(new Set()).join(',')
-    ) {
-      // This indicates filters are changing, we should reset cursor
-    }
-
     return {
       first: pageSize,
       after: cursor,
-      includeTotal: true,
       includeUnpublished: isAdmin,
+      searchTerm: debouncedSearchQuery.trim() || undefined,
       difficulties: Array.from(selectedDifficulties) as ProblemDifficulty[],
       tags: Array.from(selectedTags),
       orderBy: sortBy,
       orderByDirection: sortDirection
-      // TODO: Add search functionality to backend API
-      // searchQuery: debouncedSearchQuery.trim() || undefined,
     };
-  }, [
-    pageSize,
-    cursor,
-    isAdmin,
-    selectedDifficulties,
-    selectedTags,
-    sortBy,
-    sortDirection,
-    debouncedSearchQuery,
-    searchQuery
-  ]);
+  }, [pageSize, cursor, isAdmin, selectedDifficulties, selectedTags, sortBy, sortDirection, debouncedSearchQuery]);
 
-  const { data, isLoading, error } = useProblemsLimitedPaginated(queryParams);
+  const { data, isLoading, error, isFetching } = useProblemsLimitedPaginated(queryParams);
+  const { data: problemsCount } = useProblemsCount();
 
   const { data: favoriteProblems } = useUserFavoriteProblems(user?.id);
   const favoriteProblem = useFavoriteProblemForUser(user?.id || 0);
@@ -97,21 +78,7 @@ export const ProblemList = () => {
   // Memoize problems to avoid dependency issues in other useMemo hooks
   const problems = useMemo(() => data?.problems || [], [data?.problems]);
   const pageInfo = data?.pageInfo;
-  const totalCount = data?.totalCount || 0;
-
-  // Apply client-side search filtering until backend supports search
-  const filteredProblems = useMemo(() => {
-    if (!debouncedSearchQuery.trim()) {
-      return problems;
-    }
-
-    const searchTerm = debouncedSearchQuery.toLowerCase();
-    return problems.filter(
-      problem =>
-        problem.name.toLowerCase().includes(searchTerm) ||
-        problem.tags?.some(tag => tag.name.toLowerCase().includes(searchTerm))
-    );
-  }, [problems, debouncedSearchQuery]);
+  const totalCount = problemsCount ?? 0;
 
   // Pagination handlers
   const goToNextPage = useCallback(() => {
@@ -167,6 +134,12 @@ export const ProblemList = () => {
     setPreviousCursors([]);
   }, []);
 
+  const handlePageSizeChange = useCallback((newSize: number) => {
+    setPageSize(newSize);
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
   // Get current sort string for select component
   const currentSortString = useMemo(() => {
     const direction = sortDirection === OrderByDirection.Descending ? 'desc' : 'asc';
@@ -175,12 +148,12 @@ export const ProblemList = () => {
 
   // Select random problem
   const selectRandomProblem = useCallback(() => {
-    if (filteredProblems.length > 0) {
-      const randomIndex = Math.floor(Math.random() * filteredProblems.length);
-      const randomProblem = filteredProblems[randomIndex];
+    if (problems.length > 0) {
+      const randomIndex = Math.floor(Math.random() * problems.length);
+      const randomProblem = problems[randomIndex];
       navigate(`/problems/${randomProblem.id}`);
     }
-  }, [filteredProblems, navigate]);
+  }, [problems, navigate]);
 
   // Helper functions for difficulty display
   const getDifficultyColor = (difficulty: ProblemDifficulty) => {
@@ -257,7 +230,7 @@ export const ProblemList = () => {
             variant="ghost"
             size="md"
             onPress={selectRandomProblem}
-            isDisabled={filteredProblems.length === 0}
+            isDisabled={problems.length === 0}
             startContent={<ArrowPathIcon className="w-4 h-4" />}
             className="font-semibold shrink-0"
           >
@@ -273,6 +246,7 @@ export const ProblemList = () => {
               variant="bordered"
               size="md"
               startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+              endContent={isFetching ? <Spinner size="sm" color="primary" /> : undefined}
               className="w-full"
               aria-label="Search problems"
               isClearable
@@ -282,6 +256,31 @@ export const ProblemList = () => {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          {/* Page size selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-md text-default-600">Per page:</span>
+            <Select
+              selectedKeys={[pageSize.toString()]}
+              onSelectionChange={keys => {
+                const selected = Array.from(keys)[0] as string | undefined;
+                const parsed = selected ? Number.parseInt(selected, 10) : Number.NaN;
+                if (Number.isFinite(parsed)) {
+                  handlePageSizeChange(parsed);
+                }
+              }}
+              className="w-24"
+              variant="bordered"
+              size="md"
+              aria-label="Problems per page"
+              name="problem-page-size"
+            >
+              <SelectItem key="5">5</SelectItem>
+              <SelectItem key="10">10</SelectItem>
+              <SelectItem key="25">25</SelectItem>
+              <SelectItem key="50">50</SelectItem>
+            </Select>
+          </div>
+
           {/* Sort selector */}
           <div className="flex items-center gap-2">
             <span className="text-md text-default-600">Sort by:</span>
@@ -385,9 +384,7 @@ export const ProblemList = () => {
           {/* Active Filters Display */}
           {(searchQuery.trim() !== '' || selectedDifficulties.size > 0 || selectedTags.size > 0) && (
             <div className="space-y-2">
-              <div className="text-sm text-default-600">
-                Active filters (showing {filteredProblems.length} results):
-              </div>
+              <div className="text-sm text-default-600">Active filters (showing {problems.length} results):</div>
               <div className="flex flex-wrap gap-2">
                 {searchQuery.trim() !== '' && (
                   <Chip color="default" variant="flat" size="sm" onClose={() => handleSearchChange('')}>
@@ -435,7 +432,7 @@ export const ProblemList = () => {
       {/* Pagination and Results Info */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-default-600">
-          Showing {filteredProblems.length} problems {totalCount ? `of ${totalCount} total` : ''}
+          Showing {problems.length} problems {totalCount ? `of ${totalCount} total` : ''}
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="bordered" onPress={goToPreviousPage} isDisabled={previousCursors.length === 0}>
@@ -449,7 +446,7 @@ export const ProblemList = () => {
 
       {/* Problems Grid */}
       <div className="grid gap-4">
-        {filteredProblems.length === 0 ? (
+        {problems.length === 0 ? (
           <Card className="p-8">
             <CardBody className="text-center">
               <div className="text-lg text-default-600 mb-2">No problems found</div>
@@ -461,7 +458,7 @@ export const ProblemList = () => {
             </CardBody>
           </Card>
         ) : (
-          filteredProblems.map(problem => (
+          problems.map(problem => (
             <div
               key={problem.id}
               role="button"

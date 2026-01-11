@@ -520,6 +520,166 @@ public static class CollectionExtensions
     }
 
     /// <summary>
+    /// Creates a cursor-paginated list from an IEnumerable source with ordering by two fields.
+    /// The final ordering is: primary order field, secondary order field, then entity key.
+    /// Supports independent direction for primary and secondary fields.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type.</typeparam>
+    /// <typeparam name="TEntityKey">The type of the entity key used for cursor-based pagination.</typeparam>
+    /// <typeparam name="TPrimaryOrderKey">The type of the primary field used for ordering.</typeparam>
+    /// <typeparam name="TSecondaryOrderKey">The type of the secondary field used for ordering.</typeparam>
+    /// <param name="src">The IEnumerable source.</param>
+    /// <param name="keySelector">Function to select the key from the entity.</param>
+    /// <param name="primaryOrderSelector">Function to select the primary ordering field from the entity.</param>
+    /// <param name="secondaryOrderSelector">Function to select the secondary ordering field from the entity.</param>
+    /// <param name="compositeKeyConverter">Function to convert the composite key (primary value, secondary value, entity key) to a string cursor.</param>
+    /// <param name="compositeCursorConverter">Function to convert a string cursor back to a composite key (primary value, secondary value, entity key).</param>
+    /// <param name="first">Number of items to take from the beginning of the result set.</param>
+    /// <param name="last">Number of items to take from the end of the result set.</param>
+    /// <param name="afterCursor">Cursor indicating to start after this position.</param>
+    /// <param name="beforeCursor">Cursor indicating to end before this position.</param>
+    /// <param name="includeTotal">Whether to include the total count of items.</param>
+    /// <param name="primaryAscending">Whether to order the primary field in ascending order. Default is true.</param>
+    /// <param name="secondaryAscending">Whether to order the secondary field in ascending order. Default is true.</param>
+    /// <returns>A cursor paginated list.</returns>
+    public static CursorPaginatedList<TEntity, TEntityKey> ToCursorPaginatedList<TEntity, TEntityKey, TPrimaryOrderKey, TSecondaryOrderKey>(
+        this IEnumerable<TEntity> src,
+        Func<TEntity, TEntityKey> keySelector,
+        Func<TEntity, TPrimaryOrderKey> primaryOrderSelector,
+        Func<TEntity, TSecondaryOrderKey> secondaryOrderSelector,
+        Func<(TPrimaryOrderKey PrimaryOrderValue, TSecondaryOrderKey SecondaryOrderValue, TEntityKey Key), string> compositeKeyConverter,
+        Func<string, (TPrimaryOrderKey PrimaryOrderValue, TSecondaryOrderKey SecondaryOrderValue, TEntityKey Key)> compositeCursorConverter,
+        int? first,
+        int? last,
+        string? afterCursor,
+        string? beforeCursor,
+        bool includeTotal,
+        bool primaryAscending = true,
+        bool secondaryAscending = true)
+            where TEntity : class
+            where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
+            where TPrimaryOrderKey : IComparable<TPrimaryOrderKey>
+            where TSecondaryOrderKey : IComparable<TSecondaryOrderKey>
+    {
+        ArgumentNullException.ThrowIfNull(src);
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ArgumentNullException.ThrowIfNull(primaryOrderSelector);
+        ArgumentNullException.ThrowIfNull(secondaryOrderSelector);
+        ArgumentNullException.ThrowIfNull(compositeKeyConverter);
+        ArgumentNullException.ThrowIfNull(compositeCursorConverter);
+
+        var source = includeTotal ? src.ToList() : src;
+
+        if (first != null && last != null)
+        {
+            throw new NotSupportedException($"Passing both `{nameof(first)}` and `{nameof(last)}` to paginate is not supported.");
+        }
+
+        int CompareEntityToCursor(TEntity entity, (TPrimaryOrderKey PrimaryOrderValue, TSecondaryOrderKey SecondaryOrderValue, TEntityKey Key) cursorValues)
+        {
+            var primaryCompare = primaryOrderSelector(entity).CompareTo(cursorValues.PrimaryOrderValue);
+            if (!primaryAscending)
+            {
+                primaryCompare = -primaryCompare;
+            }
+
+            if (primaryCompare != 0)
+            {
+                return primaryCompare;
+            }
+
+            var secondaryCompare = secondaryOrderSelector(entity).CompareTo(cursorValues.SecondaryOrderValue);
+            if (!secondaryAscending)
+            {
+                secondaryCompare = -secondaryCompare;
+            }
+
+            if (secondaryCompare != 0)
+            {
+                return secondaryCompare;
+            }
+
+            return keySelector(entity).CompareTo(cursorValues.Key);
+        }
+
+        if (afterCursor != null)
+        {
+            var after = compositeCursorConverter(afterCursor);
+            source = source.Where(entity => CompareEntityToCursor(entity, after) > 0);
+        }
+
+        if (beforeCursor != null)
+        {
+            var before = compositeCursorConverter(beforeCursor);
+            source = source.Where(entity => CompareEntityToCursor(entity, before) < 0);
+        }
+
+        EnumerableOrderer<TEntity> orderSource = (src, isFirst) =>
+        {
+            if (isFirst)
+            {
+                var ordered = primaryAscending ? src.OrderBy(primaryOrderSelector) : src.OrderByDescending(primaryOrderSelector);
+                ordered = secondaryAscending ? ordered.ThenBy(secondaryOrderSelector) : ordered.ThenByDescending(secondaryOrderSelector);
+                return ordered.ThenBy(keySelector);
+            }
+            else
+            {
+                var ordered = primaryAscending ? src.OrderByDescending(primaryOrderSelector) : src.OrderBy(primaryOrderSelector);
+                ordered = secondaryAscending ? ordered.ThenByDescending(secondaryOrderSelector) : ordered.ThenBy(secondaryOrderSelector);
+                return ordered.ThenByDescending(keySelector);
+            }
+        };
+
+        Func<TEntity, string> createCursor = entity =>
+            compositeKeyConverter((primaryOrderSelector(entity), secondaryOrderSelector(entity), keySelector(entity)));
+
+        return ExecutePagination<TEntity, TEntityKey>(
+            source,
+            orderSource,
+            first,
+            last,
+            afterCursor,
+            beforeCursor,
+            includeTotal,
+            createCursor);
+    }
+
+    /// <summary>
+    /// Creates a cursor-paginated list from an IEnumerable source with ordering by two fields using query parameters.
+    /// </summary>
+    public static CursorPaginatedList<TEntity, TEntityKey> ToCursorPaginatedList<TEntity, TEntityKey, TPrimaryOrderKey, TSecondaryOrderKey>(
+        this IEnumerable<TEntity> src,
+        Func<TEntity, TEntityKey> keySelector,
+        Func<TEntity, TPrimaryOrderKey> primaryOrderSelector,
+        Func<TEntity, TSecondaryOrderKey> secondaryOrderSelector,
+        Func<(TPrimaryOrderKey PrimaryOrderValue, TSecondaryOrderKey SecondaryOrderValue, TEntityKey Key), string> compositeKeyConverter,
+        Func<string, (TPrimaryOrderKey PrimaryOrderValue, TSecondaryOrderKey SecondaryOrderValue, TEntityKey Key)> compositeCursorConverter,
+        CursorPaginationQueryParameters queryParameters,
+        bool primaryAscending = true,
+        bool secondaryAscending = true)
+            where TEntity : class
+            where TEntityKey : IEquatable<TEntityKey>, IComparable<TEntityKey>
+            where TPrimaryOrderKey : IComparable<TPrimaryOrderKey>
+            where TSecondaryOrderKey : IComparable<TSecondaryOrderKey>
+    {
+        ArgumentNullException.ThrowIfNull(queryParameters);
+
+        return src.ToCursorPaginatedList(
+            keySelector,
+            primaryOrderSelector,
+            secondaryOrderSelector,
+            compositeKeyConverter,
+            compositeCursorConverter,
+            queryParameters.First,
+            queryParameters.Last,
+            queryParameters.After,
+            queryParameters.Before,
+            queryParameters.IncludeTotal,
+            primaryAscending,
+            secondaryAscending);
+    }
+
+    /// <summary>
     /// Common helper method for executing cursor pagination logic.
     /// </summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>

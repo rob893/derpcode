@@ -25,6 +25,7 @@ import type { LoginRequest, RegisterRequest } from '../types/auth';
 // Query Keys
 export const queryKeys = {
   problemsLimited: (queryParams?: Partial<ProblemQueryParameters>) => ['problems', 'limited', queryParams] as const,
+  problemsCount: ['problems', 'count'] as const,
   problem: (id: number) => ['problems', id] as const,
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
@@ -127,6 +128,14 @@ export const useUnfavoriteProblemForUser = (userId: number) => {
 };
 
 // Problem hooks
+export const useProblemsCount = () => {
+  return useQuery({
+    queryKey: queryKeys.problemsCount,
+    queryFn: () => problemsApi.getProblemsCount(),
+    staleTime: 30 * 60 * 1000 // 30 minutes
+  });
+};
+
 export const useProblemsLimitedPaginated = (queryParams?: Partial<ProblemQueryParameters>) => {
   const { isLoading: isAuthLoading } = useAuth();
 
@@ -138,7 +147,7 @@ export const useProblemsLimitedPaginated = (queryParams?: Partial<ProblemQueryPa
     select: data => ({
       problems: data.nodes || data.edges?.map(edge => edge.node) || [],
       pageInfo: data.pageInfo,
-      totalCount: data.pageInfo.totalCount
+      totalCount: data.pageInfo.totalCount ?? 0
     })
   });
 };
@@ -414,7 +423,7 @@ export const useTags = (queryParams?: Partial<CursorPaginationQueryParameters>) 
     select: data => ({
       tags: data.nodes || [],
       pageInfo: data.pageInfo,
-      totalCount: data.pageInfo.totalCount
+      totalCount: data.pageInfo.totalCount ?? 0
     })
   });
 };
@@ -429,7 +438,7 @@ export const useAllTags = () => {
 
       // Fetch tags in batches until we have all of them
       while (hasMore) {
-        const response = await tagsApi.getTags({ first: 100, after: afterCursor, includeTotal: false });
+        const response = await tagsApi.getTags({ first: 100, after: afterCursor });
         const tags = response.nodes || [];
         allTags.push(...tags);
 

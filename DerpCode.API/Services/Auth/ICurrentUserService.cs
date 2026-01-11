@@ -6,6 +6,8 @@ namespace DerpCode.API.Services.Auth;
 
 public interface ICurrentUserService
 {
+    bool IsUserLoggedIn { get; }
+
     int UserId { get; }
 
     string UserName { get; }

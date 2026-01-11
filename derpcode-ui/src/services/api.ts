@@ -39,6 +39,9 @@ function appendProblemQueryParams(
   if (queryParams?.includeUnpublished !== undefined) {
     params.append('includeUnpublished', queryParams.includeUnpublished.toString());
   }
+  if (queryParams?.searchTerm && queryParams.searchTerm.trim().length > 0) {
+    params.append('searchTerm', queryParams.searchTerm.trim());
+  }
   if (queryParams?.difficulties && queryParams.difficulties.length > 0) {
     queryParams.difficulties.forEach(difficulty => params.append('difficulties', difficulty.toString()));
   }
@@ -64,6 +67,11 @@ function appendCommentPaginationParams(
 }
 
 export const problemsApi = {
+  async getProblemsCount(): Promise<number> {
+    const response = await apiClient.get<number>('/api/v1/problems/count');
+    return response.data;
+  },
+
   async getProblems(queryParams?: Partial<ProblemQueryParameters>): Promise<CursorPaginatedResponse<Problem>> {
     const params = new URLSearchParams();
 

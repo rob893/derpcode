@@ -8,6 +8,72 @@ namespace DerpCode.API.Utilities;
 /// </summary>
 public static class CursorConverters
 {
+    #region Int+String+Int Composite Methods
+
+    /// <summary>
+    /// Creates a composite key converter for int primary order value, string secondary order value, and int entity key.
+    /// </summary>
+    public static Func<(int PrimaryOrderValue, string SecondaryOrderValue, int Key), string> CreateCompositeKeyConverterIntStringInt()
+    {
+        return composite =>
+            $"{composite.PrimaryOrderValue.ConvertToBase64UrlEncodedString()}|{composite.SecondaryOrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
+    }
+
+    /// <summary>
+    /// Creates a composite cursor converter for int primary order value, string secondary order value, and int entity key.
+    /// </summary>
+    public static Func<string, (int PrimaryOrderValue, string SecondaryOrderValue, int Key)> CreateCompositeCursorConverterIntStringInt()
+    {
+        return cursor =>
+        {
+            var parts = cursor.Split('|');
+            if (parts.Length != 3)
+            {
+                throw new ArgumentException($"Invalid composite cursor format: {cursor}");
+            }
+
+            return (
+                parts[0].ConvertToInt32FromBase64UrlEncodedString(),
+                parts[1].ConvertToStringFromBase64UrlEncodedString(),
+                parts[2].ConvertToInt32FromBase64UrlEncodedString());
+        };
+    }
+
+    #endregion
+
+    #region Int+Int+Int Composite Methods
+
+    /// <summary>
+    /// Creates a composite key converter for int primary order value, int secondary order value, and int entity key.
+    /// </summary>
+    public static Func<(int PrimaryOrderValue, int SecondaryOrderValue, int Key), string> CreateCompositeKeyConverterIntIntInt()
+    {
+        return composite =>
+            $"{composite.PrimaryOrderValue.ConvertToBase64UrlEncodedString()}|{composite.SecondaryOrderValue.ConvertToBase64UrlEncodedString()}|{composite.Key.ConvertToBase64UrlEncodedString()}";
+    }
+
+    /// <summary>
+    /// Creates a composite cursor converter for int primary order value, int secondary order value, and int entity key.
+    /// </summary>
+    public static Func<string, (int PrimaryOrderValue, int SecondaryOrderValue, int Key)> CreateCompositeCursorConverterIntIntInt()
+    {
+        return cursor =>
+        {
+            var parts = cursor.Split('|');
+            if (parts.Length != 3)
+            {
+                throw new ArgumentException($"Invalid composite cursor format: {cursor}");
+            }
+
+            return (
+                parts[0].ConvertToInt32FromBase64UrlEncodedString(),
+                parts[1].ConvertToInt32FromBase64UrlEncodedString(),
+                parts[2].ConvertToInt32FromBase64UrlEncodedString());
+        };
+    }
+
+    #endregion
+
     #region String Order Value Methods
 
     /// <summary>

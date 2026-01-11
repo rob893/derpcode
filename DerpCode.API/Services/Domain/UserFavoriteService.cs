@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Services.Auth;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Services.Domain;
@@ -22,20 +24,25 @@ public sealed class UserFavoriteService : IUserFavoriteService
 
     private readonly ICurrentUserService currentUserService;
 
+    private readonly IMemoryCache cache;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UserFavoriteService"/> class
     /// </summary>
     /// <param name="logger">The logger</param>
     /// <param name="userRepository">The user repository</param>
     /// <param name="currentUserService">The current user service</param>
+    /// <param name="cache">The memory cache</param>
     public UserFavoriteService(
         ILogger<UserFavoriteService> logger,
         IUserRepository userRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IMemoryCache cache)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     /// <inheritdoc />
@@ -65,6 +72,8 @@ public sealed class UserFavoriteService : IUserFavoriteService
         {
             var favorite = await this.userRepository.FavoriteProblemForUserAsync(userId, problemId, cancellationToken);
 
+            this.cache.Remove(CacheKeys.UserFavoriteProblemIdsPrefix + userId);
+
             return Result<UserFavoriteProblemDto>.Success(UserFavoriteProblemDto.FromEntity(favorite));
         }
         catch (KeyNotFoundException)
@@ -84,6 +93,11 @@ public sealed class UserFavoriteService : IUserFavoriteService
         }
 
         var res = await this.userRepository.UnfavoriteProblemForUserAsync(userId, problemId, cancellationToken);
+
+        if (res)
+        {
+            this.cache.Remove(CacheKeys.UserFavoriteProblemIdsPrefix + userId);
+        }
 
         return Result<bool>.Success(res);
     }
