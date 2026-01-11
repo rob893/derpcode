@@ -167,7 +167,10 @@ describe('contexts/AuthContext', () => {
     let ctx: any;
 
     function Probe() {
-      ctx = useContext(AuthContext);
+      const value = useContext(AuthContext);
+      useEffect(() => {
+        ctx = value;
+      }, [value]);
       return <div />;
     }
 
@@ -201,7 +204,10 @@ describe('contexts/AuthContext', () => {
     let ctx: any;
 
     function Probe() {
-      ctx = useContext(AuthContext);
+      const value = useContext(AuthContext);
+      useEffect(() => {
+        ctx = value;
+      }, [value]);
       return <div />;
     }
 
