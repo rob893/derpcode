@@ -54,7 +54,8 @@ DerpCode is a LeetCode-style algorithm practice platform (snarky/gamified). Itâ€
 
 ## UI Testing
 
-- Use the Playwright MCP server to test UI changes. Credentials for the test user to use are found locally in `appsettings.Local.json` (note that this file is not tracked by git and will not exist in CI or deployed environments).
+- When writing UI features, include unit tests using Jest and integration/e2e tests using Playwright.
+- Use the Playwright MCP server to test UI changes locally. Credentials for the test user to use are found locally in `appsettings.Local.json` (note that this file is not tracked by git and will not exist in CI or deployed environments).
 
 ## UI styling (typography + color scheme)
 
