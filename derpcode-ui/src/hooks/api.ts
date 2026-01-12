@@ -271,6 +271,7 @@ export const useSubmitSolution = (userId: number, problemId: number) => {
       problemsApi.submitSolution(problemId, userCode, language),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.userSubmissions(userId, problemId) });
+      queryClient.invalidateQueries({ queryKey: ['problems', 'limited', 'personalized'] });
     }
   });
 };
