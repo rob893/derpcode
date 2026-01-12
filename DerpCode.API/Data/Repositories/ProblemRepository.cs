@@ -1,5 +1,9 @@
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.Entities;
 using DerpCode.API.Models.QueryParameters;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +12,33 @@ namespace DerpCode.API.Data.Repositories;
 
 public sealed class ProblemRepository(DataContext context) : Repository<Problem, CursorPaginationQueryParameters>(context), IProblemRepository
 {
+    public async Task<IReadOnlyList<PersonalizedProblemLimitedDto>> GetPersonalizedProblemListAsync(int userId, CancellationToken cancellationToken)
+    {
+        var problems = await this.Context.Problems
+            .AsNoTracking()
+            .Select(p => new PersonalizedProblemLimitedDto
+            {
+                Id = p.Id,
+                IsPublished = p.IsPublished,
+                Name = p.Name,
+                Difficulty = p.Difficulty,
+                IsFavorite = p.FavoritedByUsers.Any(f => f.UserId == userId),
+                Tags = p.Tags
+                    .Select(t => new TagDto
+                    {
+                        Id = t.Id,
+                        Name = t.Name
+                    }).ToList(),
+                LastPassedSubmissionDate = p.ProblemSubmissions
+                    .Where(submission => submission.UserId == userId && submission.Pass)
+                    .Max(submission => submission.CreatedAt)
+            }
+            )
+            .ToListAsync(cancellationToken);
+
+        return problems;
+    }
+
     protected override IQueryable<Problem> AddIncludes(IQueryable<Problem> query)
     {
         return query

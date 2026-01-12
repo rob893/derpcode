@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
@@ -29,6 +30,13 @@ public interface IProblemService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A paginated list of problems</returns>
     Task<CursorPaginatedList<ProblemLimitedDto, int>> GetProblemsLimitedAsync(ProblemQueryParameters searchParams, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves a personalized list of problems with limited data
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A list of personalized problems with limited details</returns>
+    Task<IReadOnlyList<PersonalizedProblemLimitedDto>> GetPersonalizedProblemListAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Retrieves a single problem by ID

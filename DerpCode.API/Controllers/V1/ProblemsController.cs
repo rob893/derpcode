@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
@@ -63,6 +64,19 @@ public sealed class ProblemsController : ServiceControllerBase
         var problems = await this.problemService.GetProblemsLimitedAsync(searchParams, this.HttpContext.RequestAborted);
         var response = problems.ToCursorPaginatedResponse(searchParams);
         return this.Ok(response);
+    }
+
+    /// <summary>
+    /// Gets a personalized list of problems with limited information.
+    /// </summary>
+    /// <returns>A list of personalized problems with limited details.</returns>
+    /// <response code="200">Returns the list of personalized problems with limited information.</response>
+    [HttpGet("limited/personalized", Name = nameof(GetPersonalizedProblemListAsync))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<PersonalizedProblemLimitedDto>>> GetPersonalizedProblemListAsync()
+    {
+        var problems = await this.problemService.GetPersonalizedProblemListAsync(this.HttpContext.RequestAborted);
+        return this.Ok(problems);
     }
 
     /// <summary>

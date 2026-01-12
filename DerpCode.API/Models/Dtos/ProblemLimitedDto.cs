@@ -5,7 +5,7 @@ using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.Dtos;
 
-public sealed record ProblemLimitedDto : IIdentifiable<int>
+public record ProblemLimitedDto : IIdentifiable<int>
 {
     public required int Id { get; init; }
 
@@ -30,4 +30,11 @@ public sealed record ProblemLimitedDto : IIdentifiable<int>
             Tags = [.. problem.Tags.Select(TagDto.FromEntity)]
         };
     }
+}
+
+public sealed record PersonalizedProblemLimitedDto : ProblemLimitedDto
+{
+    public required bool IsFavorite { get; init; }
+
+    public DateTimeOffset? LastPassedSubmissionDate { get; init; }
 }

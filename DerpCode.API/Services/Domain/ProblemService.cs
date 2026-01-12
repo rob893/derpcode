@@ -91,6 +91,12 @@ public sealed class ProblemService : IProblemService
     }
 
     /// <inheritdoc />
+    public Task<IReadOnlyList<PersonalizedProblemLimitedDto>> GetPersonalizedProblemListAsync(CancellationToken cancellationToken)
+    {
+        return this.problemRepository.GetPersonalizedProblemListAsync(this.currentUserService.UserId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<ProblemDto?> GetProblemByIdAsync(int id, CancellationToken cancellationToken)
     {
         var problems = await this.GetProblemsFromCacheAsync(cancellationToken);
