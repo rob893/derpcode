@@ -40,6 +40,11 @@ export interface ProblemLimited {
   tags: TagDto[];
   difficulty: ProblemDifficulty;
   isPublished: boolean;
+
+  // Present only when fetched via /problems/limited/personalized
+  isFavorite?: boolean;
+  lastPassedSubmissionDate?: string | null;
+  lastSubmissionDate?: string | null;
 }
 
 export interface UserFavoriteProblem {
@@ -208,6 +213,11 @@ export interface ProblemQueryParameters extends CursorPaginationQueryParameters 
   tags?: string[];
   orderBy?: ProblemOrderBy;
   orderByDirection?: OrderByDirection;
+
+  // Only supported by /problems/limited/personalized
+  isFavorite?: boolean;
+  hasAttempted?: boolean;
+  hasPassed?: boolean;
 }
 
 export enum ProblemOrderBy {

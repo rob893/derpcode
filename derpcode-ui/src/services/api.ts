@@ -54,6 +54,16 @@ function appendProblemQueryParams(
   if (queryParams?.orderByDirection) {
     params.append('orderByDirection', queryParams.orderByDirection.toString());
   }
+
+  if (queryParams?.isFavorite !== undefined) {
+    params.append('isFavorite', queryParams.isFavorite.toString());
+  }
+  if (queryParams?.hasAttempted !== undefined) {
+    params.append('hasAttempted', queryParams.hasAttempted.toString());
+  }
+  if (queryParams?.hasPassed !== undefined) {
+    params.append('hasPassed', queryParams.hasPassed.toString());
+  }
 }
 
 function appendCommentPaginationParams(
@@ -92,6 +102,22 @@ export const problemsApi = {
     appendProblemQueryParams(params, queryParams);
 
     const url = params.toString() ? `/api/v1/problems/limited?${params.toString()}` : '/api/v1/problems/limited';
+    const response = await apiClient.get<CursorPaginatedResponse<ProblemLimited>>(url);
+    return response.data;
+  },
+
+  async getProblemsLimitedPersonalized(
+    queryParams?: Partial<ProblemQueryParameters>
+  ): Promise<CursorPaginatedResponse<ProblemLimited>> {
+    const params = new URLSearchParams();
+
+    appendCursorPaginationParams(params, queryParams);
+    appendProblemQueryParams(params, queryParams);
+
+    const url = params.toString()
+      ? `/api/v1/problems/limited/personalized?${params.toString()}`
+      : '/api/v1/problems/limited/personalized';
+
     const response = await apiClient.get<CursorPaginatedResponse<ProblemLimited>>(url);
     return response.data;
   },

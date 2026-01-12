@@ -25,6 +25,8 @@ import type { LoginRequest, RegisterRequest } from '../types/auth';
 // Query Keys
 export const queryKeys = {
   problemsLimited: (queryParams?: Partial<ProblemQueryParameters>) => ['problems', 'limited', queryParams] as const,
+  problemsLimitedPersonalized: (queryParams?: Partial<ProblemQueryParameters>) =>
+    ['problems', 'limited', 'personalized', queryParams] as const,
   problemsCount: ['problems', 'count'] as const,
   problem: (id: number) => ['problems', id] as const,
   driverTemplates: ['driverTemplates'] as const,
@@ -96,6 +98,8 @@ export const useFavoriteProblemForUser = (userId: number) => {
         const withoutDup = existing.filter(f => f.problemId !== favorite.problemId);
         return [...withoutDup, favorite];
       });
+
+      queryClient.invalidateQueries({ queryKey: ['problems', 'limited', 'personalized'] });
     }
   });
 };
@@ -123,6 +127,9 @@ export const useUnfavoriteProblemForUser = (userId: number) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.userFavoriteProblems(userId), context.previous);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['problems', 'limited', 'personalized'] });
     }
   });
 };
@@ -137,11 +144,16 @@ export const useProblemsCount = () => {
 };
 
 export const useProblemsLimitedPaginated = (queryParams?: Partial<ProblemQueryParameters>) => {
-  const { isLoading: isAuthLoading } = useAuth();
+  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: queryKeys.problemsLimited(queryParams),
-    queryFn: () => problemsApi.getProblemsLimited(queryParams),
+    queryKey: isAuthenticated
+      ? queryKeys.problemsLimitedPersonalized(queryParams)
+      : queryKeys.problemsLimited(queryParams),
+    queryFn: () =>
+      isAuthenticated
+        ? problemsApi.getProblemsLimitedPersonalized(queryParams)
+        : problemsApi.getProblemsLimited(queryParams),
     enabled: !isAuthLoading, // Wait for auth initialization
     staleTime: 30 * 60 * 1000, // 30 minutes for paginated data
     select: data => ({

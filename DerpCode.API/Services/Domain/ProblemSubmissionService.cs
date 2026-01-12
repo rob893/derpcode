@@ -2,12 +2,14 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Dtos;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Core;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Services.Domain;
@@ -27,6 +29,8 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
 
     private readonly ICurrentUserService currentUserService;
 
+    private readonly IMemoryCache cache;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProblemSubmissionService"/> class
     /// </summary>
@@ -35,18 +39,21 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
     /// <param name="problemRepository">The problem repository</param>
     /// <param name="problemSubmissionRepository">The problem submission repository</param>
     /// <param name="currentUserService">The current user service</param>
+    /// <param name="cache">The memory cache</param>
     public ProblemSubmissionService(
         ILogger<ProblemSubmissionService> logger,
         ICodeExecutionService codeExecutionService,
         IProblemRepository problemRepository,
         IProblemSubmissionRepository problemSubmissionRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IMemoryCache cache)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.codeExecutionService = codeExecutionService ?? throw new ArgumentNullException(nameof(codeExecutionService));
         this.problemRepository = problemRepository ?? throw new ArgumentNullException(nameof(problemRepository));
         this.problemSubmissionRepository = problemSubmissionRepository ?? throw new ArgumentNullException(nameof(problemSubmissionRepository));
         this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     /// <inheritdoc />
@@ -113,6 +120,8 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
                 this.logger.LogError("Failed to save submission for problem {ProblemId} by user {UserId}", problemId, this.currentUserService.UserId);
                 return Result<ProblemSubmissionDto>.Failure(DomainErrorType.Unknown, "Failed to save submission. Please try again later.");
             }
+
+            this.cache.Remove(CacheKeys.GetPersonalizedProblemsKey(this.currentUserService.UserId));
 
             return Result<ProblemSubmissionDto>.Success(ProblemSubmissionDto.FromEntity(result, this.currentUserService.IsAdmin || this.currentUserService.IsPremiumUser, stdOut));
         }

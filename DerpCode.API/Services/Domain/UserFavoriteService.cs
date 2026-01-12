@@ -72,7 +72,7 @@ public sealed class UserFavoriteService : IUserFavoriteService
         {
             var favorite = await this.userRepository.FavoriteProblemForUserAsync(userId, problemId, cancellationToken);
 
-            this.cache.Remove(CacheKeys.UserFavoriteProblemIdsPrefix + userId);
+            this.cache.Remove(CacheKeys.GetPersonalizedProblemsKey(userId));
 
             return Result<UserFavoriteProblemDto>.Success(UserFavoriteProblemDto.FromEntity(favorite));
         }
@@ -96,7 +96,7 @@ public sealed class UserFavoriteService : IUserFavoriteService
 
         if (res)
         {
-            this.cache.Remove(CacheKeys.UserFavoriteProblemIdsPrefix + userId);
+            this.cache.Remove(CacheKeys.GetPersonalizedProblemsKey(userId));
         }
 
         return Result<bool>.Success(res);

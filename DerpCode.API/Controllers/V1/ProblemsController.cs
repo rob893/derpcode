@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Extensions;
@@ -8,6 +7,7 @@ using DerpCode.API.Models.QueryParameters;
 using DerpCode.API.Models.Requests;
 using DerpCode.API.Models.Responses;
 using DerpCode.API.Models.Responses.Pagination;
+using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Core;
 using DerpCode.API.Services.Domain;
 using DerpCode.API.Services.Integrations;
@@ -27,11 +27,18 @@ public sealed class ProblemsController : ServiceControllerBase
 
     private readonly IGitHubService gitHubService;
 
-    public ProblemsController(ICorrelationIdService correlationIdService, IProblemService problemService, IGitHubService gitHubService)
+    private readonly ICurrentUserService currentUserService;
+
+    public ProblemsController(
+        ICorrelationIdService correlationIdService,
+        IProblemService problemService,
+        IGitHubService gitHubService,
+        ICurrentUserService currentUserService)
         : base(correlationIdService)
     {
         this.problemService = problemService ?? throw new ArgumentNullException(nameof(problemService));
         this.gitHubService = gitHubService ?? throw new ArgumentNullException(nameof(gitHubService));
+        this.currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     /// <summary>
@@ -69,14 +76,23 @@ public sealed class ProblemsController : ServiceControllerBase
     /// <summary>
     /// Gets a personalized list of problems with limited information.
     /// </summary>
+    /// <param name="searchParams">The query parameters for filtering and pagination.</param>
     /// <returns>A list of personalized problems with limited details.</returns>
     /// <response code="200">Returns the list of personalized problems with limited information.</response>
     [HttpGet("limited/personalized", Name = nameof(GetPersonalizedProblemListAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<PersonalizedProblemLimitedDto>>> GetPersonalizedProblemListAsync()
+    public async Task<ActionResult<CursorPaginatedResponse<PersonalizedProblemLimitedDto>>> GetPersonalizedProblemListAsync([FromQuery] PersonalizedProblemListQueryParameters searchParams)
     {
-        var problems = await this.problemService.GetPersonalizedProblemListAsync(this.HttpContext.RequestAborted);
-        return this.Ok(problems);
+        var problems = await this.problemService.GetPersonalizedProblemListAsync(this.currentUserService.UserId, searchParams, this.HttpContext.RequestAborted);
+
+        if (!problems.IsSuccess)
+        {
+            return this.HandleServiceFailureResult(problems);
+        }
+
+        var response = problems.ValueOrThrow.ToCursorPaginatedResponse(searchParams);
+
+        return this.Ok(response);
     }
 
     /// <summary>

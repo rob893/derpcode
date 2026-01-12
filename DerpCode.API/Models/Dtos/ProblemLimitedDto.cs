@@ -37,4 +37,6 @@ public sealed record PersonalizedProblemLimitedDto : ProblemLimitedDto
     public required bool IsFavorite { get; init; }
 
     public DateTimeOffset? LastPassedSubmissionDate { get; init; }
+
+    public DateTimeOffset? LastSubmissionDate { get; init; }
 }

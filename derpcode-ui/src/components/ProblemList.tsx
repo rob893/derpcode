@@ -5,7 +5,9 @@ import {
   FunnelIcon,
   ArrowPathIcon,
   MagnifyingGlassIcon,
-  StarIcon as StarIconOutline
+  StarIcon as StarIconOutline,
+  CheckCircleIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { ProblemDifficulty, ProblemOrderBy, OrderByDirection } from '../types/models';
@@ -14,7 +16,6 @@ import {
   useProblemsLimitedPaginated,
   useProblemsCount,
   useAllTags,
-  useUserFavoriteProblems,
   useFavoriteProblemForUser,
   useUnfavoriteProblemForUser
 } from '../hooks/api';
@@ -32,6 +33,9 @@ export const ProblemList = () => {
   // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [favoriteFilter, setFavoriteFilter] = useState<'any' | 'true' | 'false'>('any');
+  const [attemptedFilter, setAttemptedFilter] = useState<'any' | 'true' | 'false'>('any');
+  const [passedFilter, setPassedFilter] = useState<'any' | 'true' | 'false'>('any');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ProblemOrderBy>(ProblemOrderBy.Difficulty);
@@ -47,6 +51,10 @@ export const ProblemList = () => {
 
   // Build query parameters
   const queryParams = useMemo(() => {
+    const isFavorite = favoriteFilter === 'any' ? undefined : favoriteFilter === 'true';
+    const hasAttempted = attemptedFilter === 'any' ? undefined : attemptedFilter === 'true';
+    const hasPassed = passedFilter === 'any' ? undefined : passedFilter === 'true';
+
     return {
       first: pageSize,
       after: cursor,
@@ -55,23 +63,35 @@ export const ProblemList = () => {
       difficulties: Array.from(selectedDifficulties) as ProblemDifficulty[],
       tags: Array.from(selectedTags),
       orderBy: sortBy,
-      orderByDirection: sortDirection
+      orderByDirection: sortDirection,
+
+      ...(isAuthenticated
+        ? {
+            isFavorite,
+            hasAttempted,
+            hasPassed
+          }
+        : {})
     };
-  }, [pageSize, cursor, isAdmin, selectedDifficulties, selectedTags, sortBy, sortDirection, debouncedSearchQuery]);
+  }, [
+    pageSize,
+    cursor,
+    isAdmin,
+    selectedDifficulties,
+    selectedTags,
+    sortBy,
+    sortDirection,
+    debouncedSearchQuery,
+    isAuthenticated,
+    favoriteFilter,
+    attemptedFilter,
+    passedFilter
+  ]);
 
   const { data, isLoading, error, isFetching } = useProblemsLimitedPaginated(queryParams);
   const { data: problemsCount } = useProblemsCount();
-
-  const { data: favoriteProblems } = useUserFavoriteProblems(user?.id);
   const favoriteProblem = useFavoriteProblemForUser(user?.id || 0);
   const unfavoriteProblem = useUnfavoriteProblemForUser(user?.id || 0);
-
-  const favoriteProblemIds = useMemo(() => {
-    if (!favoriteProblems) {
-      return new Set<number>();
-    }
-    return new Set<number>(favoriteProblems.map(f => f.problemId));
-  }, [favoriteProblems]);
 
   const isFavoriteMutationInFlight = favoriteProblem.isPending || unfavoriteProblem.isPending;
 
@@ -102,6 +122,9 @@ export const ProblemList = () => {
     setSearchQuery('');
     setSelectedDifficulties(new Set());
     setSelectedTags(new Set());
+    setFavoriteFilter('any');
+    setAttemptedFilter('any');
+    setPassedFilter('any');
     setCursor(undefined);
     setPreviousCursors([]);
   }, []);
@@ -124,6 +147,27 @@ export const ProblemList = () => {
 
   const handleTagsChange = useCallback((keys: any) => {
     setSelectedTags(new Set(Array.from(keys).map(String)));
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  const handleFavoriteFilterChange = useCallback((keys: any) => {
+    const selected = Array.from(keys)[0] as 'any' | 'true' | 'false' | undefined;
+    setFavoriteFilter(selected ?? 'any');
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  const handleAttemptedFilterChange = useCallback((keys: any) => {
+    const selected = Array.from(keys)[0] as 'any' | 'true' | 'false' | undefined;
+    setAttemptedFilter(selected ?? 'any');
+    setCursor(undefined);
+    setPreviousCursors([]);
+  }, []);
+
+  const handlePassedFilterChange = useCallback((keys: any) => {
+    const selected = Array.from(keys)[0] as 'any' | 'true' | 'false' | undefined;
+    setPassedFilter(selected ?? 'any');
     setCursor(undefined);
     setPreviousCursors([]);
   }, []);
@@ -186,6 +230,18 @@ export const ProblemList = () => {
       default:
         return 'Unknown';
     }
+  };
+
+  const formatStatusDate = (isoString: string) => {
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) {
+      return isoString;
+    }
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   if (isLoading) {
@@ -365,6 +421,67 @@ export const ProblemList = () => {
                   </label>
                 </div>
               </div>
+
+              {isAuthenticated && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-md font-medium text-foreground">
+                      Favorites
+                      <Select
+                        selectedKeys={[favoriteFilter]}
+                        onSelectionChange={handleFavoriteFilterChange}
+                        className="w-full"
+                        variant="bordered"
+                        size="md"
+                        aria-label="Filter by favorites"
+                        name="problem-filter-favorite"
+                      >
+                        <SelectItem key="any">Any</SelectItem>
+                        <SelectItem key="true">Only favorites</SelectItem>
+                        <SelectItem key="false">Exclude favorites</SelectItem>
+                      </Select>
+                    </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-md font-medium text-foreground">
+                      Attempted
+                      <Select
+                        selectedKeys={[attemptedFilter]}
+                        onSelectionChange={handleAttemptedFilterChange}
+                        className="w-full"
+                        variant="bordered"
+                        size="md"
+                        aria-label="Filter by attempted"
+                        name="problem-filter-attempted"
+                      >
+                        <SelectItem key="any">Any</SelectItem>
+                        <SelectItem key="true">Attempted</SelectItem>
+                        <SelectItem key="false">Not attempted</SelectItem>
+                      </Select>
+                    </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-md font-medium text-foreground">
+                      Passed
+                      <Select
+                        selectedKeys={[passedFilter]}
+                        onSelectionChange={handlePassedFilterChange}
+                        className="w-full"
+                        variant="bordered"
+                        size="md"
+                        aria-label="Filter by passed"
+                        name="problem-filter-passed"
+                      >
+                        <SelectItem key="any">Any</SelectItem>
+                        <SelectItem key="true">Passed</SelectItem>
+                        <SelectItem key="false">Not passed</SelectItem>
+                      </Select>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Clear Filters Button */}
@@ -374,7 +491,13 @@ export const ProblemList = () => {
                 color="default"
                 size="md"
                 onPress={clearFilters}
-                isDisabled={searchQuery.trim() === '' && selectedDifficulties.size === 0 && selectedTags.size === 0}
+                isDisabled={
+                  searchQuery.trim() === '' &&
+                  selectedDifficulties.size === 0 &&
+                  selectedTags.size === 0 &&
+                  (!isAuthenticated ||
+                    (favoriteFilter === 'any' && attemptedFilter === 'any' && passedFilter === 'any'))
+                }
               >
                 Clear Filters
               </Button>
@@ -382,7 +505,10 @@ export const ProblemList = () => {
           </div>
 
           {/* Active Filters Display */}
-          {(searchQuery.trim() !== '' || selectedDifficulties.size > 0 || selectedTags.size > 0) && (
+          {(searchQuery.trim() !== '' ||
+            selectedDifficulties.size > 0 ||
+            selectedTags.size > 0 ||
+            (isAuthenticated && (favoriteFilter !== 'any' || attemptedFilter !== 'any' || passedFilter !== 'any'))) && (
             <div className="space-y-2">
               <div className="text-sm text-default-600">Active filters (showing {problems.length} results):</div>
               <div className="flex flex-wrap gap-2">
@@ -421,6 +547,22 @@ export const ProblemList = () => {
                     Tag: {tag}
                   </Chip>
                 ))}
+
+                {isAuthenticated && favoriteFilter !== 'any' && (
+                  <Chip color="warning" variant="flat" size="sm" onClose={() => setFavoriteFilter('any')}>
+                    Favorites: {favoriteFilter === 'true' ? 'Only' : 'Exclude'}
+                  </Chip>
+                )}
+                {isAuthenticated && attemptedFilter !== 'any' && (
+                  <Chip color="default" variant="flat" size="sm" onClose={() => setAttemptedFilter('any')}>
+                    Attempted: {attemptedFilter === 'true' ? 'Yes' : 'No'}
+                  </Chip>
+                )}
+                {isAuthenticated && passedFilter !== 'any' && (
+                  <Chip color="success" variant="flat" size="sm" onClose={() => setPassedFilter('any')}>
+                    Passed: {passedFilter === 'true' ? 'Yes' : 'No'}
+                  </Chip>
+                )}
               </div>
             </div>
           )}
@@ -451,7 +593,10 @@ export const ProblemList = () => {
             <CardBody className="text-center">
               <div className="text-lg text-default-600 mb-2">No problems found</div>
               <div className="text-sm text-default-500">
-                {searchQuery.trim() !== '' || selectedDifficulties.size > 0 || selectedTags.size > 0
+                {searchQuery.trim() !== '' ||
+                selectedDifficulties.size > 0 ||
+                selectedTags.size > 0 ||
+                (isAuthenticated && (favoriteFilter !== 'any' || attemptedFilter !== 'any' || passedFilter !== 'any'))
                   ? 'Try adjusting your search or filters'
                   : 'No problems available yet'}
               </div>
@@ -480,38 +625,67 @@ export const ProblemList = () => {
                     </h3>
                     <div className="flex items-center gap-2">
                       {isAuthenticated && (
-                        <Tooltip
-                          content={favoriteProblemIds.has(problem.id) ? 'Unfavorite' : 'Favorite'}
-                          placement="bottom"
-                        >
-                          <Button
-                            isIconOnly
-                            size="sm"
-                            variant="light"
-                            color={favoriteProblemIds.has(problem.id) ? 'warning' : 'default'}
-                            aria-label={favoriteProblemIds.has(problem.id) ? 'Unfavorite problem' : 'Favorite problem'}
-                            data-testid={`favorite-toggle-${problem.id}`}
-                            isDisabled={isFavoriteMutationInFlight}
-                            onClick={e => e.stopPropagation()}
-                            onPress={async () => {
-                              if (!user) {
-                                return;
+                        <>
+                          {(problem.lastPassedSubmissionDate || problem.lastSubmissionDate) && (
+                            <Tooltip
+                              content={
+                                problem.lastPassedSubmissionDate
+                                  ? `Last passed on ${formatStatusDate(problem.lastPassedSubmissionDate)}`
+                                  : `Last attempted on ${formatStatusDate(problem.lastSubmissionDate!)}`
                               }
+                              placement="bottom"
+                            >
+                              <div
+                                className={
+                                  problem.lastPassedSubmissionDate
+                                    ? 'text-success'
+                                    : 'text-default-500 dark:text-default-400'
+                                }
+                                aria-label={
+                                  problem.lastPassedSubmissionDate
+                                    ? `Last passed on ${formatStatusDate(problem.lastPassedSubmissionDate)}`
+                                    : `Last attempted on ${formatStatusDate(problem.lastSubmissionDate!)}`
+                                }
+                              >
+                                {problem.lastPassedSubmissionDate ? (
+                                  <CheckCircleIcon className="h-5 w-5" />
+                                ) : (
+                                  <ClockIcon className="h-5 w-5" />
+                                )}
+                              </div>
+                            </Tooltip>
+                          )}
 
-                              if (favoriteProblemIds.has(problem.id)) {
-                                await unfavoriteProblem.mutateAsync(problem.id);
-                              } else {
-                                await favoriteProblem.mutateAsync(problem.id);
-                              }
-                            }}
-                          >
-                            {favoriteProblemIds.has(problem.id) ? (
-                              <StarIconSolid className="h-5 w-5" />
-                            ) : (
-                              <StarIconOutline className="h-5 w-5" />
-                            )}
-                          </Button>
-                        </Tooltip>
+                          <Tooltip content={problem.isFavorite ? 'Unfavorite' : 'Favorite'} placement="bottom">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                              color={problem.isFavorite ? 'warning' : 'default'}
+                              aria-label={problem.isFavorite ? 'Unfavorite problem' : 'Favorite problem'}
+                              data-testid={`favorite-toggle-${problem.id}`}
+                              isDisabled={isFavoriteMutationInFlight}
+                              onClick={e => e.stopPropagation()}
+                              onPress={async () => {
+                                if (!user) {
+                                  return;
+                                }
+
+                                if (problem.isFavorite) {
+                                  await unfavoriteProblem.mutateAsync(problem.id);
+                                } else {
+                                  await favoriteProblem.mutateAsync(problem.id);
+                                }
+                              }}
+                            >
+                              {problem.isFavorite ? (
+                                <StarIconSolid className="h-5 w-5" />
+                              ) : (
+                                <StarIconOutline className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </Tooltip>
+                        </>
                       )}
                       <Chip
                         color={getDifficultyColor(problem.difficulty)}

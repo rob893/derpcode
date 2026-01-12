@@ -1,3 +1,4 @@
+using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Entities;
@@ -5,6 +6,7 @@ using DerpCode.API.Models.Requests;
 using DerpCode.API.Services.Auth;
 using DerpCode.API.Services.Core;
 using DerpCode.API.Services.Domain;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace DerpCode.API.Tests.Services.Domain;
@@ -24,6 +26,8 @@ public sealed class ProblemSubmissionServiceTests
 
     private readonly Mock<ICurrentUserService> mockCurrentUserService;
 
+    private readonly Mock<IMemoryCache> mockCache;
+
     private readonly ProblemSubmissionService problemSubmissionService;
 
     public ProblemSubmissionServiceTests()
@@ -33,6 +37,7 @@ public sealed class ProblemSubmissionServiceTests
         this.mockProblemRepository = new Mock<IProblemRepository>();
         this.mockProblemSubmissionRepository = new Mock<IProblemSubmissionRepository>();
         this.mockCurrentUserService = new Mock<ICurrentUserService>();
+        this.mockCache = new Mock<IMemoryCache>();
 
         this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
         this.mockCurrentUserService.Setup(x => x.EmailVerified).Returns(true);
@@ -42,7 +47,8 @@ public sealed class ProblemSubmissionServiceTests
             this.mockCodeExecutionService.Object,
             this.mockProblemRepository.Object,
             this.mockProblemSubmissionRepository.Object,
-            this.mockCurrentUserService.Object);
+            this.mockCurrentUserService.Object,
+            this.mockCache.Object);
     }
 
     #region GetProblemSubmissionAsync Tests
@@ -199,6 +205,67 @@ public sealed class ProblemSubmissionServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.Forbidden, result.ErrorType);
         Assert.Contains("verify your email", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SubmitSolutionAsync_WhenSuccessful_InvalidatesPersonalizedProblemsCache()
+    {
+        // Arrange
+        var problemId = 1;
+        var request = new ProblemSubmissionRequest
+        {
+            UserCode = "Console.WriteLine(\"hi\");",
+            Language = LanguageType.CSharp
+        };
+
+        var problem = new Problem
+        {
+            Id = problemId,
+            IsDeleted = false,
+            IsPublished = true,
+            Name = "Test",
+            Difficulty = ProblemDifficulty.Easy,
+            ExplanationArticle = new Article { Title = "t", Content = "c" },
+            Drivers =
+            [
+                new ProblemDriver { Language = LanguageType.CSharp, DriverCode = "", UITemplate = "", Answer = "", Image = "" }
+            ]
+        };
+
+        this.mockProblemRepository
+            .Setup(x => x.GetByIdAsync(problemId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(problem);
+
+        var submission = new ProblemSubmission
+        {
+            Id = 123,
+            UserId = 1,
+            ProblemId = problemId,
+            Language = LanguageType.CSharp,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Pass = true,
+            TestCaseCount = 1,
+            PassedTestCases = 1,
+            FailedTestCases = 0,
+            ExecutionTimeInMs = 1,
+            ErrorMessage = null,
+            TestCaseResults = []
+        };
+
+        this.mockCodeExecutionService
+            .Setup(x => x.RunCodeAsync(1, request.UserCode, request.Language, problem, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((submission, ""));
+
+        this.mockProblemRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await this.problemSubmissionService.SubmitSolutionAsync(problemId, request, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        this.mockCache.Verify(x => x.Remove(CacheKeys.GetPersonalizedProblemsKey(1)), Times.Once);
     }
 
     #endregion

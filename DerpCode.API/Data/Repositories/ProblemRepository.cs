@@ -16,6 +16,7 @@ public sealed class ProblemRepository(DataContext context) : Repository<Problem,
     {
         var problems = await this.Context.Problems
             .AsNoTracking()
+            .Where(p => !p.IsDeleted)
             .Select(p => new PersonalizedProblemLimitedDto
             {
                 Id = p.Id,
@@ -31,7 +32,10 @@ public sealed class ProblemRepository(DataContext context) : Repository<Problem,
                     }).ToList(),
                 LastPassedSubmissionDate = p.ProblemSubmissions
                     .Where(submission => submission.UserId == userId && submission.Pass)
-                    .Max(submission => submission.CreatedAt)
+                    .Max(submission => submission.CreatedAt),
+                LastSubmissionDate = p.ProblemSubmissions
+                    .Where(submission => submission.UserId == userId)
+                    .Max(submission => submission.CreatedAt),
             }
             )
             .ToListAsync(cancellationToken);

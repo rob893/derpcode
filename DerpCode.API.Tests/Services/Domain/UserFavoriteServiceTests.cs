@@ -192,6 +192,8 @@ public sealed class UserFavoriteServiceTests
             x => x.FavoriteProblemForUserAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
+        this.mockCache.Verify(x => x.Remove(It.IsAny<object>()), Times.Never);
+
         this.VerifyLoggerWasCalled(LogLevel.Warning, "attempted to access user");
     }
 
@@ -227,6 +229,7 @@ public sealed class UserFavoriteServiceTests
         Assert.Equal(createdAt, result.Value.CreatedAt);
 
         this.mockUserRepository.Verify(x => x.FavoriteProblemForUserAsync(123, 77, token), Times.Once);
+        this.mockCache.Verify(x => x.Remove(CacheKeys.GetPersonalizedProblemsKey(123)), Times.Once);
     }
 
     [Fact]
@@ -246,6 +249,8 @@ public sealed class UserFavoriteServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(DomainErrorType.NotFound, result.ErrorType);
         Assert.Equal("User or problem not found.", result.ErrorMessage);
+
+        this.mockCache.Verify(x => x.Remove(It.IsAny<object>()), Times.Never);
 
         this.VerifyLoggerWasCalled(LogLevel.Warning, "attempted to favorite a problem");
     }
@@ -272,6 +277,8 @@ public sealed class UserFavoriteServiceTests
             x => x.UnfavoriteProblemForUserAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
+        this.mockCache.Verify(x => x.Remove(It.IsAny<object>()), Times.Never);
+
         this.VerifyLoggerWasCalled(LogLevel.Warning, "attempted to access user");
     }
 
@@ -296,6 +303,7 @@ public sealed class UserFavoriteServiceTests
         Assert.True(result.ValueOrThrow);
 
         this.mockUserRepository.Verify(x => x.UnfavoriteProblemForUserAsync(123, 77, token), Times.Once);
+        this.mockCache.Verify(x => x.Remove(CacheKeys.GetPersonalizedProblemsKey(123)), Times.Once);
     }
 
     [Fact]
@@ -318,6 +326,8 @@ public sealed class UserFavoriteServiceTests
         this.mockUserRepository.Verify(
             x => x.UnfavoriteProblemForUserAsync(123, 77, It.IsAny<CancellationToken>()),
             Times.Once);
+
+        this.mockCache.Verify(x => x.Remove(It.IsAny<object>()), Times.Never);
     }
 
     #endregion

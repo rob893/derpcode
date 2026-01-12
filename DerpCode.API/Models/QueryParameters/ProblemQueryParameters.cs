@@ -3,7 +3,7 @@ using DerpCode.API.Models.Entities;
 
 namespace DerpCode.API.Models.QueryParameters;
 
-public sealed record ProblemQueryParameters : CursorPaginationQueryParameters
+public record ProblemQueryParameters : CursorPaginationQueryParameters
 {
     public bool IncludeUnpublished { get; init; }
 
@@ -16,6 +16,15 @@ public sealed record ProblemQueryParameters : CursorPaginationQueryParameters
     public ProblemOrderBy OrderBy { get; init; } = ProblemOrderBy.Name;
 
     public OrderByDirection OrderByDirection { get; init; } = OrderByDirection.Descending;
+}
+
+public sealed record PersonalizedProblemListQueryParameters : ProblemQueryParameters
+{
+    public bool? IsFavorite { get; init; }
+
+    public bool? HasAttempted { get; init; }
+
+    public bool? HasPassed { get; init; }
 }
 
 public enum ProblemOrderBy
