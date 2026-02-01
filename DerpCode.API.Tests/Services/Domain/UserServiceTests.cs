@@ -213,15 +213,15 @@ public sealed class UserServiceTests
     public async Task DeleteUserAsync_WithExistingUser_ReturnsSuccess()
     {
         // Arrange
-        var user = new User { Id = 1, UserName = "testuser" };
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+        var user = new User { Id = 2, UserName = "testuser" };
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(2, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
-        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
 
         // Act
-        var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
+        var result = await this.userService.DeleteUserAsync(2, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -233,12 +233,12 @@ public sealed class UserServiceTests
     public async Task DeleteUserAsync_WithNonExistingUser_ReturnsFailure()
     {
         // Arrange
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(2, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
-        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
 
         // Act
-        var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
+        var result = await this.userService.DeleteUserAsync(2, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -250,15 +250,15 @@ public sealed class UserServiceTests
     public async Task DeleteUserAsync_WithSaveFailure_ReturnsFailure()
     {
         // Arrange
-        var user = new User { Id = 1, UserName = "testuser" };
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+        var user = new User { Id = 2, UserName = "testuser" };
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(2, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
-        this.mockCurrentUserService.Setup(x => x.UserId).Returns(1);
+        this.mockCurrentUserService.Setup(x => x.UserId).Returns(2);
 
         // Act
-        var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
+        var result = await this.userService.DeleteUserAsync(2, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -286,8 +286,8 @@ public sealed class UserServiceTests
     public async Task DeleteUserAsync_WithDifferentUserButIsAdmin_ReturnsSuccess()
     {
         // Arrange
-        var user = new User { Id = 1, UserName = "testuser" };
-        this.mockUserRepository.Setup(x => x.GetByIdAsync(1, true, It.IsAny<CancellationToken>()))
+        var user = new User { Id = 2, UserName = "testuser" };
+        this.mockUserRepository.Setup(x => x.GetByIdAsync(2, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         this.mockUserRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -295,7 +295,7 @@ public sealed class UserServiceTests
         this.mockCurrentUserService.Setup(x => x.IsAdmin).Returns(true);
 
         // Act
-        var result = await this.userService.DeleteUserAsync(1, CancellationToken.None);
+        var result = await this.userService.DeleteUserAsync(2, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);

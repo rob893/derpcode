@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DerpCode.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260111164940_InitialCreate")]
+    [Migration("20260201213341_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -22,7 +22,7 @@ namespace DerpCode.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -554,6 +554,34 @@ namespace DerpCode.API.Migrations
                     b.ToTable("UserFavoriteProblems");
                 });
 
+            modelBuilder.Entity("DerpCode.API.Models.Entities.UserPreferences", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("LastUpdated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Preferences>("Preferences")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserPreferences");
+                });
+
             modelBuilder.Entity("DerpCode.API.Models.Entities.UserRole", b =>
                 {
                     b.Property<int>("UserId")
@@ -841,6 +869,17 @@ namespace DerpCode.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DerpCode.API.Models.Entities.UserPreferences", b =>
+                {
+                    b.HasOne("DerpCode.API.Models.Entities.User", "User")
+                        .WithOne("Preferences")
+                        .HasForeignKey("DerpCode.API.Models.Entities.UserPreferences", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DerpCode.API.Models.Entities.UserRole", b =>
                 {
                     b.HasOne("DerpCode.API.Models.Entities.Role", "Role")
@@ -942,6 +981,9 @@ namespace DerpCode.API.Migrations
                     b.Navigation("FavoriteProblems");
 
                     b.Navigation("LinkedAccounts");
+
+                    b.Navigation("Preferences")
+                        .IsRequired();
 
                     b.Navigation("ProblemSubmissions");
 

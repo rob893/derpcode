@@ -1,4 +1,6 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using DerpCode.API.Constants;
 using DerpCode.API.Data;
 using DerpCode.API.Models.Settings;
@@ -21,8 +23,11 @@ public static class DatabaseServiceCollectionExtensions
         var settings = config.GetSection(ConfigurationKeys.Postgres)?.Get<PostgresSettings>()
             ?? throw new InvalidOperationException($"Missing {ConfigurationKeys.Postgres} section in configuration.");
 
+        var dbJsonOptions = new JsonSerializerOptions();
+        dbJsonOptions.Converters.Add(new JsonStringEnumConverter());
+
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(settings.DefaultConnection);
-        dataSourceBuilder.EnableDynamicJson();
+        dataSourceBuilder.EnableDynamicJson().ConfigureJsonOptions(dbJsonOptions); ;
         var dataSource = dataSourceBuilder.Build();
 
         services.AddDbContext<DataContext>(

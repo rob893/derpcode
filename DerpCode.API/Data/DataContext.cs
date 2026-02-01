@@ -32,6 +32,8 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
     public DbSet<ArticleComment> ArticleComments => this.Set<ArticleComment>();
 
+    public DbSet<UserPreferences> UserPreferences => this.Set<UserPreferences>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -54,6 +56,12 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
 
             b.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("now()"); // Postgres specific
+        });
+
+        builder.Entity<UserPreferences>(preferences =>
+        {
+            preferences.Property(p => p.LastUpdated).HasDefaultValueSql("now()"); // Postgres specific
+            preferences.Property(p => p.Preferences).HasColumnType("jsonb");
         });
 
         builder.Entity<UserRole>(userRole =>

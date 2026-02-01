@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DerpCode.API.Constants;
 using DerpCode.API.Core;
 using DerpCode.API.Data.Repositories;
 using DerpCode.API.Models.Dtos;
@@ -86,6 +87,12 @@ public sealed class UserService : IUserService
         {
             this.logger.LogWarning("User {UserId} attempted to delete user {TargetUserId} without permission", this.currentUserService.UserId, id);
             return Result<bool>.Failure(DomainErrorType.Forbidden, "You can only delete your own user");
+        }
+
+        if (id == ApplicationSettings.SystemUserId)
+        {
+            this.logger.LogWarning("User {UserId} attempted to delete user the system user id {SystemUserId}.", this.currentUserService.UserId, ApplicationSettings.SystemUserId);
+            return Result<bool>.Failure(DomainErrorType.Forbidden, "This user cannot be deleted");
         }
 
         var user = await this.userRepository.GetByIdAsync(id, track: true, cancellationToken);

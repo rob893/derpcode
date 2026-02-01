@@ -238,6 +238,27 @@ namespace DerpCode.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserPreferences",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Preferences = table.Column<Preferences>(type: "jsonb", nullable: false),
+                    LastUpdated = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPreferences", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPreferences_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ArticleComments",
                 columns: table => new
                 {
@@ -613,6 +634,12 @@ namespace DerpCode.API.Migrations
                 table: "UserFavoriteProblems",
                 column: "ProblemId");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPreferences_UserId",
+                table: "UserPreferences",
+                column: "UserId",
+                unique: true);
+
             migrationBuilder.AddForeignKey(
                 name: "FK_ArticleComments_Articles_ArticleId",
                 table: "ArticleComments",
@@ -677,6 +704,9 @@ namespace DerpCode.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserFavoriteProblems");
+
+            migrationBuilder.DropTable(
+                name: "UserPreferences");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

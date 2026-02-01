@@ -109,9 +109,9 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
     {
         this.logger.LogInformation("Starting problem synchronization from folder structure...");
 
-        // Fetch user with ID 1 from database and override current user service
-        var systemUser = await this.context.Users.FirstOrDefaultAsync(u => u.Id == 1, cancellationToken)
-            ?? throw new InvalidOperationException("System user with ID 1 not found in database. Cannot proceed with problem synchronization.");
+        // Fetch user with ID ApplicationSettings.SystemUserId from database and override current user service
+        var systemUser = await this.context.Users.FirstOrDefaultAsync(u => u.Id == ApplicationSettings.SystemUserId, cancellationToken)
+            ?? throw new InvalidOperationException($"System user with ID {ApplicationSettings.SystemUserId} not found in database. Cannot proceed with problem synchronization.");
         this.currentUserService.SetOverrideUser(systemUser);
 
         // Load all problems and their drivers from the database
@@ -285,7 +285,7 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
 
         var newUser = new User
         {
-            Id = 1,
+            Id = ApplicationSettings.SystemUserId,
             UserName = "rob893",
             Email = "rwherber@gmail.com",
             EmailConfirmed = true,

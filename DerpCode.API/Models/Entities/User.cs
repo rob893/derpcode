@@ -29,4 +29,6 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
     public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
 
     public List<UserFavoriteProblem> FavoriteProblems { get; set; } = [];
+
+    public UserPreferences Preferences { get; set; } = new();
 }
