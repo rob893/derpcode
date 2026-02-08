@@ -8,6 +8,7 @@ import {
   userFavoritesApi
 } from '../services/api';
 import { authApi } from '../services/auth';
+import { userPreferencesApi } from '../services/userPreferences';
 import { useAuth } from './useAuth';
 import type {
   CreateProblemRequest,
@@ -21,6 +22,12 @@ import type {
   UserFavoriteProblem
 } from '../types/models';
 import type { LoginRequest, RegisterRequest } from '../types/auth';
+import type { UserPreferencesDto } from '../types/userPreferences';
+import {
+  buildDefaultUserPreferences,
+  loadUserPreferencesFromLocalStorage,
+  saveUserPreferencesToLocalStorage
+} from '../utils/userPreferencesStorage';
 
 // Query Keys
 export const queryKeys = {
@@ -32,6 +39,7 @@ export const queryKeys = {
   driverTemplates: ['driverTemplates'] as const,
   userSubmissions: (userId: number, problemId?: number) => ['users', userId, 'submissions', problemId] as const,
   userFavoriteProblems: (userId: number) => ['users', userId, 'favoriteProblems'] as const,
+  userPreferences: (userId: number) => ['users', userId, 'preferences'] as const,
   problemSubmission: (problemId: number, submissionId: number) =>
     ['problems', problemId, 'submissions', submissionId] as const,
   // Properly typed query parameters
@@ -48,6 +56,56 @@ export const queryKeys = {
   tags: (queryParams?: Partial<CursorPaginationQueryParameters>) => ['tags', queryParams] as const,
   tag: (id: number) => ['tags', id] as const
 } as const;
+
+// User Preferences hooks
+export const useUserPreferences = (userId?: number) => {
+  const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.userPreferences(userId || 0),
+    queryFn: async () => {
+      if (!userId) {
+        throw new Error('User ID is required to fetch user preferences');
+      }
+
+      try {
+        return await userPreferencesApi.getUserPreferences(userId);
+      } catch (error: any) {
+        // If not found (legacy user), fall back to local cached/default.
+        if (error?.response?.status === 404) {
+          return loadUserPreferencesFromLocalStorage(userId) ?? buildDefaultUserPreferences(userId);
+        }
+        throw error;
+      }
+    },
+    enabled: !!userId && isAuthenticated && !isAuthLoading,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: () => {
+      if (!userId) return undefined;
+      return loadUserPreferencesFromLocalStorage(userId) ?? buildDefaultUserPreferences(userId);
+    },
+    select: data => {
+      // Ensure local persistence across sessions.
+      if (userId) {
+        saveUserPreferencesToLocalStorage(userId, data);
+      }
+      return data;
+    }
+  });
+};
+
+export const usePatchUserPreferences = (userId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ preferencesId, patchDocument }: { preferencesId: number; patchDocument: JsonPatchDocument }) =>
+      userPreferencesApi.patchUserPreferences(userId, preferencesId, patchDocument),
+    onSuccess: updated => {
+      queryClient.setQueryData<UserPreferencesDto>(queryKeys.userPreferences(userId), updated);
+      saveUserPreferencesToLocalStorage(userId, updated);
+    }
+  });
+};
 
 // Favorites hooks
 export const useUserFavoriteProblems = (userId?: number) => {

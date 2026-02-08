@@ -30,6 +30,7 @@ import type { User } from '../../types/auth';
 import { CodeEditor } from '../CodeEditor';
 import { loadCodeWithPriority } from '../../utils/localStorageUtils';
 import { getLanguageLabel } from '../../utils/utilities';
+import { useUserPreferences } from '../../hooks/api';
 
 interface ProblemCodeEditorProps {
   problem: Problem;
@@ -62,7 +63,9 @@ export const ProblemCodeEditor = ({
   selectedSubmission,
   onReturnToWorkingCode
 }: ProblemCodeEditorProps) => {
-  const [flamesEnabled, setFlamesEnabled] = useState(true);
+  const { data: userPreferences } = useUserPreferences(user?.id);
+  const flamesEnabledPref = userPreferences?.preferences.editorPreference.enableFlameEffects ?? true;
+  const [flamesEnabled, setFlamesEnabled] = useState(flamesEnabledPref);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange } = useDisclosure();
 

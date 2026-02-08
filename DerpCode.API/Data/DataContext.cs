@@ -1,8 +1,10 @@
 using System;
+using System.Text.Json;
 using DerpCode.API.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DerpCode.API.Data;
 
@@ -61,7 +63,15 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
         builder.Entity<UserPreferences>(preferences =>
         {
             preferences.Property(p => p.LastUpdated).HasDefaultValueSql("now()"); // Postgres specific
-            preferences.Property(p => p.Preferences).HasColumnType("jsonb");
+
+            var preferencesComparer = new ValueComparer<Preferences>(
+                (left, right) => JsonSerializer.Serialize(left, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(right, (JsonSerializerOptions?)null),
+                value => StringComparer.Ordinal.GetHashCode(JsonSerializer.Serialize(value, (JsonSerializerOptions?)null)),
+                value => JsonSerializer.Deserialize<Preferences>(JsonSerializer.Serialize(value, (JsonSerializerOptions?)null), (JsonSerializerOptions?)null) ?? new Preferences());
+
+            preferences.Property(p => p.Preferences)
+                .HasColumnType("jsonb")
+                .Metadata.SetValueComparer(preferencesComparer);
         });
 
         builder.Entity<UserRole>(userRole =>

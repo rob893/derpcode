@@ -16,6 +16,7 @@ import {
   useProblemsLimitedPaginated,
   useProblemsCount,
   useAllTags,
+  useUserPreferences,
   useFavoriteProblemForUser,
   useUnfavoriteProblemForUser
 } from '../hooks/api';
@@ -28,7 +29,12 @@ export const ProblemList = () => {
   const { user, isAuthenticated } = useAuth();
   const isAdmin = hasAdminRole(user);
 
-  const [pageSize, setPageSize] = useState(5);
+  const { data: userPreferences } = useUserPreferences(user?.id);
+  const preferredPageSize = userPreferences?.preferences.uiPreference.pageSize;
+
+  // If null, we follow the user's preference (and update live if it changes).
+  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
+  const pageSize = pageSizeOverride ?? preferredPageSize ?? 5;
 
   // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
@@ -179,7 +185,7 @@ export const ProblemList = () => {
   }, []);
 
   const handlePageSizeChange = useCallback((newSize: number) => {
-    setPageSize(newSize);
+    setPageSizeOverride(newSize);
     setCursor(undefined);
     setPreviousCursors([]);
   }, []);
