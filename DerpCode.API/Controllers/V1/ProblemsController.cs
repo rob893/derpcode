@@ -206,7 +206,7 @@ public sealed class ProblemsController : ServiceControllerBase
     [Authorize(Policy = AuthorizationPolicyName.RequireAdminRole)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProblemDto>> UpdateProblemAsync(int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
+    public async Task<ActionResult<ProblemDto>> UpdateProblemAsync([FromRoute] int problemId, [FromBody] JsonPatchDocument<CreateProblemRequest> dtoPatchDoc)
     {
         var patchedProblemResult = await this.problemService.PatchProblemAsync(problemId, dtoPatchDoc, this.HttpContext.RequestAborted);
 
