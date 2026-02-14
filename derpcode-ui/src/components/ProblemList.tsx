@@ -34,7 +34,7 @@ export const ProblemList = () => {
 
   // If null, we follow the user's preference (and update live if it changes).
   const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
-  const pageSize = pageSizeOverride ?? preferredPageSize ?? 5;
+  const pageSize = pageSizeOverride ?? preferredPageSize ?? 5; //asdfsadf
 
   // State for filters and pagination
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set());
