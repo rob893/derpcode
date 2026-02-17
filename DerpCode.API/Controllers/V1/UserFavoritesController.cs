@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DerpCode.API.Models.Entities;
+using DerpCode.API.Models.Dtos;
 using DerpCode.API.Services.Core;
 using DerpCode.API.Services.Domain;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +30,7 @@ public sealed class UserFavoritesController : ServiceControllerBase
     /// <response code="200">Returns the user's favorite problems.</response>
     [HttpGet("favoriteProblems", Name = nameof(GetFavoriteProblemsForUserAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<UserFavoriteProblem>>> GetFavoriteProblemsForUserAsync([FromRoute] int userId)
+    public async Task<ActionResult<IReadOnlyList<UserFavoriteProblemDto>>> GetFavoriteProblemsForUserAsync([FromRoute] int userId)
     {
         var favoriteProblems = await this.userFavoriteService.GetFavoriteProblemsForUserAsync(userId, this.HttpContext.RequestAborted);
 
@@ -51,7 +51,7 @@ public sealed class UserFavoritesController : ServiceControllerBase
     /// <response code="200">Returns the new favorite problem.</response>
     [HttpPut("favoriteProblems/{problemId}", Name = nameof(FavoriteProblemForUserAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<UserFavoriteProblem>> FavoriteProblemForUserAsync([FromRoute] int userId, [FromRoute] int problemId)
+    public async Task<ActionResult<UserFavoriteProblemDto>> FavoriteProblemForUserAsync([FromRoute] int userId, [FromRoute] int problemId)
     {
         var favoriteProblem = await this.userFavoriteService.FavoriteProblemForUserAsync(userId, problemId, this.HttpContext.RequestAborted);
 
