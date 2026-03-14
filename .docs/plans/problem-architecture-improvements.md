@@ -28,12 +28,12 @@ Align the base driver interface across all 6 languages so problem authors have t
 
 **Action:** Add `formatErrorMessage` with a sensible default to Java, Rust, and TypeScript base drivers. All 6 languages should have the same 4 extension points:
 
-| Method | Required? | Default behavior |
-|--------|-----------|-----------------|
-| `parseTestCases` | Required | — |
-| `executeTestCase` | Required | — |
-| `compareResults` | Optional | Value equality |
-| `formatErrorMessage` | Optional | `"Expected {expected} but got {actual}"` |
+| Method               | Required? | Default behavior                         |
+| -------------------- | --------- | ---------------------------------------- |
+| `parseTestCases`     | Required  | —                                        |
+| `executeTestCase`    | Required  | —                                        |
+| `compareResults`     | Optional  | Value equality                           |
+| `formatErrorMessage` | Optional  | `"Expected {expected} but got {actual}"` |
 
 ### 1.3 Update Docker base driver copies
 
@@ -49,23 +49,25 @@ Introduce parameterized driver templates for common problem types to reduce per-
 
 Based on the 23 existing problems, categorize into archetypes:
 
-| Archetype | Pattern | Example problems |
-|-----------|---------|-----------------|
-| **Simple Function** | Parse flat arrays → call `Solution.func(args)` → compare scalar/array | AddTwoNumbers, FizzBuzz, SubtractTwoNumbers, ValidPalindrome, ContainsDuplicate, ClimbingStairs, MaximumSubarray, FibonacciNumber |
-| **Stateful Class** | Parse operation arrays → instantiate → call methods sequentially | LRUCache |
-| **Tree Operation** | Deserialize tree from array → call function → serialize result back to array | InvertBinaryTree, BinaryTreeInorderTraversal, BinaryTreePreorderTraversal, BinaryTreePostorderTraversal, BinaryTreeLevelOrderTraversal |
-| **Linked List** | Deserialize linked list from array → call function → serialize result | ReverseLinkedList, AddTwoNumbersII, MergeTwoSortedLists |
-| **Custom** | Doesn't fit a standard pattern | TargetPair, AtMost, Mirror2DArray, XORBasisRangeQueries, LongestSubstringWithoutRepeatingCharacters, ValidParentheses |
+| Archetype           | Pattern                                                                      | Example problems                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Simple Function** | Parse flat arrays → call `Solution.func(args)` → compare scalar/array        | AddTwoNumbers, FizzBuzz, SubtractTwoNumbers, ValidPalindrome, ContainsDuplicate, ClimbingStairs, MaximumSubarray, FibonacciNumber      |
+| **Stateful Class**  | Parse operation arrays → instantiate → call methods sequentially             | LRUCache                                                                                                                               |
+| **Tree Operation**  | Deserialize tree from array → call function → serialize result back to array | InvertBinaryTree, BinaryTreeInorderTraversal, BinaryTreePreorderTraversal, BinaryTreePostorderTraversal, BinaryTreeLevelOrderTraversal |
+| **Linked List**     | Deserialize linked list from array → call function → serialize result        | ReverseLinkedList, AddTwoNumbersII, MergeTwoSortedLists                                                                                |
+| **Custom**          | Doesn't fit a standard pattern                                               | TargetPair, AtMost, Mirror2DArray, XORBasisRangeQueries, LongestSubstringWithoutRepeatingCharacters, ValidParentheses                  |
 
 ### 2.2 Build archetype templates
 
 For each archetype, create a parameterized template per language in `.github/skills/create-derpcode-problem/archetypes/`. The template takes:
+
 - Function/class name
 - Parameter types and names
 - Return type
 - Input JSON shape mapping
 
 **Example — Simple Function archetype (TypeScript):**
+
 ```typescript
 // Auto-generated from archetype: simple-function
 // Function: ${functionName}(${params}) -> ${returnType}
@@ -88,44 +90,42 @@ class ${ProblemName}Driver extends ProblemDriverBase {
 ### 2.3 Update the `create-derpcode-problem` skill
 
 Teach the skill to:
+
 1. Identify which archetype a new problem fits
 2. Auto-generate DriverCode from the archetype template
 3. Fall back to hand-writing for Custom archetype problems
 
 ---
 
-## Wave 3 — Runner Improvements
+## Wave 3 — Runner Improvements ✅ Completed
 
-### 3.1 Separate compile and run phases for all compiled languages
+### 3.1 Separate compile and run phases for all compiled languages ✅
 
-**Problem:** Java's `run.sh` has explicit compile (15s timeout) → run (20s timeout) with clear error handling. C# bundles both into `dotnet run`. Rust bundles both.
+All compiled languages now follow the same pattern: compile (15s timeout) → exit-on-failure → run (20s timeout).
 
-**Action:** Standardize all compiled languages to have:
-```bash
-# Phase 1: Compile (with timeout)
-timeout ${COMPILE_TIMEOUT}s <compile_command> 2>> error.txt
-if [ $? -ne 0 ]; then
-    echo "Compilation failed" >> error.txt
-    exit 1
-fi
+**Changes made:**
+- **C#** (`Docker/CSharp/run.sh`): Split `dotnet run` into `dotnet build --no-restore -v:q` + `dotnet bin/Debug/net10.0/App.dll`. Added `dotnet restore` to Dockerfile for pre-caching.
+- **Rust** (`Docker/Rust/run.sh`): Added 15s `timeout` to `cargo build --release` and exit-on-compile-failure check.
+- **Java**: Already had this pattern — no changes needed.
 
-# Phase 2: Execute (with timeout)
-timeout ${RUN_TIMEOUT}s <run_command> >> output.txt 2>> error.txt
-```
+### 3.2 Replace `ts-node` with `esbuild` for TypeScript ✅
 
-Languages affected: C# (split `dotnet run` into `dotnet build` + `dotnet exec`), Rust (already separated but add exit-on-compile-failure check).
+Replaced `ts-node` + `typescript` + `@types/node` with `esbuild` for near-instant TS→JS transpilation.
 
-### 3.2 Consider `esbuild`/`swc` for TypeScript
+**Changes made:**
+- **`Docker/TypeScript/package.json`**: Replaced 3 devDependencies with just `esbuild ^0.25.0`.
+- **`Docker/TypeScript/run.sh`**: Split into `esbuild index.ts --bundle --platform=node --outfile=dist/index.js` (15s) → `node dist/index.js` (20s), with compile failure check.
 
-**Problem:** `ts-node` pays transpilation cost on every submission. Not currently a bottleneck but could become one.
+### 3.3 Updated all runners to latest stable SDK/language versions ✅
 
-**Action:** Evaluate replacing `ts-node` with `esbuild` for near-instant TS→JS transpilation, then run with `node`. Benchmark first — only pursue if TypeScript submissions show measurably slow startup.
-
-### 3.3 Derive Docker image from `LanguageType`
-
-**Problem:** `ProblemDriver.Image` is stored per-driver-row, but every driver for a given language uses the same image. This is redundant and risks accidental mismatches.
-
-**Action:** Consider moving `Image` to a `LanguageType → Image` lookup (config or code) instead of per-driver DB column. Keep the per-driver column only if problem-specific images are a planned feature (e.g., problems requiring special libraries).
+| Runner | Before | After |
+|--------|--------|-------|
+| C# | dotnet/sdk:8.0 | dotnet/sdk:10.0 |
+| Java | temurin:17-jdk-jammy, Gson 2.10.1 | temurin:25-jdk (LTS), Gson 2.13.2 |
+| JavaScript | node:22-slim | node:24-slim (LTS) |
+| Python | python:3.13-slim | python:3.14-slim |
+| Rust | rust:1.87-slim, serde 1.0.219, serde_json 1.0.140 | rust:1.94-slim, serde 1.0.228, serde_json 1.0.149 |
+| TypeScript | node:22-slim | node:24-slim (LTS) |
 
 ---
 
@@ -136,6 +136,7 @@ Languages affected: C# (split `dotnet run` into `dotnet build` + `dotnet exec`),
 **Problem:** The `isHidden` field exists in `TestCaseResult` but is always `false` from the container. It appears to be a placeholder.
 
 **Action:** Define how hidden test cases work:
+
 - Hidden test cases are still executed but their input/expectedOutput/actualOutput are redacted in the API response
 - Problem.json gains a `hiddenTestCaseCount` or the input/expectedOutput arrays are split into visible and hidden sections
 - Base drivers set `isHidden = true` for test cases beyond a threshold index
@@ -143,6 +144,7 @@ Languages affected: C# (split `dotnet run` into `dotnet build` + `dotnet exec`),
 ### 4.2 Add test case categories
 
 **Action:** Introduce optional test case metadata in Problem.json:
+
 ```json
 {
   "testCaseCategories": [
@@ -162,12 +164,14 @@ This enables the UI to group test results and could enable per-category time lim
 ### 5.1 Eliminate duplicate base driver files
 
 **Problem:** Base drivers exist in two places:
+
 - `Docker/<Language>/base_driver.txt` (used in Docker image build)
 - `.github/skills/create-derpcode-problem/base-drivers/<language>/base-driver.txt` (used by the skill for reference)
 
 These can drift out of sync.
 
 **Action:** Pick one canonical location and have the other reference it. Options:
+
 - **Option A:** `Docker/` is source of truth. The skill reads from there.
 - **Option B:** Shared `lib/base-drivers/` directory. Both Docker and skill reference it. Docker COPY uses a relative path or build context includes it.
 

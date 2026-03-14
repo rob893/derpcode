@@ -1,4 +1,4 @@
-FROM rust:1.87-slim
+FROM rust:1.94-slim
 
 RUN useradd -m runner
 WORKDIR /home/runner
