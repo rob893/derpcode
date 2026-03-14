@@ -30,6 +30,15 @@ public interface IProblemSubmissionService
     Task<Result<ProblemSubmissionDto>> SubmitSolutionAsync(int problemId, ProblemSubmissionRequest request, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Records that a user opened a hint for a problem.
+    /// </summary>
+    /// <param name="problemId">The problem ID</param>
+    /// <param name="hintIndex">The hint index that was opened</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success if hint open was recorded</returns>
+    Task<Result<bool>> OpenHintAsync(int problemId, int hintIndex, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Runs a solution without saving it
     /// </summary>
     /// <param name="problemId">The problem ID</param>

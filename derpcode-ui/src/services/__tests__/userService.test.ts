@@ -41,7 +41,11 @@ describe('services/user', () => {
         linkedAccounts: [],
         lastPasswordChange: '2025-01-01T00:00:00Z',
         lastEmailChange: '2025-01-01T00:00:00Z',
-        lastUsernameChange: '2025-01-01T00:00:00Z'
+        lastUsernameChange: '2025-01-01T00:00:00Z',
+        totalXp: 0,
+        level: 1,
+        xpIntoLevel: 0,
+        xpForNextLevel: 100
       }
     });
 
@@ -66,7 +70,11 @@ describe('services/user', () => {
         linkedAccounts: [],
         lastPasswordChange: '2025-01-01T00:00:00Z',
         lastEmailChange: '2025-01-01T00:00:00Z',
-        lastUsernameChange: '2025-01-01T00:00:00Z'
+        lastUsernameChange: '2025-01-01T00:00:00Z',
+        totalXp: 120,
+        level: 2,
+        xpIntoLevel: 20,
+        xpForNextLevel: 300
       }
     });
 

@@ -190,6 +190,19 @@ export interface ProblemSubmission {
   errorMessage: string;
   executionTimeInMs: number;
   testCaseResults: TestCaseResult[];
+  xp: XpResult;
+}
+
+export interface XpResult {
+  xpEarnedThisSubmission: number;
+  xpDeltaApplied: number;
+  problemBestXp: number;
+  totalXp: number;
+  level: number;
+  xpIntoLevel: number;
+  xpForNextLevel: number;
+  nextEligibleAt?: string | null;
+  isXpEligibleThisSubmission: boolean;
 }
 
 export interface TestCaseResult {

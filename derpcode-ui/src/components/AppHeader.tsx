@@ -10,14 +10,17 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Chip,
   useDisclosure
 } from '@heroui/react';
 import { useAuth } from '../hooks/useAuth';
+import { useCurrentUser } from '../hooks/useUser';
 import { hasAdminRole } from '../utils/auth';
 import { SyncModal } from './SyncModal';
 
 export function AppHeader() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { data: currentUser } = useCurrentUser();
   const navigate = useNavigate();
   const { isOpen: isSyncOpen, onOpen: onSyncOpen, onOpenChange: onSyncOpenChange } = useDisclosure();
 
@@ -81,6 +84,11 @@ export function AppHeader() {
           <>
             <NavbarItem className="hidden lg:flex">
               {user && <span className="text-default-600 mr-4">Welcome, {user.userName}</span>}
+              {currentUser && (
+                <Chip color="primary" variant="flat" size="sm" className="font-semibold">
+                  Lvl {currentUser.level}
+                </Chip>
+              )}
             </NavbarItem>
             <NavbarItem>
               <Dropdown placement="bottom-end">

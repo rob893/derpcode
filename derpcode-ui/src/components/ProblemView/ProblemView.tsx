@@ -18,7 +18,8 @@ import {
   useToggleProblemPublished,
   useUserFavoriteProblems,
   useFavoriteProblemForUser,
-  useUnfavoriteProblemForUser
+  useUnfavoriteProblemForUser,
+  useOpenProblemHint
 } from '../../hooks/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useCurrentUser } from '../../hooks/useUser';
@@ -40,6 +41,7 @@ export const ProblemView = () => {
   const deleteProblem = useDeleteProblem();
   const cloneProblem = useCloneProblem();
   const togglePublished = useToggleProblemPublished();
+  const openHint = useOpenProblemHint(problem?.id || 0);
 
   const { data: favoriteProblems } = useUserFavoriteProblems(user?.id);
   const favoriteProblem = useFavoriteProblemForUser(user?.id || 0);
@@ -239,6 +241,14 @@ export const ProblemView = () => {
     setSelectedLanguage(language);
   };
 
+  const handleHintOpened = (hintIndex: number) => {
+    if (!isAuthenticated || !user || !problem) {
+      return;
+    }
+
+    openHint.mutate(hintIndex);
+  };
+
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
   };
@@ -317,6 +327,7 @@ export const ProblemView = () => {
               isCloneLoading={cloneProblem.isPending}
               isTogglePublishedLoading={togglePublished.isPending}
               onSubmissionSelect={handleSubmissionSelect}
+              onHintOpened={handleHintOpened}
             />
 
             {submissionError && (
@@ -368,6 +379,7 @@ export const ProblemView = () => {
                   isCloneLoading={cloneProblem.isPending}
                   isTogglePublishedLoading={togglePublished.isPending}
                   onSubmissionSelect={handleSubmissionSelect}
+                  onHintOpened={handleHintOpened}
                 />
 
                 {submissionError && (

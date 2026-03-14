@@ -341,6 +341,12 @@ export const useRunSolution = (problemId: number) => {
   });
 };
 
+export const useOpenProblemHint = (problemId: number) => {
+  return useMutation({
+    mutationFn: (hintIndex: number) => problemsApi.openHint(problemId, hintIndex)
+  });
+};
+
 // Driver template hooks
 export const useDriverTemplates = () => {
   const { isLoading: isAuthLoading } = useAuth();

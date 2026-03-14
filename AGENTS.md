@@ -1,42 +1,75 @@
-# Repository Guidelines
+# DerpCode
 
-## Project Structure & Module Organization
-- `DerpCode.API/`: ASP.NET Core backend (controllers, services, data layer, settings, seed data).
-- `DerpCode.API.Tests/`: xUnit test project organized by backend domains (`Services/*`, `Extensions/*`).
-- `derpcode-ui/`: React + TypeScript + Vite frontend (`src/` for app code, `e2e/` for Playwright).
-- `Docker/`: language-specific code execution images (`CSharp`, `Java`, `JavaScript`, `Python`, `Rust`, `TypeScript`).
-- `CI/` and `.github/workflows/`: service unit file, Azure infra, and deployment automation.
+LeetCode-style algorithm practice platform (snarky/gamified). .NET 10 API + React SPA; the API executes user code in Docker containers.
 
-## Build, Test, and Development Commands
+## Repo Layout
+
+- `DerpCode.API/` — .NET 10 Web API (EF Core + Identity + Postgres)
+- `DerpCode.API.Tests/` — xUnit tests (Moq), mirrored folder structure
+- `derpcode-ui/` — React + Vite + TypeScript + Tailwind v4 + PWA
+- `Docker/` — per-language runner images (CSharp, Java, JavaScript, Python, Rust, TypeScript)
+- `CI/Azure/` — Bicep infra, cloud-init, deployment automation
+
+## Commands
+
 Run from repo root unless noted.
 
-- `dotnet restore && dotnet build -c Release`: restore and build solution.
-- `dotnet test -c Release`: run backend tests (`DerpCode.API.Tests`).
-- `npm run start`: run API with hot reload (`dotnet watch run` in `DerpCode.API`).
-- `npm run build-api`: build API project quickly.
+**API:** `dotnet build DerpCode.API/DerpCode.API.csproj` · `dotnet test` · `npm run start` (hot reload) · `npm run build-api`
 
-Frontend (`derpcode-ui/`):
-- `npm i`: install dependencies.
-- `npm run dev`: start Vite dev server.
-- `npm run lint`: run ESLint checks.
-- `npm run test`: run Jest unit tests.
-- `npm run test:e2e`: run Playwright end-to-end tests.
-- `npm run build`: type-check and build production assets.
+**UI** (from `derpcode-ui/`): `npm i` · `npm run dev` · `npm run lint` · `npm run test` (Jest) · `npm run test:e2e` (Playwright) · `npm run build`
 
-## Coding Style & Naming Conventions
-- Follow `.editorconfig` for C#: 4-space indentation, braces required, `this.` qualification required, analyzers enforced as errors.
-- C# naming rules: `PascalCase` for types/members, interfaces prefixed with `I`, fields in `camelCase` with no underscore prefix.
-- Frontend code follows ESLint rules in `derpcode-ui/eslint.config.js`; format with `npm run prettier`.
-- Use descriptive file names that match existing patterns (for example, `ProblemServiceTests.cs`, `userService.test.ts`).
+## API Architecture
 
-## Testing Guidelines
-- Backend: xUnit + Moq; place tests in mirrored folders under `DerpCode.API.Tests/`.
-- Frontend unit tests: Jest files named `*.test.ts(x)` or `*.spec.ts(x)` under `src/`.
-- Frontend e2e tests: Playwright specs in `derpcode-ui/e2e/*.spec.ts`.
-- No hard coverage gate is configured; include tests for new behavior and regressions before opening a PR.
+- Extension-driven startup: `Program.cs` → `ApplicationStartup/ServiceCollectionExtensions/*`.
+- Config: `appsettings.json` → env-specific → `appsettings.Local.json` → Azure Key Vault (non-Dev).
+- Global auth; use `[AllowAnonymous]` to opt out. URL-segment versioning: `/api/v1/…`, `/api/v2/…`.
+- Errors: `ProblemDetailsWithErrors` + `X-Correlation-Id` on every response.
+- Service-result pattern: services return `Result<T>`; controllers map failures via `ServiceControllerBase.HandleServiceFailureResult`.
+- All async methods must accept and pass `CancellationToken`.
 
-## Commit & Pull Request Guidelines
-- Use concise Conventional Commit-style subjects seen in history: `feat:`, `fix:`, `chore:`, `test:`.
-- Keep each commit focused on one logical change.
-- PRs should include a clear summary, linked issue/task when applicable, commands/tests run, and screenshots for UI changes.
-- Call out migration or configuration impacts when changing database schema, environment settings, or deployment scripts.
+## Data & Seeding
+
+- DbContext: `Data/DataContext.cs` (Postgres, jsonb columns, enum conversions).
+- Startup seeder runs `SyncProblemsFromFolderAsync()` from `DerpCode.API/Data/SeedData/Problems/`.
+- CLI seeder mode: args `seeder` + flags `drop`, `migrate`, `clear`, `seed`, `--password <…>`.
+
+## Code Execution (Docker)
+
+- `Services/Core/CodeExecutionService.cs` via `Docker.DotNet`.
+- Bind-mounts temp dir → `/home/runner/submission`; expects `results.json`, `output.txt`, `error.txt`.
+- New language = Docker image + driver templates under `Docker/` + `ProblemDriver.Image`.
+
+## UI ↔ API Integration
+
+- Base URL: `VITE_DERPCODE_API_BASE_URL`.
+- `axiosConfig.ts`: `X-Correlation-Id`, refresh-token on 401 (`x-token-expired`), double-submit CSRF, `withCredentials: true`.
+- API calls in `services/api.ts`, **always** cached/managed via TanStack React Query in `hooks/api.ts`. No direct API calls outside React Query.
+
+## UI Styling
+
+- Dark mode default (`<html class="dark">`), `darkMode: 'class'`.
+- Use HeroUI theme tokens: `bg-background`, `text-foreground`, `bg-content1..4`, `bg-default-*`, `primary` (green), `secondary` (purple).
+- Brand palette in `tailwind.config.js` (`brand-green-*`, `brand-purple-*`).
+- Typography: Inter font stack (`index.css`), `prose dark:prose-invert` for markdown, Highlight.js + KaTeX for code.
+
+## Coding Style
+
+- **C#:** Follow `.editorconfig`. `PascalCase` types/members, `I`-prefixed interfaces, `camelCase` fields (no `_` prefix). `this.` for instance members. XML docs on public members (`<inheritdoc/>` where applicable). Non-entity POCOs → `record` with `get; init;`. Repos extend `Repository<…>` / `IRepository<…>`.
+- **TypeScript:** ESLint via `eslint.config.js`, format with `npm run prettier`. Prefer method syntax `func(): Type {}` over arrow signatures.
+
+## Testing
+
+- **Backend:** xUnit + Moq in `DerpCode.API.Tests/` (mirrored folders).
+- **UI unit:** Jest (`*.test.ts(x)` / `*.spec.ts(x)` under `src/`).
+- **UI e2e:** Playwright in `derpcode-ui/e2e/`. Use Playwright MCP for local testing; test credentials in `appsettings.Local.json`.
+- Include tests for new behavior and regressions.
+
+## Commits & PRs
+
+- Conventional Commits: `feat:`, `fix:`, `chore:`, `test:`. One logical change per commit.
+- PRs: clear summary, linked issue, commands run, screenshots for UI changes.
+- Flag migration/config impacts.
+
+## Azure
+
+Use Azure best-practices tooling when working on Bicep/VM/Key Vault/App Insights.

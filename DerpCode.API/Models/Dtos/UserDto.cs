@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DerpCode.API.Models.Entities;
+using DerpCode.API.Utilities;
 
 namespace DerpCode.API.Models.Dtos;
 
@@ -31,9 +32,20 @@ public sealed record UserDto : IIdentifiable<int>
 
     public required DateTimeOffset? LastEmailConfirmationSent { get; init; }
 
+    public required int TotalXp { get; init; }
+
+    public required int Level { get; init; }
+
+    public required int XpIntoLevel { get; init; }
+
+    public required int XpForNextLevel { get; init; }
+
     public static UserDto FromEntity(User user)
     {
         ArgumentNullException.ThrowIfNull(user);
+
+        var totalXp = user.Progress?.TotalXp ?? 0;
+        var levelProgress = ProgressionMath.GetLevelProgress(totalXp);
 
         return new UserDto
         {
@@ -47,6 +59,10 @@ public sealed record UserDto : IIdentifiable<int>
             LastEmailChange = user.LastEmailChange,
             LastUsernameChange = user.LastUsernameChange,
             LastEmailConfirmationSent = user.LastEmailConfirmationSent,
+            TotalXp = totalXp,
+            Level = user.Progress?.Level ?? levelProgress.Level,
+            XpIntoLevel = levelProgress.XpIntoLevel,
+            XpForNextLevel = levelProgress.XpForNextLevel,
             Roles = [.. user.UserRoles.Select(x => x.Role).Select(role => role.Name ?? string.Empty)],
             LinkedAccounts = [.. user.LinkedAccounts.Select(LinkedAccountDto.FromEntity)]
         };

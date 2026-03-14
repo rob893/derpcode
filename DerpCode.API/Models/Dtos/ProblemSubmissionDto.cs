@@ -34,7 +34,13 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
 
     public required IReadOnlyList<TestCaseResultDto> TestCaseResults { get; init; }
 
-    public static ProblemSubmissionDto FromEntity(ProblemSubmission submission, bool showPremiumContent, string stdOut)
+    public required XpResult Xp { get; init; }
+
+    public static ProblemSubmissionDto FromEntity(
+        ProblemSubmission submission,
+        bool showPremiumContent,
+        string stdOut,
+        XpResult? xpResult = null)
     {
         ArgumentNullException.ThrowIfNull(submission);
 
@@ -52,6 +58,7 @@ public sealed record ProblemSubmissionDto : IIdentifiable<long>, IOwnedByUser<in
             FailedTestCases = submission.FailedTestCases,
             ErrorMessage = submission.ErrorMessage ?? string.Empty,
             ExecutionTimeInMs = submission.ExecutionTimeInMs,
+            Xp = xpResult ?? XpResult.Empty,
             TestCaseResults = showPremiumContent ? [.. submission.TestCaseResults.Select(result =>
             {
                 var startDeliminator = $"|derpcode-start-test-{result.TestCaseIndex}|";

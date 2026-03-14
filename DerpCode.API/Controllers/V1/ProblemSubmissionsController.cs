@@ -71,6 +71,27 @@ public sealed class ProblemSubmissionsController : ServiceControllerBase
     }
 
     /// <summary>
+    /// Records that the current user opened a hint for a problem.
+    /// </summary>
+    /// <param name="problemId">The problem ID.</param>
+    /// <param name="hintIndex">The zero-based hint index.</param>
+    /// <returns>No content.</returns>
+    /// <response code="204">If the hint open was recorded.</response>
+    [HttpPost("hints/{hintIndex}/open", Name = nameof(OpenHintAsync))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult> OpenHintAsync([FromRoute] int problemId, [FromRoute] int hintIndex)
+    {
+        var openHintResult = await this.problemSubmissionService.OpenHintAsync(problemId, hintIndex, this.HttpContext.RequestAborted);
+
+        if (!openHintResult.IsSuccess)
+        {
+            return this.HandleServiceFailureResult(openHintResult);
+        }
+
+        return this.NoContent();
+    }
+
+    /// <summary>
     /// Runs a solution for a problem without submitting it.
     /// </summary>
     /// <param name="problemId">The ID of the problem to run the solution for.</param>

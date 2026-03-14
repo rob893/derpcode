@@ -179,6 +179,10 @@ export const problemsApi = {
       language
     });
     return response.data;
+  },
+
+  async openHint(problemId: number, hintIndex: number): Promise<void> {
+    await apiClient.post(`/api/v1/problems/${problemId}/hints/${hintIndex}/open`);
   }
 };
 

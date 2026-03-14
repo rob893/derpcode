@@ -249,7 +249,11 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
         this.context.LinkedAccounts.Clear();
         this.context.ArticleComments.Clear();
         this.context.Articles.Clear();
+        this.context.ExperienceEvents.Clear();
+        this.context.UserAchievements.Clear();
         this.context.ProblemSubmissions.Clear();
+        this.context.UserProblemProgress.Clear();
+        this.context.UserProgress.Clear();
         this.context.ProblemDrivers.Clear();
         this.context.Tags.Clear();
         this.context.Problems.Clear();
@@ -293,6 +297,13 @@ public sealed class DatabaseSeeder : IDatabaseSeeder
             LastPasswordChange = DateTimeOffset.UtcNow,
             LastEmailChange = DateTimeOffset.UtcNow,
             LastUsernameChange = DateTimeOffset.UtcNow,
+            Progress = new UserProgress
+            {
+                UserId = ApplicationSettings.SystemUserId,
+                Level = 1,
+                TotalXp = 0,
+                UpdatedAt = DateTimeOffset.UtcNow
+            }
         };
 
         await this.userManager.CreateAsync(newUser);

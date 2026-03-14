@@ -18,6 +18,10 @@ export interface UserDto {
   lastEmailChange: string;
   lastUsernameChange: string;
   lastEmailConfirmationSent?: string;
+  totalXp: number;
+  level: number;
+  xpIntoLevel: number;
+  xpForNextLevel: number;
 }
 
 export interface ConfirmEmailRequest {

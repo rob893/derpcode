@@ -445,7 +445,8 @@ public sealed class ProblemService : IProblemService
                         FailedTestCases = -1,
                         ExecutionTimeInMs = -1,
                         ErrorMessage = ex.Message,
-                        TestCaseResults = []
+                        TestCaseResults = [],
+                        Xp = XpResult.Empty
                     }
                 });
             }

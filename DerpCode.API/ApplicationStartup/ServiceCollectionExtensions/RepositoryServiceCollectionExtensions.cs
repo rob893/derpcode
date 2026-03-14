@@ -15,6 +15,10 @@ public static class RepositoryServiceCollectionExtensions
         services.AddScoped<IDriverTemplateRepository, DriverTemplateRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IProblemSubmissionRepository, ProblemSubmissionRepository>();
+        services.AddScoped<IUserProblemProgressRepository, UserProblemProgressRepository>();
+        services.AddScoped<IUserProgressRepository, UserProgressRepository>();
+        services.AddScoped<IExperienceEventRepository, ExperienceEventRepository>();
+        services.AddScoped<IUserAchievementRepository, UserAchievementRepository>();
         services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
         services.AddScoped<IArticleRepository, ArticleRepository>();
 

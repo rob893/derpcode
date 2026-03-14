@@ -16,6 +16,8 @@ public static class ConfigurationKeys
 
     public const string Postgres = "Postgres";
 
+    public const string Progression = "Progression";
+
     public const string KeyVaultUrl = "KeyVaultUrl";
 
     public const string GitHub = "GitHub";

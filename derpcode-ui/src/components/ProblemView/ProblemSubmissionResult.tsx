@@ -48,6 +48,24 @@ export const ProblemSubmissionResult = ({ result, isRunResult, user }: ProblemSu
           </div>
         </div>
 
+        {!isRunResult && result.pass && (
+          <div className="mb-4 p-3 rounded-lg border border-primary/20 bg-primary/5">
+            {result.xp.xpDeltaApplied > 0 ? (
+              <p className="text-sm text-primary-700 dark:text-primary-300">
+                +{result.xp.xpDeltaApplied} XP gained. Total XP: {result.xp.totalXp}. Level {result.xp.level} (
+                {result.xp.xpIntoLevel}/{result.xp.xpForNextLevel} to next level).
+              </p>
+            ) : (
+              <p className="text-sm text-default-600">
+                No XP increase this time. Best XP for this problem: {result.xp.problemBestXp}.
+                {result.xp.nextEligibleAt
+                  ? ` Next eligible update: ${new Date(result.xp.nextEligibleAt).toLocaleDateString()}.`
+                  : ''}
+              </p>
+            )}
+          </div>
+        )}
+
         {result.errorMessage && (
           <div className="mt-4">
             <h5 className={`font-semibold mb-2 ${isRunResult ? 'text-warning' : 'text-danger'}`}>Error Message:</h5>

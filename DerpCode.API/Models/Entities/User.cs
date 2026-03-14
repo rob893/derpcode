@@ -26,7 +26,15 @@ public sealed class User : IdentityUser<int>, IIdentifiable<int>
 
     public bool IsDeleted { get; set; }
 
+    public UserProgress? Progress { get; set; }
+
     public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
+
+    public List<UserProblemProgress> ProblemProgress { get; set; } = [];
+
+    public List<ExperienceEvent> ExperienceEvents { get; set; } = [];
+
+    public List<UserAchievement> Achievements { get; set; } = [];
 
     public List<UserFavoriteProblem> FavoriteProblems { get; set; } = [];
 

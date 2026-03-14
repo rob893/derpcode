@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using DerpCode.API.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DerpCode.API.Data;
 
@@ -29,6 +32,14 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
     public DbSet<Tag> Tags => this.Set<Tag>();
 
     public DbSet<ProblemSubmission> ProblemSubmissions => this.Set<ProblemSubmission>();
+
+    public DbSet<UserProblemProgress> UserProblemProgress => this.Set<UserProblemProgress>();
+
+    public DbSet<UserProgress> UserProgress => this.Set<UserProgress>();
+
+    public DbSet<ExperienceEvent> ExperienceEvents => this.Set<ExperienceEvent>();
+
+    public DbSet<UserAchievement> UserAchievements => this.Set<UserAchievement>();
 
     public DbSet<Article> Articles => this.Set<Article>();
 
@@ -123,6 +134,66 @@ public sealed class DataContext : IdentityDbContext<User, Role, int,
         {
             submission.Property(s => s.Language).HasConversion<string>();
             submission.Property(s => s.TestCaseResults).HasColumnType("jsonb");
+        });
+
+        builder.Entity<UserProgress>(progress =>
+        {
+            progress.HasKey(x => x.UserId);
+
+            progress.HasOne(x => x.User)
+                .WithOne(x => x.Progress)
+                .HasForeignKey<UserProgress>(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            progress.Property(x => x.RowVersion)
+                .IsRowVersion();
+        });
+
+        builder.Entity<ExperienceEvent>(eventEntity =>
+        {
+            eventEntity.Property(x => x.EventType).HasConversion<string>();
+            eventEntity.Property(x => x.SourceType).HasConversion<string>();
+            eventEntity.Property(x => x.Metadata).HasColumnType("jsonb");
+
+            eventEntity.HasIndex(x => x.IdempotencyKey).IsUnique();
+        });
+
+        builder.Entity<UserProblemProgress>(progress =>
+        {
+            progress.HasKey(x => new { x.UserId, x.ProblemId });
+
+            progress.HasOne(x => x.User)
+                .WithMany(u => u.ProblemProgress)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            progress.HasOne(x => x.Problem)
+                .WithMany(p => p.UserProgress)
+                .HasForeignKey(x => x.ProblemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            progress.Property(x => x.OpenedHintIndicesCurrentCycle)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    new ValueConverter<List<int>, string>(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null) ?? new List<int>()),
+                    new ValueComparer<List<int>>(
+                        (left, right) => left != null && right != null && left.SequenceEqual(right),
+                        v => v.Aggregate(0, (a, i) => HashCode.Combine(a, i)),
+                        v => v.ToList()));
+        });
+
+        builder.Entity<UserAchievement>(achievement =>
+        {
+            achievement.Property(x => x.AchievementType).HasConversion<string>();
+
+            achievement.HasOne(x => x.User)
+                .WithMany(u => u.Achievements)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            achievement.HasIndex(x => new { x.UserId, x.AchievementType }).IsUnique();
         });
 
         builder.Entity<Article>(article =>

@@ -218,6 +218,7 @@ public sealed class UserRepository : Repository<User, CursorPaginationQueryParam
         return query
             .Include(user => user.UserRoles)
             .ThenInclude(userRole => userRole.Role)
-            .Include(user => user.LinkedAccounts);
+            .Include(user => user.LinkedAccounts)
+            .Include(user => user.Progress);
     }
 }

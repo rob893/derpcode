@@ -407,6 +407,20 @@ export function AccountSection({ user }: AccountSectionProps) {
               <label className="text-sm font-medium text-default-600">Member Since</label>
               <p className="text-foreground">{formatDate(user.created)}</p>
             </div>
+            <div>
+              <label className="text-sm font-medium text-default-600">Level</label>
+              <p className="text-foreground font-semibold">{user.level}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-default-600">Total XP</label>
+              <p className="text-foreground">{user.totalXp}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-default-600">Progress To Next Level</label>
+              <p className="text-foreground">
+                {user.xpIntoLevel}/{user.xpForNextLevel}
+              </p>
+            </div>
           </div>
         </CardBody>
       </Card>

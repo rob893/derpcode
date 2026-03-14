@@ -34,6 +34,8 @@ public sealed class Problem : IIdentifiable<int>
 
     public List<ProblemSubmission> ProblemSubmissions { get; set; } = [];
 
+    public List<UserProblemProgress> UserProgress { get; set; } = [];
+
     public bool IsPublished { get; set; }
 
     public bool IsDeleted { get; set; }

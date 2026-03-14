@@ -33,6 +33,7 @@ interface ProblemDescriptionProps {
   isCloneLoading: boolean;
   isTogglePublishedLoading?: boolean;
   onSubmissionSelect?: (submission: ProblemSubmission) => void;
+  onHintOpened?: (hintIndex: number) => void;
 }
 
 export const ProblemDescription = ({
@@ -48,7 +49,8 @@ export const ProblemDescription = ({
   onTogglePublished,
   isCloneLoading,
   isTogglePublishedLoading = false,
-  onSubmissionSelect
+  onSubmissionSelect,
+  onHintOpened
 }: ProblemDescriptionProps) => {
   const [activeTab, setActiveTab] = useState('question');
   const [showHints, setShowHints] = useState(false);
@@ -195,10 +197,13 @@ export const ProblemDescription = ({
                                   color="warning"
                                   onPress={() => {
                                     const newRevealed = new Set(revealedHints);
-                                    if (revealedHints.has(index)) {
+                                    const wasRevealed = revealedHints.has(index);
+
+                                    if (wasRevealed) {
                                       newRevealed.delete(index);
                                     } else {
                                       newRevealed.add(index);
+                                      onHintOpened?.(index);
                                     }
                                     setRevealedHints(newRevealed);
                                   }}
