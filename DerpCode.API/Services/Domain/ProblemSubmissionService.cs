@@ -342,7 +342,7 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
             SourceType = ExperienceEventSourceType.Problem,
             SourceId = problem.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
             XpDelta = xpDelta,
-            IdempotencyKey = $"problem:{problem.Id}:cycle:{cycleIndex}:best:{xpEarned}",
+            IdempotencyKey = $"user:{userProgress.UserId}:problem:{problem.Id}:cycle:{cycleIndex}:best:{xpEarned}",
             Metadata = metadata,
             CreatedAt = submissionEntity.CreatedAt
         });
@@ -407,7 +407,7 @@ public sealed class ProblemSubmissionService : IProblemSubmissionService
                 SourceType = ExperienceEventSourceType.Problem,
                 SourceId = submissionEntity.ProblemId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 XpDelta = 0,
-                IdempotencyKey = $"problem:{submissionEntity.ProblemId}:cooldown:{submissionEntity.CreatedAt.ToUnixTimeMilliseconds()}",
+                IdempotencyKey = $"user:{userProgress.UserId}:problem:{submissionEntity.ProblemId}:cooldown:{submissionEntity.CreatedAt.ToUnixTimeMilliseconds()}",
                 Metadata = JsonSerializer.Serialize(new
                 {
                     ProblemId = submissionEntity.ProblemId,

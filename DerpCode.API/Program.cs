@@ -53,7 +53,7 @@ public static class Program
                 {
                     options.ConnectionString = appInsightsConnectionString;
                     options.Credential = new DefaultAzureCredential();
-                    options.SamplingRatio = 0.5f;
+                    options.SamplingRatio = 1f;
                 });
         }
 
