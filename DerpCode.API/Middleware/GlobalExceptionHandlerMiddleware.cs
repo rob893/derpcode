@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DerpCode.API.Core;
@@ -12,6 +13,17 @@ namespace DerpCode.API.Middleware;
 
 public sealed class GlobalExceptionHandlerMiddleware
 {
+    // Generic, status-keyed response bodies. Intentionally free of exception type names, table
+    // names, dependency identifiers, or any other server-side detail. The correlation ID surfaced
+    // by ProblemDetailsWithErrors is the support handle for matching the response to logs.
+    private static readonly Dictionary<int, string> safeStatusMessages = new()
+    {
+        { StatusCodes.Status500InternalServerError, "An unexpected error occurred while processing the request. Please reference the correlationId when contacting support." },
+        { StatusCodes.Status504GatewayTimeout, "The request timed out. Please reference the correlationId when contacting support." }
+    };
+
+    private const string FallbackSafeMessage = "An error occurred while processing the request. Please reference the correlationId when contacting support.";
+
     private readonly ILogger<GlobalExceptionHandlerMiddleware> logger;
 
     private readonly JsonSerializerOptions jsonOptions = new()
@@ -34,31 +46,34 @@ public sealed class GlobalExceptionHandlerMiddleware
         {
             var sourceName = GetSourceName();
             var thrownException = error.Error;
-            var statusCode = StatusCodes.Status500InternalServerError;
-
-            switch (thrownException)
+            var statusCode = thrownException switch
             {
-                case TimeoutException:
-                    statusCode = StatusCodes.Status504GatewayTimeout;
-                    break;
-                default:
-                    break;
-            }
+                TimeoutException => StatusCodes.Status504GatewayTimeout,
+                _ => StatusCodes.Status500InternalServerError
+            };
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            var problemDetails = new ProblemDetailsWithErrors(thrownException, context.Response.StatusCode, context.Request);
-
+            // Log the full exception (including stack trace and inner-exception chain) for the
+            // operator. The exception object is intentionally NOT copied into the response body
+            // because messages from EF Core, Postgres, identity providers, etc. can disclose
+            // schema, dependency, and infrastructure details that aid attackers.
             if (statusCode >= StatusCodes.Status500InternalServerError)
             {
-                this.logger.LogError("{SourceName} {ErrorMessage}", sourceName, thrownException.Message);
+                this.logger.LogError(thrownException, "{SourceName} unhandled exception", sourceName);
             }
             else
             {
-                this.logger.LogWarning("{SourceName} {ErrorMessage}", sourceName, thrownException.Message);
+                this.logger.LogWarning(thrownException, "{SourceName} unhandled exception", sourceName);
             }
 
+            if (!safeStatusMessages.TryGetValue(statusCode, out var safeMessage))
+            {
+                safeMessage = FallbackSafeMessage;
+            }
+
+            var problemDetails = new ProblemDetailsWithErrors(safeMessage, statusCode, context.Request);
             var jsonResponse = JsonSerializer.Serialize(problemDetails, this.jsonOptions);
 
             if (!context.Response.HasStarted)

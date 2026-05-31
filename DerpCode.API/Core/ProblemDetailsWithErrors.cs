@@ -51,41 +51,10 @@ public sealed class ProblemDetailsWithErrors : ProblemDetails
         this([error], statusCode, request)
     { }
 
-    public ProblemDetailsWithErrors(IEnumerable<Exception> errors, int statusCode, HttpRequest? request = null) :
-        this(new AggregateException(errors), statusCode, request)
-    { }
-
-    public ProblemDetailsWithErrors(Exception error, int statusCode, HttpRequest? request = null)
-    {
-        ArgumentNullException.ThrowIfNull(error);
-
-        var errors = new List<string> { error.Message };
-
-        if (error is AggregateException aggEx)
-        {
-            foreach (var innerException in aggEx.InnerExceptions)
-            {
-                errors.Add(innerException.Message);
-            }
-        }
-        else
-        {
-            var innerError = error.InnerException;
-            while (innerError != null)
-            {
-                errors.Add(innerError.Message);
-                innerError = innerError.InnerException;
-            }
-        }
-
-        this.SetProblemDetails(errors, statusCode, request);
-    }
 
     public ProblemDetailsWithErrors(IEnumerable<string> errors, HttpRequest? request = null) : this(errors, StatusCodes.Status500InternalServerError, request) { }
 
     public ProblemDetailsWithErrors(string error, HttpRequest? request = null) : this([error], StatusCodes.Status500InternalServerError, request) { }
-
-    public ProblemDetailsWithErrors(Exception error, HttpRequest? request = null) : this(error, StatusCodes.Status500InternalServerError, request) { }
 
     private void SetProblemDetails(IEnumerable<string> errors, int statusCode, HttpRequest? request)
     {
