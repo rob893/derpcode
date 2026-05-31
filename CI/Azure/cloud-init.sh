@@ -20,7 +20,12 @@ add-apt-repository \
    stable"
 apt-get update -y
 apt-get install docker-ce -y
-usermod -aG docker ${adminUsername}
+
+# Create a dedicated service account for running the application. Docker group membership is
+# effectively root on the host, so the interactive admin user is intentionally NOT added. The
+# admin can still run privileged operations via sudo when needed.
+useradd --system --create-home --shell /bin/bash derpcode || true
+usermod -aG docker derpcode
 
 # Install .NET 8 SDK
 wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb

@@ -12,6 +12,8 @@ public static class ConfigurationKeys
 
     public const string Email = "Email";
 
+    public const string ForwardedHeaders = "ForwardedHeaders";
+
     public const string OpenApi = "OpenApi";
 
     public const string Postgres = "Postgres";

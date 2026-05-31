@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Text.Json;
 using System.Threading.RateLimiting;
 using DerpCode.API.Core;
 using Microsoft.AspNetCore.Builder;
@@ -8,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Text.Json;
 
 namespace DerpCode.API.ApplicationStartup.ServiceCollectionExtensions;
 
@@ -119,14 +118,22 @@ public static class RateLimiterServiceCollectionExtensions
         return services;
     }
 
-    private static string GetPartitionKey(this HttpContext context)
+    internal static string GetPartitionKey(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         return context.User.Identity?.Name ?? context.GetIpAddress() ?? "anonymous";
     }
 
-    private static string? GetIpAddress(this HttpContext context)
+    // Intentionally does NOT read raw forwarding headers like X-Forwarded-For: those values are
+    // attacker-controlled when the request is not coming through a trusted proxy and would let a
+    // bot rotate fake source IPs to evade per-IP throttles. The ForwardedHeaders middleware
+    // (configured in Program.cs with explicit KnownProxies/KnownNetworks) is responsible for
+    // rewriting RemoteIpAddress to the real client IP when a trusted proxy is in front.
+    internal static string? GetIpAddress(this HttpContext context)
     {
-        return context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
-            ?? context.Connection.RemoteIpAddress?.ToString();
+        ArgumentNullException.ThrowIfNull(context);
+
+        return context.Connection.RemoteIpAddress?.ToString();
     }
 }
