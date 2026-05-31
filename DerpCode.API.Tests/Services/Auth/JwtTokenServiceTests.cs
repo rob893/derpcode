@@ -127,7 +127,7 @@ public sealed class JwtTokenServiceTests
         Assert.False(string.IsNullOrEmpty(token));
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = CreateTokenValidationParameters();
+        var validationParameters = this.CreateTokenValidationParameters();
 
         // This should not throw an exception
         var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
