@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,4 +27,6 @@ public interface IFileSystemService
     Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken = default);
 
     Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default);
+
+    void SetUnixFileMode(string path, UnixFileMode mode);
 }

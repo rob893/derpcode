@@ -340,7 +340,7 @@ public sealed class CodeExecutionServiceTests
         // Assert
         Assert.NotNull(capturedParams);
         Assert.Equal("test-csharp-image", capturedParams.Image);
-        Assert.Equal("root", capturedParams.User);
+        Assert.True(string.IsNullOrEmpty(capturedParams.User), "Container should run as the image's default non-root user, not as root.");
         Assert.True(capturedParams.NetworkDisabled);
 
         // Verify host configuration
@@ -351,6 +351,24 @@ public sealed class CodeExecutionServiceTests
         Assert.True(capturedParams.HostConfig.AutoRemove);
         Assert.Single(capturedParams.HostConfig.Binds);
         Assert.Contains(":/home/runner/submission:rw", capturedParams.HostConfig.Binds[0]);
+
+        // Security hardening (issues 1 and 2 from the 2026-03-14 security plan)
+        Assert.Equal(512L, capturedParams.HostConfig.PidsLimit);
+        Assert.NotNull(capturedParams.HostConfig.CapDrop);
+        Assert.Contains("ALL", capturedParams.HostConfig.CapDrop);
+        Assert.NotNull(capturedParams.HostConfig.SecurityOpt);
+        Assert.Contains("no-new-privileges:true", capturedParams.HostConfig.SecurityOpt);
+        Assert.NotNull(capturedParams.HostConfig.Ulimits);
+        Assert.Contains(capturedParams.HostConfig.Ulimits, u => u.Name == "nofile" && u.Soft == 1024 && u.Hard == 1024);
+        Assert.Contains(capturedParams.HostConfig.Ulimits, u => u.Name == "fsize" && u.Soft == 64L * 1024 * 1024 && u.Hard == 64L * 1024 * 1024);
+
+        // Verify the submission tempDir was chmod'd so the non-root container user can write results.
+        this.mockFileSystemService.Verify(x => x.SetUnixFileMode(
+            It.IsAny<string>(),
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+            UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute |
+            UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute),
+            Times.Once);
     }
 
     [Fact]
@@ -393,6 +411,97 @@ public sealed class CodeExecutionServiceTests
 
         // Assert
         Assert.True(result.Submission.Pass);
+    }
+
+    [Fact]
+    public async Task RunCodeAsync_WhenContainerWaitExceedsTimeout_ReturnsTimeoutErrorAndStopsContainer()
+    {
+        // Arrange
+        var userCode = "test code";
+        var problem = CreateTestProblem();
+        var containerId = "test-container-id";
+
+        this.mockContainerOperations
+            .Setup(x => x.CreateContainerAsync(It.IsAny<CreateContainerParameters>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CreateContainerResponse { ID = containerId });
+
+        this.mockContainerOperations
+            .Setup(x => x.StartContainerAsync(containerId, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Hang until the linked timeout cancels us — mirrors a runaway container that never exits.
+        this.mockContainerOperations
+            .Setup(x => x.WaitContainerAsync(containerId, It.IsAny<CancellationToken>()))
+            .Returns<string, CancellationToken>(async (_, ct) =>
+            {
+                await Task.Delay(Timeout.Infinite, ct).ConfigureAwait(false);
+                return new ContainerWaitResponse { StatusCode = 0 };
+            });
+
+        CancellationToken stopCleanupToken = default;
+        this.mockContainerOperations
+            .Setup(x => x.StopContainerAsync(containerId, It.IsAny<ContainerStopParameters>(), It.IsAny<CancellationToken>()))
+            .Callback<string, ContainerStopParameters, CancellationToken>((_, _, ct) => stopCleanupToken = ct)
+            .ReturnsAsync(true);
+
+        CancellationToken removeCleanupToken = default;
+        this.mockContainerOperations
+            .Setup(x => x.RemoveContainerAsync(containerId, It.IsAny<ContainerRemoveParameters>(), It.IsAny<CancellationToken>()))
+            .Callback<string, ContainerRemoveParameters, CancellationToken>((_, _, ct) => removeCleanupToken = ct)
+            .Returns(Task.CompletedTask);
+
+        var tempDir = $@"temp\submission_{Guid.NewGuid()}";
+        this.mockFileSystemService.Setup(x => x.GetTempPath()).Returns("temp");
+        this.mockFileSystemService.Setup(x => x.CombinePaths("temp", It.IsAny<string>())).Returns(tempDir);
+        this.mockFileSystemService.Setup(x => x.CreateDirectory(tempDir));
+        this.mockFileSystemService.Setup(x => x.DirectoryExists(tempDir)).Returns(true);
+        this.mockFileSystemService.Setup(x => x.DeleteDirectory(tempDir, true));
+        this.mockFileSystemService.Setup(x => x.WriteAllTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var service = new CodeExecutionService(
+            this.mockDockerClient.Object,
+            this.mockLogger.Object,
+            this.mockFileSystemService.Object,
+            TimeSpan.FromMilliseconds(50));
+
+        // Act
+        var result = await service.RunCodeAsync(1, userCode, LanguageType.CSharp, problem, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Submission.Pass);
+        Assert.Contains("exceeded the maximum allowed time", result.Submission.ErrorMessage);
+
+        // Cleanup must use a fresh, non-canceled token rather than the already-canceled wait token.
+        this.mockContainerOperations.Verify(x => x.StopContainerAsync(
+            containerId,
+            It.IsAny<ContainerStopParameters>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+        this.mockContainerOperations.Verify(x => x.RemoveContainerAsync(
+            containerId,
+            It.Is<ContainerRemoveParameters>(p => p.Force == true),
+            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.False(stopCleanupToken.IsCancellationRequested, "Stop must not reuse the already-canceled wait token.");
+        Assert.False(removeCleanupToken.IsCancellationRequested, "Remove must not reuse the already-canceled wait token.");
+    }
+
+    [Fact]
+    public void Constructor_WithZeroExecutionWaitTimeout_ThrowsArgumentOutOfRangeException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new CodeExecutionService(this.mockDockerClient.Object, this.mockLogger.Object, this.mockFileSystemService.Object, TimeSpan.Zero));
+
+        Assert.Equal("executionWaitTimeout", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNegativeExecutionWaitTimeout_ThrowsArgumentOutOfRangeException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new CodeExecutionService(this.mockDockerClient.Object, this.mockLogger.Object, this.mockFileSystemService.Object, TimeSpan.FromSeconds(-1)));
+
+        Assert.Equal("executionWaitTimeout", exception.ParamName);
     }
 
     #endregion

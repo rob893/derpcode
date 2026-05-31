@@ -12,5 +12,8 @@ COPY BaseDriver.txt ./App/BaseDriver.cs
 RUN cd App && dotnet restore
 RUN chmod +x run.sh
 
+# Let the runner user write to App/ (created by dotnet new console as root)
+RUN chown -R runner:runner /home/runner
+
 USER runner
 CMD ["./run.sh"]

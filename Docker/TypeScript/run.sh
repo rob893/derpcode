@@ -19,7 +19,7 @@ if [ $BUILD_EXIT -ne 0 ]; then
 fi
 
 # Bundle (fast transpile, no type checking)
-./node_modules/.bin/esbuild index.ts --bundle --platform=node --outfile=dist/index.js 2>/dev/null
+timeout 15s ./node_modules/.bin/esbuild index.ts --bundle --platform=node --outfile=dist/index.js 2>/dev/null
 
 echo "Running..."
 timeout 20s node dist/index.js /home/runner/input.json /home/runner/expectedOutput.json /home/runner/submission/results.json >> /home/runner/submission/output.txt 2>> /home/runner/submission/error.txt

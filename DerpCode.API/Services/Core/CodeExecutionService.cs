@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -18,17 +19,40 @@ public sealed class CodeExecutionService : ICodeExecutionService
         PropertyNameCaseInsensitive = true
     };
 
+    private static readonly TimeSpan defaultExecutionWaitTimeout = TimeSpan.FromSeconds(60);
+
+    // 0777 — runner UID inside the container is unlikely to match the API host UID, so the
+    // submission tempDir must be writable for any UID to receive results.json/output.txt/error.txt.
+    private const UnixFileMode SubmissionDirectoryMode =
+        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+        UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute |
+        UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute;
+
     private readonly IDockerClient dockerClient;
 
     private readonly ILogger<CodeExecutionService> logger;
 
     private readonly IFileSystemService fileSystemService;
 
+    private readonly TimeSpan executionWaitTimeout;
+
     public CodeExecutionService(IDockerClient dockerClient, ILogger<CodeExecutionService> logger, IFileSystemService fileSystemService)
+        : this(dockerClient, logger, fileSystemService, defaultExecutionWaitTimeout)
+    {
+    }
+
+    public CodeExecutionService(IDockerClient dockerClient, ILogger<CodeExecutionService> logger, IFileSystemService fileSystemService, TimeSpan executionWaitTimeout)
     {
         this.dockerClient = dockerClient ?? throw new ArgumentNullException(nameof(dockerClient));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
+
+        if (executionWaitTimeout <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(executionWaitTimeout), "Execution wait timeout must be greater than zero.");
+        }
+
+        this.executionWaitTimeout = executionWaitTimeout;
     }
 
     public async Task<(ProblemSubmission Submission, string StdOut)> RunCodeAsync(int userId, string userCode, LanguageType language, Problem problem, CancellationToken cancellationToken)
@@ -40,6 +64,7 @@ public sealed class CodeExecutionService : ICodeExecutionService
 
         var tempDir = this.fileSystemService.CombinePaths(this.fileSystemService.GetTempPath(), $"submission_{Guid.NewGuid()}");
         this.fileSystemService.CreateDirectory(tempDir);
+        this.fileSystemService.SetUnixFileMode(tempDir, SubmissionDirectoryMode);
 
         try
         {
@@ -109,19 +134,50 @@ public sealed class CodeExecutionService : ICodeExecutionService
             Memory = 512L * 1024 * 1024, // 512MB
             MemorySwap = 512L * 1024 * 1024, // 512MB
             CPUPercent = 50,
-            AutoRemove = true
+            AutoRemove = true,
+            PidsLimit = 512,
+            CapDrop = ["ALL"],
+            SecurityOpt = ["no-new-privileges:true"],
+            Ulimits =
+            [
+                new Ulimit { Name = "nofile", Soft = 1024, Hard = 1024 },
+                new Ulimit { Name = "fsize", Soft = 64L * 1024 * 1024, Hard = 64L * 1024 * 1024 }
+            ]
         };
 
         var container = await this.dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
         {
             Image = image,
             HostConfig = hostConfig,
-            NetworkDisabled = true,
-            User = "root"
-        }, cancellationToken);
+            NetworkDisabled = true
+        }, cancellationToken).ConfigureAwait(false);
 
         await this.dockerClient.Containers.StartContainerAsync(container.ID, null, cancellationToken).ConfigureAwait(false);
-        await this.dockerClient.Containers.WaitContainerAsync(container.ID, cancellationToken).ConfigureAwait(false);
+
+        using var timeoutCts = new CancellationTokenSource(this.executionWaitTimeout);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+        try
+        {
+            await this.dockerClient.Containers.WaitContainerAsync(container.ID, linkedCts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        {
+            this.logger.LogWarning(
+                "Container {ContainerId} exceeded the execution wait timeout of {TimeoutSeconds}s; forcibly stopping.",
+                container.ID,
+                this.executionWaitTimeout.TotalSeconds);
+
+            await this.TryStopAndRemoveContainerAsync(container.ID).ConfigureAwait(false);
+
+            throw new TimeoutException(
+                $"Code execution exceeded the maximum allowed time of {this.executionWaitTimeout.TotalSeconds:0} seconds.");
+        }
+        catch (OperationCanceledException)
+        {
+            await this.TryStopAndRemoveContainerAsync(container.ID).ConfigureAwait(false);
+            throw;
+        }
 
         var resultsPath = this.fileSystemService.CombinePaths(tempDir, "results.json");
         var errorPath = this.fileSystemService.CombinePaths(tempDir, "error.txt");
@@ -190,5 +246,44 @@ public sealed class CodeExecutionService : ICodeExecutionService
         submissionResult.ProblemId = problemId;
 
         return (submissionResult, output);
+    }
+
+    private async Task TryStopAndRemoveContainerAsync(string containerId)
+    {
+        // Use a fresh, short-lived cleanup token so we don't reuse a canceled token.
+        using var cleanupCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        try
+        {
+            await this.dockerClient.Containers.StopContainerAsync(
+                containerId,
+                new ContainerStopParameters { WaitBeforeKillSeconds = 1 },
+                cleanupCts.Token).ConfigureAwait(false);
+        }
+        catch (DockerContainerNotFoundException)
+        {
+            // AutoRemove may have already cleaned the container up — nothing more to do.
+            return;
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogWarning(ex, "Failed to stop runaway container {ContainerId}", containerId);
+        }
+
+        try
+        {
+            await this.dockerClient.Containers.RemoveContainerAsync(
+                containerId,
+                new ContainerRemoveParameters { Force = true },
+                cleanupCts.Token).ConfigureAwait(false);
+        }
+        catch (DockerContainerNotFoundException)
+        {
+            // Auto-remove already handled it.
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogWarning(ex, "Failed to remove runaway container {ContainerId}", containerId);
+        }
     }
 }

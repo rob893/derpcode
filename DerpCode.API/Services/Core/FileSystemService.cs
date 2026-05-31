@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,5 +60,15 @@ public sealed class FileSystemService : IFileSystemService
     public async Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default)
     {
         return await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+    }
+
+    public void SetUnixFileMode(string path, UnixFileMode mode)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        File.SetUnixFileMode(path, mode);
     }
 }
