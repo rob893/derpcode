@@ -41,7 +41,7 @@ jobs:
       - name: Allow IP on NSG
         run: |
           az network nsg rule create \
-            --resource-group rherber-rg-ue-d \
+            --resource-group rherber-shared-rg-ue-d \
             --nsg-name rherber-vm-ue-d-nsg \
             --name AllowGitHubRunnerForDockerImages \
             --priority 100 \
@@ -88,6 +88,6 @@ jobs:
         if: always()
         run: |
           az network nsg rule delete \
-            --resource-group rherber-rg-ue-d \
+            --resource-group rherber-shared-rg-ue-d \
             --nsg-name rherber-vm-ue-d-nsg \
             --name AllowGitHubRunnerForDockerImages
