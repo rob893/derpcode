@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DerpCode.API.Constants;
 using DerpCode.API.Core;
+using DerpCode.API.Extensions;
 using DerpCode.API.Models.Settings;
 using DerpCode.API.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -36,6 +37,13 @@ public static class AuthenticationServiceCollectionExtensions
 
         var authSettings = config.GetSection(ConfigurationKeys.Authentication)?.Get<AuthenticationSettings>() ??
             throw new InvalidOperationException($"Missing {ConfigurationKeys.Authentication} section in configuration.");
+
+        if (config.GetEnvironment() != EnvironmentNames.Development &&
+            GoogleOAuthService.ResolveGoogleOAuthAudiences(authSettings).Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"{ConfigurationKeys.Authentication}:{nameof(AuthenticationSettings.GoogleOAuthAudiences)} must contain at least one audience or {nameof(AuthenticationSettings.GoogleOAuthClientId)} must be configured outside Development.");
+        }
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

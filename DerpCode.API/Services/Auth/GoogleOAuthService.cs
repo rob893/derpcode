@@ -71,8 +71,22 @@ public sealed class GoogleOAuthService : IGoogleOAuthService
             idToken,
             new GoogleJsonWebSignature.ValidationSettings
             {
-                Audience = this.authSettings.GoogleOAuthAudiences
+                Audience = ResolveGoogleOAuthAudiences(this.authSettings)
             });
+    }
+
+    internal static IReadOnlyList<string> ResolveGoogleOAuthAudiences(AuthenticationSettings authSettings)
+    {
+        ArgumentNullException.ThrowIfNull(authSettings);
+
+        if (authSettings.GoogleOAuthAudiences.Count > 0)
+        {
+            return authSettings.GoogleOAuthAudiences;
+        }
+
+        return string.IsNullOrWhiteSpace(authSettings.GoogleOAuthClientId)
+            ? []
+            : [authSettings.GoogleOAuthClientId];
     }
 
     private sealed record GoogleTokenResponse
